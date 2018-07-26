@@ -6,6 +6,7 @@ import decimal
 import logging
 from modles.coin import Coin
 
+
 class Etp(Base):
     rpc_version = "2.0"
     rpc_id = 0
@@ -15,7 +16,8 @@ class Etp(Base):
         self.name = 'ETP'
         self.tokens = settings['tokens']
         self.token_names = [x['name'] for x in self.tokens]
-        logging.info("init type {}, tokens: {}".format(self.name, self.token_names))
+        logging.info("init type {}, tokens: {}".format(
+            self.name, self.token_names))
 
     def start(self):
         self.best_block_number()
@@ -47,9 +49,8 @@ class Etp(Base):
         res = self.make_request('getaddressetp', [address])
         return res['result']['unspent']
 
-
     def get_coins(self):
-        coins=[]
+        coins = []
         for x in self.tokens:
             supply = self.total_supply(x['name'])
             if supply != 0:
@@ -72,7 +73,8 @@ class Etp(Base):
         return 0
 
     def secondary_issue(self, account, passphase, to_did, symbol, volume):
-        res = self.make_request('secondaryissue', [account, passphase, to_did, symbol, volume])
+        res = self.make_request(
+            'secondaryissue', [account, passphase, to_did, symbol, volume])
         return res['hash']
 
     def get_block_by_height(self, height, addresses):
@@ -90,7 +92,8 @@ class Etp(Base):
 
             tx = {}
             for j, output in enumerate(trans['outputs']):
-                to_addr = '' if output.get('address') is None else output['address']
+                to_addr = '' if output.get(
+                    'address') is None else output['address']
 
                 if output['attachment']['type'] == 'asset-transfer':
                     if to_addr not in addresses:
@@ -152,9 +155,16 @@ class Etp(Base):
         return False
 
     def get_transaction(self, txid):
-        res = self.make_request('gettransaction', [txid])
-        res['result']['blockNumber'] = res['result']['height']
-        return res['result']
+        result = None
+        try:
+            res = self.make_request('gettransaction', [txid])
+            result = res['result']
+            if result:
+                result['blockNumber'] = result['height']
+        except ValueError, e:
+            logging.error("failed to get transaction: {}".format(str(e)))
+            raise
+        return result
 
     def new_address(self, account, passphase):
         res = self.make_request('getnewaddress', [account, passphase])

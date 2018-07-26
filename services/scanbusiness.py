@@ -64,7 +64,7 @@ class ScanBusiness(IBusiness):
 
             if tx != None and tx['blockNumber'] + minconf <= block_num:
                 r.is_confirm = process.PROCESS_CONFIRM
-                logging.info('confirm tx:%s,tx_height:%d, cur_number:%d' %
+                logging.info('confirm tx:%s, tx_height:%d, cur_number:%d' %
                              (r.tx_hash, tx['blockNumber'], block_num))
                 db.session.add(r)
 
