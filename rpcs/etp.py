@@ -73,9 +73,17 @@ class Etp(Base):
         return 0
 
     def secondary_issue(self, account, passphase, to_did, symbol, volume):
-        res = self.make_request(
-            'secondaryissue', [account, passphase, to_did, symbol, volume])
-        return res['hash']
+        tx_hash = None
+        try:
+            res = self.make_request(
+                'secondaryissue', [account, passphase, to_did, symbol, volume])
+            result = res['result']
+            if result:
+                tx_hash = result['hash']
+        except ValueError, e:
+            logging.error("failed to get transaction: {}".format(str(e)))
+            raise
+        return tx_hash
 
     def get_block_by_height(self, height, addresses):
         res = self.make_request('getblockheader', ['-t', int(height)])
