@@ -1,0 +1,90 @@
+{
+    "host":"0.0.0.0",
+    "port":8081,
+    "mysql_host":"127.0.0.1",
+    "mysql_port":3306,
+    "mysql_user":"root",
+    "mysql_passwd":"123456",
+    "mysql_db":"wallet",
+    "privkey_path":"~/keys/private.pem",
+    "pubkey_path":"~/keys/public.pem",
+    "rpcs":[
+        {
+            "id": 1,
+            "name": "ETP",
+            "decimal": 8,
+            "type": "rpcs.etp.Etp",
+            "uri": "http://127.0.0.1:8820/rpc/v3",
+            "tokens": [
+                {
+                    "name":"ERC.ABC",
+                    "enable":true,
+                    "decimal": 5
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "name": "ETH",
+            "contract_mapaddress":"0x7cf4d8fdec9244e774272aac648d33e051fd83f4",
+            "decimal": 18,
+            "type": "rpcs.eth.Eth",
+            "host":"10.10.10.175",
+            "port":8545
+        },
+        {
+            "id":3,
+            "name":"ETHToken",
+            "type":"rpcs.eth_token.EthToken",
+            "contract_mapaddress":"0x7cf4d8fdec9244e774272aac648d33e051fd83f4",
+            "host":"10.10.10.175",
+            "port":8545,
+            "tokens": [
+                {
+                    "name":"ABC",
+                    "contract_address":"0x0506e5ef752ea1129a7e6ed41df5e93131beE8a7",
+                    "enable":true,
+                    "decimal": 5
+                },
+                {
+                    "name":"SMT",
+                    "contract_address":"0x9faa766fcbcd3bdbab27681c7cca6e1a6016b7c5",
+                    "enable":true,
+                    "decimal": 4
+                }
+            ]
+        }
+
+    ],
+    "scans":{
+        "mails":[],
+        "interval":0.1,
+        "services":[
+            {
+                "rpc":1,
+                "minconf":12,
+                "coin":"ETP",
+                "retry_interval":300,
+                "account":"test1",
+                "passphrase":"test1",
+                "enable":true
+            },
+            {
+                "rpc":2,
+                "coin":"ETH",
+                "minconf":12,
+                "retry_interval":300,
+                "passphrase":"xiao123456",
+                "enable":true
+            },
+            {
+                "rpc":3,
+                "coin":"ETHToken",
+                "minconf":12,
+                "retry_interval":300,
+                "passphrase":"xiao123456",
+                "enable":true
+            }
+        ]
+    }
+}
