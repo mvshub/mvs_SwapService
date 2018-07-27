@@ -71,37 +71,41 @@ class ScanBusiness(IBusiness):
             return
 
         for r in results:
-            #try:
-                if not r.to_address:
-                    b = db.session.query(Binder).filter_by(
-                        binder=r.from_address).order_by(Binder.iden.desc()).all()
-                    if not b:
-                        continue
-                    r.to_address = b[0].to
-
-                rpc = self.get_swap_rpc(r.coin)
-                if not rpc:
+            # try:
+            if not r.to_address:
+                b = db.session.query(Binder).filter_by(
+                    binder=r.from_address).order_by(Binder.iden.desc()).all()
+                if not b:
                     continue
+                r.to_address = b[0].to
 
-                err = self.before_swap(rpc, r)
-                if err != 0:
-                    continue
+            rpc = self.get_swap_rpc(r.coin)
+            if not rpc:
+                continue
 
-                swap_coin = self.get_swap_coin(r.coin)
-                swap_settings = self.get_rpc_settings(swap_coin)
-                tx = rpc.transfer_asset(
-                    r.to_address, r.token, r.amount, swap_settings)
-                if tx:
-                    r.tx_hash = tx
-                    r.status = process.PROCESS_SWAP_SEND
-                    r.is_confirm = process.PROCESS_UNCONFIRM
-                    db.session.add(r)
-                    db.session.commit()
+            if not rpc.is_swap_address_valid(r.to_address):
+                # TODO
+                continue
 
-                    logging.info('success send asset: {}, {}, to: {}, tx_hash = {}'.format(
-                        r.token, r.amount, r.to_address, r.tx_hash))
+            err = self.before_swap(rpc, r)
+            if err != 0:
+                continue
 
-            #except Exception as e:
+            swap_coin = self.get_swap_coin(r.coin)
+            swap_settings = self.get_rpc_settings(swap_coin)
+            tx = rpc.transfer_asset(
+                r.to_address, r.token, r.amount, swap_settings)
+            if tx:
+                r.tx_hash = tx
+                r.status = process.PROCESS_SWAP_SEND
+                r.is_confirm = process.PROCESS_UNCONFIRM
+                db.session.add(r)
+                db.session.commit()
+
+                logging.info('success send asset: {}, {}, to: {}, tx_hash = {}'.format(
+                    r.token, r.amount, r.to_address, r.tx_hash))
+
+            # except Exception as e:
             #    logging.error('process swap exception, coin:%s token=: %s, error:%s' % (
             #        r.coin, r.token, str(e)))
 
@@ -133,7 +137,7 @@ class ScanBusiness(IBusiness):
 
                     if r.status == process.PROCESS_SWAP_ISSUE:
                         issue_coin = db.session.query(Coin).filter_by(
-                        name = r.coin,token=r.token)
+                            name=r.coin, token=r.token)
                         issue_coin.status = process.TOKEN_NORMAL
                         db.session.add(issue_coin)
                         db.session.commit()
@@ -161,10 +165,11 @@ class ScanBusiness(IBusiness):
             swap_settings = self.get_rpc_settings(swap_coin)
             total_supply = 0
             issue_coin = db.session.query(Coin).filter_by(
-                name = result.coin,token=result.token).all()
+                name=result.coin, token=result.token).all()
 
-            if not issue_coin :
-                logging.info("coin:%s,token %s not exist in the db" % (result.coin, result.token))
+            if not issue_coin:
+                logging.info("coin:%s,token %s not exist in the db" %
+                             (result.coin, result.token))
                 return -1
 
             issue_coin = issue_coin[0]
@@ -172,8 +177,9 @@ class ScanBusiness(IBusiness):
             total_supply = issue_coin.total_supply
 
             if issue_coin.status == process.TOKEN_ISSUE:
-                logging.info("coin:%s,token %s is issueing" % (result.coin, result.token))
-                return -1           
+                logging.info("coin:%s,token %s is issueing" %
+                             (result.coin, result.token))
+                return -1
 
             err, tx = swap_rpc.before_swap(
                 result.token, result.amount, total_supply, swap_settings)
@@ -182,7 +188,7 @@ class ScanBusiness(IBusiness):
                 result.status = process.PROCESS_SWAP_ISSUE
                 result.is_confirm = process.PROCESS_UNCONFIRM
 
-                issue_coin.status= process.TOKEN_ISSUE
+                issue_coin.status = process.TOKEN_ISSUE
                 db.session.add(issue_coin)
 
                 db.session.add(result)

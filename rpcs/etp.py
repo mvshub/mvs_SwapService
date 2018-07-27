@@ -45,6 +45,13 @@ class Etp(Base):
             pass
         return res.text
 
+    def is_swap_address_valid(self, did):
+        res = self.make_request('getdid', [did])
+        dids = res['result']
+        if dids and len(dids) == 1:
+            return True
+        return False
+
     def get_balance(self, name, address):
         res = self.make_request('getaddressetp', [address])
         return res['result']['unspent']
@@ -63,12 +70,12 @@ class Etp(Base):
         return coins
 
     def get_total_supply(self, token=None):
-        res = self.make_request('getasset', [token])
-        assets = res['result']
-        if len(assets) > 0:
-            supply = int(assets[0]['maximum_supply'])
-            if token in self.token_names:
-                supply = self.from_wei(token, supply)
+        if token and token in self.token_names:
+            res = self.make_request('getasset', [token])
+            assets = res['result']
+            if len(assets) > 0:
+                total = sum([int(x['maximum_supply']) for x in assets])
+                supply = self.from_wei(token, total)
                 return supply
         return 0
 
@@ -235,11 +242,11 @@ class Etp(Base):
         to_did = settings.get('did')
         symbol = self.get_erc_symbol(token)
 
-        volume = self.get_account_asset(account, passphrase, symbol)
-        logging.info("get_account_asset: {}, {}".format(symbol, volume))
+        volume = self.get_total_supply(symbol)
+        logging.info("get_total_supply: {}, {}".format(symbol, volume))
 
-        if volume < amount:
-            issue_volume = self.to_wei(symbol, amount - volume)
+        if volume < total_supply:
+            issue_volume = self.to_wei(symbol, total_supply - volume)
             tx_hash = self.secondary_issue(
                 account, passphrase, to_did, symbol, issue_volume)
             return 1, tx_hash
@@ -250,7 +257,6 @@ class Etp(Base):
             to, token, amount, settings))
 
         symbol = self.get_erc_symbol(token)
-        volume = self.to_wei(symbol, amount)
         account = settings.get('account')
         passphrase = settings.get('passphrase')
-        return self.did_send_asset(account, passphrase, to, symbol, volume)
+        return self.did_send_asset(account, passphrase, to, symbol, amount)

@@ -51,3 +51,6 @@ class Base:
 
     def after_swap(self, token, amount, settings):
         return 0, None
+
+    def is_swap_address_valid(self, address):
+        return True
