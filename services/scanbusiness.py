@@ -82,10 +82,6 @@ class ScanBusiness(IBusiness):
             if not rpc:
                 continue
 
-            if not rpc.is_swap_address_valid(r.to_address):
-                # TODO
-                continue
-
             err = self.before_swap(rpc, r)
             if err != 0:
                 continue
@@ -160,6 +156,9 @@ class ScanBusiness(IBusiness):
     def before_swap(self, swap_rpc, result):
         err = 0
         if not result.tx_hash or result.status == int(Status.Swap_New):
+            if not swap_rpc.is_swap_address_valid(result.to_address):
+                return -1
+
             swap_coin = self.get_swap_coin(result.coin)
             swap_settings = self.get_rpc_settings(swap_coin)
             total_supply = 0
@@ -167,18 +166,17 @@ class ScanBusiness(IBusiness):
                 name=result.coin, token=result.token).all()
 
             if not issue_coin:
-                logging.info("coin:%s,token %s not exist in the db" %
+                logging.info("coin:%s, token %s not exist in the db" %
                              (result.coin, result.token))
                 return -1
-
-            issue_coin = issue_coin[0]
-
-            total_supply = issue_coin.total_supply
 
             if issue_coin.status == int(Status.Token_Issue):
-                logging.info("coin:%s,token %s is issueing" %
+                logging.info("coin:%s, token %s is issuing" %
                              (result.coin, result.token))
-                return -1
+                return -2
+
+            issue_coin = issue_coin[0]
+            total_supply = issue_coin.total_supply
 
             err, tx = swap_rpc.before_swap(
                 result.token, result.amount, total_supply, swap_settings)
