@@ -1,11 +1,13 @@
 import decimal
 
+
 class Base:
+
     def __init__(self, settings):
         self.settings = settings
         self.name = ''
 
-    def get_balance(self, name,address):
+    def get_balance(self, name, address):
         pass
 
     def is_swap(self, name, tx, addresses):
@@ -19,9 +21,6 @@ class Base:
 
     def best_block_number(self):
         pass
-
-    def is_address_required(self):
-        return True
 
     def transfer(self, name, from_, to_, amount):
         pass
@@ -45,3 +44,9 @@ class Base:
     def from_wei(self, token, wei):
         dec = self.decimals(token)
         return decimal.Decimal(wei) / decimal.Decimal(10.0**dec)
+
+    def before_swap(self, account, passphase, settings):
+        return None
+
+    def after_swap(self, token, amount, settings):
+        return None

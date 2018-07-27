@@ -9,8 +9,8 @@ class Coin(db.Model):
     block_height = db.Column(db.Integer)
     name = db.Column(db.String(64))
     token = db.Column(db.String(64))
-    total_supply=db.Column(db.Integer)
-    decimal=db.Column(db.Integer)
+    total_supply = db.Column(db.Integer)
+    decimal = db.Column(db.Integer)
 
     @classmethod
     def copy(cls, dep_):
