@@ -37,3 +37,6 @@ class Swap(db.Model):
         dep.status = dep_.status
         dep.create_time = dep_.create_time
         return dep
+
+    def __repr__(self):
+        return "<Swap %d: %s>" % (self.iden, self.tx_hash)

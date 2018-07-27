@@ -42,7 +42,7 @@ class ScanBusiness(IBusiness):
         self.swap_maxid = self.get_max_swap_id()
 
     @timeit
-    def get_max_swap_id(self)
+    def get_max_swap_id(self):
 
         qry = db.session.query(func.max(Result.swap_id)).first()
         if not qry:
@@ -51,13 +51,13 @@ class ScanBusiness(IBusiness):
         return 0
 
     def get_tokenrpc(self, coin):
-            if coin  in self.swicher:
-                rpc_name = self.swicher[coin]
-                if rpc_name == 'ETH' and r.token != 'ERC.ETH':
-                    rpc_name = 'ETHToken'
+        if coin  in self.swicher:
+            rpc_name = self.swicher[coin]
+            if rpc_name == 'ETH' and r.token != 'ERC.ETH':
+                rpc_name = 'ETHToken'
 
-                if rpc_name in self.min_confirm_map:
-                    return self.rpcs[rpc_name]
+            if rpc_name in self.min_confirm_map:
+                return self.rpcs[rpc_name]
 
         return None
 
@@ -68,12 +68,12 @@ class ScanBusiness(IBusiness):
                 try:
                     # TODO
                     if not r.to:
-                        b = db.session.query(Binder).filter_by(binder = r.from).first()
+                        b = db.session.query(Binder).filter_by(binder = r.from__).first()
                         if not b:
                             continue
                         r.to = b.to
 
-                    rpc = get_tokenrpc(r.coin)
+                    rpc = self.get_tokenrpc(r.coin)
                     if not rpc:
                         continue
 

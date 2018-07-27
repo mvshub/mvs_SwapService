@@ -96,7 +96,7 @@ class Etp(Base):
             raise
         return tx_hash
 
-    def did_send_asset(self, account, passphrase, to, token, amount, to):
+    def did_send_asset(self, account, passphrase, to, token, amount):
         tx_hash = None
         try:
             res = self.make_request(
