@@ -7,6 +7,7 @@ from utils.exception import RpcException, CriticalException
 import json
 import decimal
 import logging
+from models.constants import Status
 from models.coin import Coin
 
 
@@ -252,8 +253,8 @@ class Etp(Base):
             issue_volume = self.to_wei(symbol, total_supply - volume)
             tx_hash = self.secondary_issue(
                 account, passphrase, to_did, symbol, issue_volume)
-            return 1, tx_hash
-        return 0, None
+            return Error.Success, tx_hash
+        return Error.Success, None
 
     def transfer_asset(self, to, token, amount, settings):
         symbol = self.get_erc_symbol(token)

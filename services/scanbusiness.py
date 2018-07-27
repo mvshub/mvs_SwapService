@@ -6,7 +6,7 @@ from models.swap import Swap
 from models.binder import Binder
 from models.coin import Coin
 from models.result import Result
-from models.constants import Status
+from models.constants import Status, Error
 from utils import response
 from utils import notify
 from utils.timeit import timeit
@@ -182,7 +182,7 @@ class ScanBusiness(IBusiness):
 
             err, tx = swap_rpc.before_swap(
                 result.token, result.amount, total_supply, swap_settings)
-            if err != 0:
+            if err == Error.Success and tx is not None:
                 result.tx_hash = tx
                 result.status = int(Status.Swap_Issue)
                 result.confirm_status = int(Status.Tx_Unconfirm)
