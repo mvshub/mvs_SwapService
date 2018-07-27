@@ -20,13 +20,7 @@ class RpcManager:
             idx = feed_type.rfind('.')
             pack, cls = feed_type[:idx], feed_type[idx + 1:]
             feed_ = getattr(importlib.import_module(pack), cls)(setting)
-            try:
-                pass
-                # feed_.start()
-            except Exception as e:
-                error_msg = 'feed (%s) start failed,%s' % (feed_.name, e)
-                logging.error(error_msg)
-                raise RpcException(error_msg)
+
             yield feed_
 
     def __create_feeds(self):

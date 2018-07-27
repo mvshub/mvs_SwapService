@@ -119,7 +119,6 @@ class Etp(Base):
         res = self.make_request('getblock', [block_hash, 'true'])
         timestamp = res['result']['timestamp']
         transactions = res['result']['transactions']
-        # logging.info(" > get block {}, {} txs".format(height, len(transactions)))
 
         txs = []
         for i, trans in enumerate(transactions):

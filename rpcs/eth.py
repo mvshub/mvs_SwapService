@@ -38,8 +38,6 @@ class Eth(Base):
                 'bad response content, failed to parse,%s' % res.text)
         if js.get('error') is not None:
             raise RpcException('%s' % js['error']['message'])
-        # if js.get('result') is None:
-        #     raise RpcException('bad response content, no result found,%s' % js)
         return js['result']
 
     def get_balance(self, name, address):
@@ -150,8 +148,6 @@ class Eth(Base):
         options = {'from': from_, 'to': to_, 'value': hex(int(amount))}
         gas = self.estimate_gas(options)
         options['gas'] = gas
-
-        # self.unlock_account(from_, passphrase)
 
         res = self.make_request('eth_sendTransaction', [options])
         return res, gas * self.settings['gasPrice']

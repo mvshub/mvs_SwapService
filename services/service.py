@@ -3,7 +3,6 @@ from services.scan import ScanService
 from rpcs.rpcmanager import RpcManager
 from utils import response
 from flask import Flask, jsonify
-from flask_migrate import Migrate, MigrateCommand
 import sqlalchemy_utils
 from models import db
 from gevent.pywsgi import WSGIServer

@@ -10,4 +10,3 @@ class IBusiness:
 
     def start(self):
         pass
-        # db.session = self.service.db_session

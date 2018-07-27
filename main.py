@@ -24,7 +24,6 @@ def main():
 
     service.stop()
     logging.info('end...')
-    # service.stop()
 
 
 if __name__ == '__main__':

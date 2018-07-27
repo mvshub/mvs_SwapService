@@ -9,14 +9,12 @@ from base64 import b64encode
 
 
 def sign_data(privkey, data):
-    # private_key_loc = '/home/jiang/Downloads/privkey.pem'
     '''
     param: private_key_loc Path to your private key
     param: package Data to be signed
     return: base64 encoded signature
     '''
 
-    # key = open(private_key_loc, "r").read()
     rsakey = RSA.importKey(privkey)
     signer = PKCS1_PSS.new(rsakey)
     digest = SHA256.new()
