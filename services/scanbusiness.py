@@ -34,7 +34,7 @@ class ScanBusiness(IBusiness):
                 self.rpcs[coin] = self.rpcmanager.get_available_feed(s['rpc'])
                 self.min_confirm_map[coin] = s['minconf']
 
-        self.swicher = {
+        self.coin_swap_map = {
             'ETH': 'ETP',
             'ETHToken': 'ETP',
             'ETP': 'ETH'
@@ -52,15 +52,18 @@ class ScanBusiness(IBusiness):
 
         return 0
 
-    def get_tokenrpc(self, coin):
-        if coin in self.swicher:
-            rpc_name = self.swicher[coin]
-            if rpc_name == 'ETH' and r.token != 'ERC.ETH':
-                rpc_name = 'ETHToken'
+    def get_swap_coin(self, coin):
+        swap_coin = None
+        if coin in self.coin_swap_map:
+            swap_coin = self.coin_swap_map[coin]
+            if swap_coin == 'ETH' and r.token != 'ERC.ETH':
+                swap_coin = 'ETHToken'
+        return swap_coin
 
-            if rpc_name in self.min_confirm_map:
-                return self.rpcs[rpc_name]
-
+    def get_swap_rpc(self, coin):
+        swap_coin = self.get_swap_coin(coin)
+        if swap_coin and swap_coin in self.min_confirm_map:
+            return self.rpcs[swap_coin]
         return None
 
     @timeit
@@ -77,7 +80,7 @@ class ScanBusiness(IBusiness):
                     continue
                 r.to_address = b.to
 
-            rpc = self.get_tokenrpc(r.coin)
+            rpc = self.get_swap_rpc(r.coin)
             if not rpc:
                 continue
 
@@ -85,8 +88,10 @@ class ScanBusiness(IBusiness):
             if err != 0:
                 continue
 
-            tx = rpc.transfer(self, r.coin, r.amount,
-                              r.to_address, self.setting)
+            swap_coin = self.get_swap_coin(r.coin)
+            swap_settings = self.get_rpc_settings(swap_coin)
+            tx = rpc.transfer_asset(self, r.token, r.amount,
+                                    r.to_address, swap_settings)
             if tx:
                 r.tx_hash = tx
                 r.status = process.PROCESS_SWAP_SEND
@@ -110,7 +115,7 @@ class ScanBusiness(IBusiness):
             if r.tx_hash == None:
                 continue
 
-            rpc = get_tokenrpc(r.coin)
+            rpc = get_swap_rpc(r.coin)
             if not rpc:
                 continue
 
@@ -134,11 +139,19 @@ class ScanBusiness(IBusiness):
         db.session.commit()
         return True
 
-    def before_swap(self, rpc, result):
+    def get_rpc_settings(self, coin):
+        found = [x for x in self.setting['services'] if x['coin'] == coin]
+        if found:
+            return found[0]
+        return None
+
+    def before_swap(self, swap_rpc, result):
         err = 0
         if not result.tx_hash or t.status == process.PROCESS_SWAP_NEW:
-            err, tx = rpc.before_swap(
-                result.token, result.amount, self.setting)
+            swap_coin = self.get_swap_coin(result.coin)
+            swap_settings = self.get_rpc_settings(swap_coin)
+            err, tx = swap_rpc.before_swap(
+                result.token, result.amount, swap_settings)
             if err != 0:
                 result.tx_hash = tx
                 result.status = process.PROCESS_SWAP_ISSUE
@@ -159,13 +172,12 @@ class ScanBusiness(IBusiness):
 
         results_new = []
         while True:
-            self.swap_maxid = self.get_max_swap_id()
-            swap_news = db.session.query(Swap).filter(
+            new_swaps = db.session.query(Swap).filter(
                 Swap.iden > self.swap_maxid).limit(process.FETCH_MAX_ROW)
-            if not swap_news:
+            if not new_swaps:
                 break
 
-            for swap in swap_news:
+            for swap in new_swaps:
                 self.swap_maxid = swap.iden
 
                 r = db.session.query(Result).filter_by(
@@ -187,6 +199,11 @@ class ScanBusiness(IBusiness):
 
         return True
 
+    def process_max_swap_id(self):
+        self.swap_maxid = self.get_max_swap_id()
+        return False
+
     def start(self):
+        self.post(self.process_max_swap_id)
         self.post(self.process_swap)
         self.post(self.process_confirm)

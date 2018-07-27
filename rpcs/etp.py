@@ -223,18 +223,22 @@ class Etp(Base):
         return 0
 
     def before_swap(self, token, amount, settings):
-        account = settings.get('account')
-        passphrase = settings.get('passphrase')
-        to_did = settings.get('did')
+        logging.info("before_swap: token: {}, amount: {}, settings: {}".format(
+            token, amount, settings))
 
-        volume = self.get_account_asset(account, passphrase, token)
-        if volume < amount:
-            tx_hash = self.secondary_issue(
-                account, passphrase, to_did, token, amount - volume)
-            return 1, tx_hash
+        # account = settings.get('account')
+        # passphrase = settings.get('passphrase')
+        # to_did = settings.get('did')
+
+        # volume = self.get_account_asset(account, passphrase, token)
+        # if volume < amount:
+        #     tx_hash = self.secondary_issue(
+        #         account, passphrase, to_did, token, amount - volume)
+        #     return 1, tx_hash
         return 0, None
 
     def transfer_asset(self, to, token, amount, settings):
+        logging.info("before_swap: {}".format(settings))
         account = settings.get('account')
         passphrase = settings.get('passphrase')
         return self.did_send_asset(account, passphrase, to, token, amount)
