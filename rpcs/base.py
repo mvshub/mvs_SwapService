@@ -39,7 +39,7 @@ class Base:
 
     def to_wei(self, token, amount):
         dec = self.decimals(token)
-        return long(amount * decimal.Decimal(10.0**dec))
+        return int(amount * decimal.Decimal(10.0**dec))
 
     def from_wei(self, token, wei):
         dec = self.decimals(token)

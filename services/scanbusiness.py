@@ -6,7 +6,6 @@ from models import db
 from models.swap import Swap
 from models.binder import Binder
 from models.coin import Coin
-from models.address import Address
 from models.result import Result
 from utils import response
 from utils import notify
@@ -72,37 +71,39 @@ class ScanBusiness(IBusiness):
             return
 
         for r in results:
-            # try:
-            if not r.to_address:
-                b = db.session.query(Binder).filter_by(
-                    binder=r.from_address).order_by(Binder.iden.desc()).one()
-                if not b:
+            try:
+                if not r.to_address:
+                    b = db.session.query(Binder).filter_by(
+                        binder=r.from_address).order_by(Binder.iden.desc()).one()
+                    if not b:
+                        continue
+                    r.to_address = b.to
+
+                rpc = self.get_swap_rpc(r.coin)
+                if not rpc:
                     continue
-                r.to_address = b.to
 
-            rpc = self.get_swap_rpc(r.coin)
-            if not rpc:
-                continue
+                err = self.before_swap(rpc, r)
+                if err != 0:
+                    continue
 
-            err = self.before_swap(rpc, r)
-            if err != 0:
-                continue
+                swap_coin = self.get_swap_coin(r.coin)
+                swap_settings = self.get_rpc_settings(swap_coin)
+                tx = rpc.transfer_asset(
+                    r.to_address, r.token, r.amount, swap_settings)
+                if tx:
+                    r.tx_hash = tx
+                    r.status = process.PROCESS_SWAP_SEND
+                    r.is_confirm = process.PROCESS_UNCONFIRM
+                    db.session.add(r)
+                    db.session.commit()
 
-            swap_coin = self.get_swap_coin(r.coin)
-            swap_settings = self.get_rpc_settings(swap_coin)
-            tx = rpc.transfer_asset(self, r.token, r.amount,
-                                    r.to_address, swap_settings)
-            if tx:
-                r.tx_hash = tx
-                r.status = process.PROCESS_SWAP_SEND
-                r.is_confirm = process.PROCESS_UNCONFIRM
-                logging.info('success send asset:%s,tx_hash = ' %
-                             (r.token, r.tx_hash))
-                db.session.add(r)
-                db.session.commit()
-            # except Exception as e:
-            #     logging.error('process swap exception, coin:%s token=: %s, error:%s' % (
-            #         r.coin, r.token, str(e)))
+                    logging.info('success send asset: {}, {}, to: {}, tx_hash = {}'.format(
+                        r.token, r.amount, r.to_address, r.tx_hash))
+
+            except Exception as e:
+                logging.error('process swap exception, coin:%s token=: %s, error:%s' % (
+                    r.coin, r.token, str(e)))
 
     @timeit
     def process_confirm(self):
@@ -156,9 +157,11 @@ class ScanBusiness(IBusiness):
                 result.tx_hash = tx
                 result.status = process.PROCESS_SWAP_ISSUE
                 result.is_confirm = process.PROCESS_UNCONFIRM
-                logging.info('success issue asset:%s, tx_hash:%s ' % (result.token, result.tx_hash))
                 db.session.add(result)
                 db.session.commit()
+
+                logging.info('success issue asset:%s, tx_hash:%s ' %
+                             (result.token, result.tx_hash))
 
         return err
 

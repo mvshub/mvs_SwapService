@@ -6,7 +6,6 @@ import json
 from utils.parameter import parameter_check
 # from models import process, db
 import time
-from models.address import Address
 import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session

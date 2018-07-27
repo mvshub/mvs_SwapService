@@ -72,42 +72,44 @@ class Etp(Base):
                 return supply
         return 0
 
-    def get_account_asset(self, account, passphrase, token):
+    def get_account_asset(self, account, passphrase, symbol):
         res = self.make_request(
-            'getaccountasset', [account, passphrase, token])
+            'getaccountasset', [account, passphrase, symbol])
         assets = res['result']
         if len(assets) > 0:
             supply = int(assets[0]['quantity'])
-            if token in self.token_names:
-                supply = self.from_wei(token, supply)
+            if symbol in self.token_names:
+                supply = self.from_wei(symbol, supply)
                 return supply
         return 0
 
-    def secondary_issue(self, account, passphrase, to_did, token, volume):
+    def secondary_issue(self, account, passphrase, to_did, symbol, volume):
+        logging.info("secondaryissue: to_did: {}, symbol: {}, volume: {}".format(
+            to_did, symbol, volume))
         tx_hash = None
         try:
             res = self.make_request(
-                'secondaryissue', [account, passphrase, to_did, token, volume])
+                'secondaryissue', [account, passphrase, to_did, symbol, volume])
             result = res['result']
             if result:
                 tx_hash = result['hash']
         except RpcException as e:
             logging.error("failed to secondary issue {} to {}, volume: {}, error: {}".format(
-                token, to_did, volume, str(e)))
+                symbol, to_did, volume, str(e)))
             raise
         return tx_hash
 
-    def did_send_asset(self, account, passphrase, to, token, amount):
+    def did_send_asset(self, account, passphrase, to, symbol, amount):
         tx_hash = None
         try:
             res = self.make_request(
-                'didsendasset', [account, passphrase, to, token, amount])
+                'didsendasset', [account, passphrase, to, symbol, amount])
             result = res['result']
             if result:
                 tx_hash = result['hash']
         except RpcException as e:
-            logging.error("failed to send asset to {}, token: {}, amount: {}, error: {}".format(
-                to, token, amount, str(e)))
+            logging.error("failed to send asset to {}, symbol: {}, amount: {}, error: {}".format(
+                to, symbol, amount, str(e)))
             raise
         return tx_hash
 
@@ -222,23 +224,34 @@ class Etp(Base):
                 return i['decimal']
         return 0
 
+    def get_erc_symbol(self, token):
+        return "ERC.{}".format(token)
+
     def before_swap(self, token, amount, settings):
         logging.info("before_swap: token: {}, amount: {}, settings: {}".format(
             token, amount, settings))
 
-        # account = settings.get('account')
-        # passphrase = settings.get('passphrase')
-        # to_did = settings.get('did')
+        account = settings.get('account')
+        passphrase = settings.get('passphrase')
+        to_did = settings.get('did')
+        symbol = self.get_erc_symbol(token)
 
-        # volume = self.get_account_asset(account, passphrase, token)
-        # if volume < amount:
-        #     tx_hash = self.secondary_issue(
-        #         account, passphrase, to_did, token, amount - volume)
-        #     return 1, tx_hash
+        volume = self.get_account_asset(account, passphrase, symbol)
+        logging.info("get_account_asset: {}, {}".format(symbol, volume))
+
+        if volume < amount:
+            issue_volume = self.to_wei(symbol, amount - volume)
+            tx_hash = self.secondary_issue(
+                account, passphrase, to_did, symbol, issue_volume)
+            return 1, tx_hash
         return 0, None
 
     def transfer_asset(self, to, token, amount, settings):
-        logging.info("before_swap: {}".format(settings))
+        logging.info("transfer_asset: to: {}, token: {}, amount: {}, settings: {}".format(
+            to, token, amount, settings))
+
+        symbol = self.get_erc_symbol(token)
+        volume = self.to_wei(symbol, amount)
         account = settings.get('account')
         passphrase = settings.get('passphrase')
-        return self.did_send_asset(account, passphrase, to, token, amount)
+        return self.did_send_asset(account, passphrase, to, symbol, volume)
