@@ -71,13 +71,13 @@ class ScanBusiness(IBusiness):
             return
 
         for r in results:
-            try:
+            #try:
                 if not r.to_address:
                     b = db.session.query(Binder).filter_by(
-                        binder=r.from_address).order_by(Binder.iden.desc()).one()
+                        binder=r.from_address).order_by(Binder.iden.desc()).all()
                     if not b:
                         continue
-                    r.to_address = b.to
+                    r.to_address = b[0].to
 
                 rpc = self.get_swap_rpc(r.coin)
                 if not rpc:
@@ -101,9 +101,9 @@ class ScanBusiness(IBusiness):
                     logging.info('success send asset: {}, {}, to: {}, tx_hash = {}'.format(
                         r.token, r.amount, r.to_address, r.tx_hash))
 
-            except Exception as e:
-                logging.error('process swap exception, coin:%s token=: %s, error:%s' % (
-                    r.coin, r.token, str(e)))
+            #except Exception as e:
+            #    logging.error('process swap exception, coin:%s token=: %s, error:%s' % (
+            #        r.coin, r.token, str(e)))
 
     @timeit
     def process_confirm(self):
@@ -159,14 +159,15 @@ class ScanBusiness(IBusiness):
         if not result.tx_hash or result.status == process.PROCESS_SWAP_NEW:
             swap_coin = self.get_swap_coin(result.coin)
             swap_settings = self.get_rpc_settings(swap_coin)
-            
             total_supply = 0
             issue_coin = db.session.query(Coin).filter_by(
-                name = result.coin,token=result.token)
+                name = result.coin,token=result.token).all()
 
             if not issue_coin :
                 logging.info("coin:%s,token %s not exist in the db" % (result.coin, result.token))
-                return -1 
+                return -1
+
+            issue_coin = issue_coin[0]
 
             total_supply = issue_coin.total_supply
 
