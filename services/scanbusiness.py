@@ -194,7 +194,14 @@ class ScanBusiness(IBusiness):
         return err
 
     @timeit
-    def process_swap(self):
+    def process_unconfirm(self):
+        results = db.session.query(Result).filter(
+        Result.status != process.PROCESS_SWAP_FINISH)
+        self.commit_results(results)
+        return True
+
+    @timeit
+    def process_swap(self):   
         new_swaps = db.session.query(Swap).filter(
             Swap.iden > self.swap_maxid).order_by(Swap.iden).limit(process.FETCH_MAX_ROW)
         if not new_swaps:
@@ -225,10 +232,12 @@ class ScanBusiness(IBusiness):
         return True
 
     def process_max_swap_id(self):
-        self.swap_maxid = self.get_max_swap_id()
+        # self.swap_maxid = self.get_max_swap_id()
+        self.swap_maxid = 0
         return False
 
     def start(self):
         self.post(self.process_max_swap_id)
+        self.post(self.process_unconfirm)
         self.post(self.process_swap)
         self.post(self.process_confirm)
