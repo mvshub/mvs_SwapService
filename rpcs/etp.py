@@ -226,7 +226,7 @@ class Etp(Base):
     def get_erc_symbol(self, token):
         return "ERC.{}".format(token)
 
-    def before_swap(self, token, amount, settings):
+    def before_swap(self, token, amount, total_supply, settings):
         logging.info("before_swap: token: {}, amount: {}, settings: {}".format(
             token, amount, settings))
 

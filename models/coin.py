@@ -11,6 +11,7 @@ class Coin(db.Model):
     token = db.Column(db.String(64))
     total_supply = db.Column(db.Integer)
     decimal = db.Column(db.Integer)
+    status = db.Column(db.Integer)
 
     @classmethod
     def copy(cls, dep_):
@@ -21,4 +22,5 @@ class Coin(db.Model):
         dep.name = dep_.name
         dep.total_supply = dep_.total_supply
         dep.decimal = dep_.decimal
+        dep.status = dep_.status
         return dep

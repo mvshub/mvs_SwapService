@@ -120,17 +120,25 @@ class ScanBusiness(IBusiness):
             if not rpc:
                 continue
 
+            swap_coin = self.get_swap_coin(r.coin)
             try:
                 block_num = rpc.best_block_number()
-                minconf = self.min_confirm_map[rpc_name]
+                minconf = self.min_confirm_map[swap_coin]
                 tx = rpc.get_transaction(r.tx_hash)
 
                 if tx != None and tx['blockNumber'] + minconf <= block_num:
-                    r.is_confirm = process.process.PROCESS_CONFIRM
+                    r.is_confirm = process.PROCESS_CONFIRM
                     logging.info('confirm tx:%s,tx_height:%d, cur_number:%d' %
                                  (r.tx_hash, tx['blockNumber'], block_num))
 
-                    if r.status == process.PROCESS_SWAP_SEND:
+                    if r.status == process.PROCESS_SWAP_ISSUE:
+                        issue_coin = db.session.query(Coin).filter_by(
+                        name = r.coin,token=r.token)
+                        issue_coin.status = process.TOKEN_NORMAL
+                        db.session.add(issue_coin)
+                        db.session.commit()
+
+                    elif r.status == process.PROCESS_SWAP_SEND:
                         r.status = process.PROCESS_SWAP_FINISH
 
                     db.session.add(r)
@@ -151,12 +159,31 @@ class ScanBusiness(IBusiness):
         if not result.tx_hash or result.status == process.PROCESS_SWAP_NEW:
             swap_coin = self.get_swap_coin(result.coin)
             swap_settings = self.get_rpc_settings(swap_coin)
+            
+            total_supply = 0
+            issue_coin = db.session.query(Coin).filter_by(
+                name = result.coin,token=result.token)
+
+            if not issue_coin :
+                logging.info("coin:%s,token %s not exist in the db" % (result.coin, result.token))
+                return -1 
+
+            total_supply = issue_coin.total_supply
+
+            if issue_coin.status == process.TOKEN_ISSUE:
+                logging.info("coin:%s,token %s is issueing" % (result.coin, result.token))
+                return -1           
+
             err, tx = swap_rpc.before_swap(
-                result.token, result.amount, swap_settings)
+                result.token, result.amount, total_supply, swap_settings)
             if err != 0:
                 result.tx_hash = tx
                 result.status = process.PROCESS_SWAP_ISSUE
                 result.is_confirm = process.PROCESS_UNCONFIRM
+
+                issue_coin.status= process.TOKEN_ISSUE
+                db.session.add(issue_coin)
+
                 db.session.add(result)
                 db.session.commit()
 
