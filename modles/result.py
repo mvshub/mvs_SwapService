@@ -14,10 +14,11 @@ class Result(db.Model):
     coin = db.Column(db.String(64), nullable=False)
     token = db.Column(db.String(64), nullable=False)
 
+
+    tx_raw = db.Column(db.String(256) )  
     tx_hash = db.Column(db.String(256) )  
     is_confirm = db.Column(db.Integer,default = 0)
     status = db.Column(db.Integer,default = 0)
-    tx_time = db.Column(db.Numeric(32),default = 0)
     confirm_time = db.Column(db.Numeric(32),default = 0)
 
 
@@ -32,9 +33,9 @@ class Result(db.Model):
         dep.token = dep_.token
         dep.coin = dep_.coin
         dep.tx_hash = dep_.tx_hash
+        dep.tx_raw = dep_.tx_raw
         dep.is_confirm = dep_.is_confirm
         dep.status = dep_.status
-        dep.tx_time = dep_.tx_time
         dep.confirm_time = dep_.confirm_time
 
 

@@ -21,4 +21,4 @@ class Binder(db.Model):
         binder.tx_hash = binder_.tx_hash
         binder.block_height = binder_.block_height
         binder.tx_time = binder_.tx_time
-        return etp
+        return binder
