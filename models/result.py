@@ -6,21 +6,20 @@ class Result(db.Model):
     __tablename__ = 'result'
 
     iden = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    swap_id= db.Column(db.Integer, nullable = False)   
+    swap_id = db.Column(db.Integer, nullable=False)
     from_address = db.Column(db.String(128), nullable=False)
-    to_address = db.Column(db.String(128), nullable=False)   
+    to_address = db.Column(db.String(128), nullable=False)
     amount = db.Column(db.Numeric(64, 18), nullable=False)
 
     coin = db.Column(db.String(64), nullable=False)
     token = db.Column(db.String(64), nullable=False)
 
-
-    tx_raw = db.Column(db.String(256) )  
-    tx_hash = db.Column(db.String(256) )  
-    is_confirm = db.Column(db.Integer,default = 0)
-    status = db.Column(db.Integer,default = 0)
-    confirm_time = db.Column(db.Numeric(32),default = 0)
-
+    tx_raw = db.Column(db.String(256))
+    tx_hash = db.Column(db.String(256))
+    confirm_status = db.Column(db.Integer, default=0)
+    status = db.Column(db.Integer, default=0)
+    confirm_time = db.Column(db.Numeric(32), default=0)
+    message = db.Column(db.String(256))
 
     @classmethod
     def copy(cls, dep_):
@@ -34,9 +33,9 @@ class Result(db.Model):
         dep.coin = dep_.coin
         dep.tx_hash = dep_.tx_hash
         dep.tx_raw = dep_.tx_raw
-        dep.is_confirm = dep_.is_confirm
+        dep.confirm_status = dep_.confirm_status
         dep.status = dep_.status
         dep.confirm_time = dep_.confirm_time
-
+        dep.message = dep_.message
 
         return dep

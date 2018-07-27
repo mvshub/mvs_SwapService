@@ -1,12 +1,12 @@
 from services.ibusiness import IBusiness
 from services.abstract import AbstractService
-from models import process
-from models.status import Status
+from models import constants
 from models import db
 from models.swap import Swap
 from models.binder import Binder
 from models.coin import Coin
 from models.result import Result
+from models.constants import Status
 from utils import response
 from utils import notify
 from utils.timeit import timeit
@@ -15,7 +15,6 @@ import time
 import logging
 from decimal import Decimal
 from functools import partial
-import models.process
 from sqlalchemy.sql import func
 
 
@@ -97,8 +96,8 @@ class ScanBusiness(IBusiness):
                 r.to_address, r.token, r.amount, swap_settings)
             if tx:
                 r.tx_hash = tx
-                r.status = process.PROCESS_SWAP_SEND
-                r.is_confirm = process.PROCESS_UNCONFIRM
+                r.status = int(Status.Swap_Send)
+                r.confirm_status = int(Status.Tx_Unconfirm)
                 db.session.add(r)
                 db.session.commit()
 
@@ -112,7 +111,7 @@ class ScanBusiness(IBusiness):
     @timeit
     def process_confirm(self):
         results = db.session.query(Result).filter_by(
-            is_confirm=process.PROCESS_UNCONFIRM).all()
+            confirm_status=int(Status.Tx_Unconfirm)).all()
         if not results:
             return True
 
@@ -131,19 +130,19 @@ class ScanBusiness(IBusiness):
                 tx = rpc.get_transaction(r.tx_hash)
 
                 if tx != None and tx['blockNumber'] + minconf <= block_num:
-                    r.is_confirm = process.PROCESS_CONFIRM
+                    r.confirm_status = int(Status.Tx_Confirm)
                     logging.info('confirm tx:%s,tx_height:%d, cur_number:%d' %
                                  (r.tx_hash, tx['blockNumber'], block_num))
 
-                    if r.status == process.PROCESS_SWAP_ISSUE:
+                    if r.status == int(Status.Swap_Issue):
                         issue_coin = db.session.query(Coin).filter_by(
                             name=r.coin, token=r.token)
-                        issue_coin.status = process.TOKEN_NORMAL
+                        issue_coin.status = int(Status.Token_Normal)
                         db.session.add(issue_coin)
                         db.session.commit()
 
-                    elif r.status == process.PROCESS_SWAP_SEND:
-                        r.status = process.PROCESS_SWAP_FINISH
+                    elif r.status == int(Status.Swap_Send):
+                        r.status = int(Status.Swap_Finish)
 
                     db.session.add(r)
             except Exception as e:
@@ -160,7 +159,7 @@ class ScanBusiness(IBusiness):
 
     def before_swap(self, swap_rpc, result):
         err = 0
-        if not result.tx_hash or result.status == process.PROCESS_SWAP_NEW:
+        if not result.tx_hash or result.status == int(Status.Swap_New):
             swap_coin = self.get_swap_coin(result.coin)
             swap_settings = self.get_rpc_settings(swap_coin)
             total_supply = 0
@@ -176,7 +175,7 @@ class ScanBusiness(IBusiness):
 
             total_supply = issue_coin.total_supply
 
-            if issue_coin.status == process.TOKEN_ISSUE:
+            if issue_coin.status == int(Status.Token_Issue):
                 logging.info("coin:%s,token %s is issueing" %
                              (result.coin, result.token))
                 return -1
@@ -185,10 +184,10 @@ class ScanBusiness(IBusiness):
                 result.token, result.amount, total_supply, swap_settings)
             if err != 0:
                 result.tx_hash = tx
-                result.status = process.PROCESS_SWAP_ISSUE
-                result.is_confirm = process.PROCESS_UNCONFIRM
+                result.status = int(Status.Swap_Issue)
+                result.confirm_status = int(Status.Tx_Unconfirm)
 
-                issue_coin.status = process.TOKEN_ISSUE
+                issue_coin.status = int(Status.Token_Issue)
                 db.session.add(issue_coin)
 
                 db.session.add(result)
@@ -202,14 +201,14 @@ class ScanBusiness(IBusiness):
     @timeit
     def process_unconfirm(self):
         results = db.session.query(Result).filter(
-        Result.status != process.PROCESS_SWAP_FINISH)
+            Result.status != int(Status.Swap_Finish))
         self.commit_results(results)
         return True
 
     @timeit
-    def process_swap(self):   
+    def process_swap(self):
         new_swaps = db.session.query(Swap).filter(
-            Swap.iden > self.swap_maxid).order_by(Swap.iden).limit(process.FETCH_MAX_ROW)
+            Swap.iden > self.swap_maxid).order_by(Swap.iden).limit(constants.FETCH_MAX_ROW)
         if not new_swaps:
             return True
 
@@ -229,8 +228,8 @@ class ScanBusiness(IBusiness):
             result.coin = swap.coin
             result.token = swap.token
             result.tx_raw = swap.tx_hash
-            result.is_confirm = process.PROCESS_UNCONFIRM
-            result.status = process.PROCESS_SWAP_NEW
+            result.confirm_status = int(Status.Tx_Unconfirm)
+            result.status = int(Status.Swap_New)
             results.append(result)
 
         self.commit_results(results)

@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+#! encoding=utf-8
+
 from rpcs.base import Base
 import requests
 from utils.exception import RpcException, CriticalException
@@ -241,8 +244,8 @@ class Etp(Base):
         passphrase = settings.get('passphrase')
         to_did = settings.get('did')
         symbol = self.get_erc_symbol(token)
-
         volume = self.get_total_supply(symbol)
+
         logging.info("get_total_supply: {}, {}".format(symbol, volume))
 
         if volume < total_supply:
@@ -253,10 +256,12 @@ class Etp(Base):
         return 0, None
 
     def transfer_asset(self, to, token, amount, settings):
-        logging.info("transfer_asset: to: {}, token: {}, amount: {}, settings: {}".format(
-            to, token, amount, settings))
-
         symbol = self.get_erc_symbol(token)
+        volume = int(decimal.Decimal(amount))
+
+        logging.info("transfer_asset: to: {}, token: {}, amount: {}, settings: {}".format(
+            to, symbol, volume, settings))
+
         account = settings.get('account')
         passphrase = settings.get('passphrase')
-        return self.did_send_asset(account, passphrase, to, symbol, amount)
+        return self.did_send_asset(account, passphrase, to, symbol, volume)
