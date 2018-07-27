@@ -73,7 +73,8 @@ class Etp(Base):
         return 0
 
     def get_account_asset(self, account, passphrase, token):
-        res = self.make_request('getaccountasset', [account, passphrase, token])
+        res = self.make_request(
+            'getaccountasset', [account, passphrase, token])
         assets = res['result']
         if len(assets) > 0:
             supply = int(assets[0]['quantity'])
@@ -222,17 +223,18 @@ class Etp(Base):
         return 0
 
     def before_swap(self, token, amount, settings):
-        account = setting.get('account')
-        passphrase = setting.get('passphrase')
-        to_did = setting.get('did')
+        account = settings.get('account')
+        passphrase = settings.get('passphrase')
+        to_did = settings.get('did')
 
         volume = self.get_account_asset(account, passphrase, token)
         if volume < amount:
-            tx_hash = self.secondary_issue(account, passphrase, to_did, token, amount - volume)
+            tx_hash = self.secondary_issue(
+                account, passphrase, to_did, token, amount - volume)
             return 1, tx_hash
         return 0, None
 
     def transfer_asset(self, to, token, amount, settings):
-        account = setting.get('account')
-        passphrase = setting.get('passphrase')
+        account = settings.get('account')
+        passphrase = settings.get('passphrase')
         return self.did_send_asset(account, passphrase, to, token, amount)

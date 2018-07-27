@@ -66,36 +66,38 @@ class ScanBusiness(IBusiness):
     @timeit
     def commit_results(self, results):
         if not results:
-            for r in results:
-                try:
-                    # TODO
-                    if not r.to:
-                        b = db.session.query(Binder).filter_by(
-                            binder=r.from_address).first()
-                        if not b:
-                            continue
-                        r.to = b.to
+            return
 
-                    rpc = self.get_tokenrpc(r.coin)
-                    if not rpc:
-                        continue
+        for r in results:
+            # try:
+            if not r.to_address:
+                b = db.session.query(Binder).filter_by(
+                    binder=r.from_address).order_by(Binder.iden.desc()).one()
+                if not b:
+                    continue
+                r.to_address = b.to
 
-                    err = self.before_swap(rpc, r)
-                    if err != 0:
-                        continue
+            rpc = self.get_tokenrpc(r.coin)
+            if not rpc:
+                continue
 
-                    tx = rpc.transfer(self, r.coin, amount, to_, self.setting)
-                    if tx:
-                        r.tx_hash = tx
-                        r.status = process.PROCESS_SWAP_SEND
-                        result.is_confirm = process.PROCESS_UNCONFIRM
-                        logging.info('success send asset:%s,tx_hash = ' %
-                                     (r.token, r.tx_hash))
-                        db.session.add(r)
-                        db.session.commit()
-                except Exception as e:
-                    logging.error('process swap exception,coin,token=: %s' % (
-                        r.coin, r.token, e.message))
+            err = self.before_swap(rpc, r)
+            if err != 0:
+                continue
+
+            tx = rpc.transfer(self, r.coin, r.amount,
+                              r.to_address, self.setting)
+            if tx:
+                r.tx_hash = tx
+                r.status = process.PROCESS_SWAP_SEND
+                result.is_confirm = process.PROCESS_UNCONFIRM
+                logging.info('success send asset:%s,tx_hash = ' %
+                             (r.token, r.tx_hash))
+                db.session.add(r)
+                db.session.commit()
+            # except Exception as e:
+            #     logging.error('process swap exception, coin:%s token=: %s, error:%s' % (
+            #         r.coin, r.token, str(e)))
 
     @timeit
     def process_confirm(self):
@@ -135,7 +137,8 @@ class ScanBusiness(IBusiness):
     def before_swap(self, rpc, result):
         err = 0
         if not result.tx_hash or t.status == process.PROCESS_SWAP_NEW:
-            err, tx = rpc.before_swap(r.token, r.amount, self.setting)
+            err, tx = rpc.before_swap(
+                result.token, result.amount, self.setting)
             if err != 0:
                 result.tx_hash = tx
                 result.status = process.PROCESS_SWAP_ISSUE
