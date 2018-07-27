@@ -82,16 +82,31 @@ class Etp(Base):
                 return supply
         return 0
 
-    def secondary_issue(self, account, passphrase, to_did, symbol, volume):
+    def secondary_issue(self, account, passphrase, to_did, token, volume):
         tx_hash = None
         try:
             res = self.make_request(
-                'secondaryissue', [account, passphrase, to_did, symbol, volume])
+                'secondaryissue', [account, passphrase, to_did, token, volume])
             result = res['result']
             if result:
                 tx_hash = result['hash']
         except RpcException as e:
-            logging.error("failed to secondary_issue: {}".format(str(e)))
+            logging.error("failed to secondary issue {}, volume: {}, error: {}".format(
+                token, volume, str(e)))
+            raise
+        return tx_hash
+
+    def did_send_asset(self, account, passphrase, to, token, amount, to):
+        tx_hash = None
+        try:
+            res = self.make_request(
+                'didsendasset', [account, passphrase, to, token, amount])
+            result = res['result']
+            if result:
+                tx_hash = result['hash']
+        except RpcException as e:
+            logging.error("failed to send asset to {}, token: {}, amount: {}, error: {}".format(
+                to, token, amount, str(e)))
             raise
         return tx_hash
 
@@ -216,3 +231,8 @@ class Etp(Base):
             tx_hash = self.secondary_issue(account, passphrase, to_did, token, amount - volume)
             return 1, tx_hash
         return 0, None
+
+    def transfer_asset(self, to, token, amount, settings):
+        account = setting.get('account')
+        passphrase = setting.get('passphrase')
+        return self.did_send_asset(account, passphrase, to, token, amount)
