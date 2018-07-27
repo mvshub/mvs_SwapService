@@ -1,8 +1,6 @@
-for i in `cat coins.sh`;do
+for i in `cat supported_tokens.txt`;do
 
- #echo $i'ddd';
- echo $i;
-cp ~/deposit/config/$i.json ~/deposit/$i/wallet_service/config/service.json && cd  ~/deposit/$i
-
+echo "restore $i";
+cp -v ~/swaptoken/config/$i.json ~/swaptoken/$i/TokenDroplet/config/service.json
 
 done

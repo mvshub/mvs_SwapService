@@ -1,1 +1,0 @@
-etp zgc zdc cmc btc eth etc bcc ltc snt storj ico xnc zec dlt  btm

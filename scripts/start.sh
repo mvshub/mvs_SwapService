@@ -1,8 +1,7 @@
-target_path=~/deposit/
+for i in `cat supported_tokens.txt`;do
 
-for i in `cat coins.sh`;do
-echo $i;
-cp ~/deposit/config/$i.json ${target_path}$i/wallet_service/config/service.json && cd  ~/deposit/$i/wallet_service  && nohup python main.py $i &
+echo "start $i";
+cp ~/swaptoken/config/$i.json ~/swaptoken/$i/TokenDroplet/config/service.json && cd ~/swaptoken/$i/TokenDroplet  && nohup python main.py $i &
 
 
 done
