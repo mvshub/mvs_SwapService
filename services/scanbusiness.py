@@ -50,16 +50,16 @@ class ScanBusiness(IBusiness):
 
         return 0
 
-    def get_swap_coin(self, coin):
+    def get_swap_coin(self, result):
         swap_coin = None
-        if coin in self.coin_swap_map:
+        if result.coin in self.coin_swap_map:
             swap_coin = self.coin_swap_map[coin]
-            if swap_coin == 'ETH' and r.token != 'ERC.ETH':
+            if swap_coin == 'ETH' and result.token != 'ERC.ETH':
                 swap_coin = 'ETHToken'
         return swap_coin
 
-    def get_swap_rpc(self, coin):
-        swap_coin = self.get_swap_coin(coin)
+    def get_swap_rpc(self, result):
+        swap_coin = self.get_swap_coin(result)
         if swap_coin and swap_coin in self.min_confirm_map:
             return self.rpcs[swap_coin]
         return None
@@ -78,7 +78,7 @@ class ScanBusiness(IBusiness):
                     continue
                 r.to_address = b[0].to
 
-            rpc = self.get_swap_rpc(r.coin)
+            rpc = self.get_swap_rpc(r)
             if not rpc:
                 continue
 
@@ -86,7 +86,7 @@ class ScanBusiness(IBusiness):
             if err != 0:
                 continue
 
-            swap_coin = self.get_swap_coin(r.coin)
+            swap_coin = self.get_swap_coin(r)
             swap_settings = self.get_rpc_settings(swap_coin)
             tx = rpc.transfer_asset(
                 r.to_address, r.token, r.amount, swap_settings)
@@ -115,11 +115,11 @@ class ScanBusiness(IBusiness):
             if r.tx_hash == None:
                 continue
 
-            rpc = self.get_swap_rpc(r.coin)
+            rpc = self.get_swap_rpc(r)
             if not rpc:
                 continue
 
-            swap_coin = self.get_swap_coin(r.coin)
+            swap_coin = self.get_swap_coin(r)
             try:
                 block_num = rpc.best_block_number()
                 minconf = self.min_confirm_map[swap_coin]
@@ -159,7 +159,7 @@ class ScanBusiness(IBusiness):
             if not swap_rpc.is_swap_address_valid(result.to_address):
                 return -1
 
-            swap_coin = self.get_swap_coin(result.coin)
+            swap_coin = self.get_swap_coin(result)
             swap_settings = self.get_rpc_settings(swap_coin)
             total_supply = 0
             issue_coin = db.session.query(Coin).filter_by(
