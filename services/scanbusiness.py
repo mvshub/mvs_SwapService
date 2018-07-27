@@ -47,7 +47,7 @@ class ScanBusiness(IBusiness):
             sub, sub.c.sid == Result.swap_id).all()
         if results and len(results) > 0:
             logging.info("get_max_swap_id: {}".format(results[0]))
-            return results[0]
+            return results[0].iden
 
         return 0
 
