@@ -84,8 +84,8 @@ class ScanBusiness(IBusiness):
                     tx =  rpc.transfer(self, r.coin, amount, to_, self.setting)
                     if tx:
                         r.tx_hash = tx
-                        r.status = PROCESS_SWAP_SEND
-                        result.is_confirm = PROCESS_UNCONFIRM
+                        r.status = process.PROCESS_SWAP_SEND
+                        result.is_confirm = process.PROCESS_UNCONFIRM
                         logging.info('success send asset:%s,tx_hash = ' % (r.token, r.tx_hash))
                         db.session.add(r)
                         db.session.commit()
@@ -117,8 +117,8 @@ class ScanBusiness(IBusiness):
                     logging.info('confirm tx:%s,tx_height:%d, cur_number:%d' %
                                 (r.tx_hash, tx['blockNumber'], block_num))
 
-                    if r.status == PROCESS_SWAP_SEND:
-                        r.status = PROCESS_SWAP_FINISH
+                    if r.status == process.PROCESS_SWAP_SEND:
+                        r.status = process.PROCESS_SWAP_FINISH
 
                     db.session.add(r)
             except Exception as e:
@@ -129,12 +129,12 @@ class ScanBusiness(IBusiness):
 
     def before_swap(self, rpc, result):
         err = 0
-        if not result.tx_hash or t.status == PROCESS_SWAP_NEW:
+        if not result.tx_hash or t.status == process.PROCESS_SWAP_NEW:
             err,tx = rpc.before_swap(r.token, r.amount,self.setting)
             if err != 0:
                 result.tx_hash = tx
-                result.status = PROCESS_SWAP_ISSUE
-                result.is_confirm = PROCESS_UNCONFIRM
+                result.status = process.PROCESS_SWAP_ISSUE
+                result.is_confirm = process.PROCESS_UNCONFIRM
                 logging.info('success issue asset:%s,tx_hash = ' % (r.token, r.tx_hash))
 
                 db.session.add(result)
@@ -144,12 +144,12 @@ class ScanBusiness(IBusiness):
 
     @timeit
     def process_swap(self):
-        results = db.session.query(Result).filter_by(status!=PROCESS_SWAP_FINISH)
-        commit_results(results)
+        results = db.session.query(Result).filter(Result.status!=process.PROCESS_SWAP_FINISH)
+        self.commit_results(results)
 
         results_new = []
         while True:
-            swap_news = db.session.query(Swap).filter_by(iden>self.swap_maxid).limit(FETCH_MAX_ROW)
+            swap_news = db.session.query(Swap).filter(Result.iden>self.swap_maxid).limit(process.FETCH_MAX_ROW)
             if not swap_news:
                 break
 
@@ -166,11 +166,11 @@ class ScanBusiness(IBusiness):
                 result.amount = swap.amount
                 result.coin = swap.coin
                 result.tx_raw = swap.tx_hash
-                result.is_confirm = PROCESS_UNCONFIRM
-                result.status = PROCESS_SWAP_NEW
+                result.is_confirm = process.PROCESS_UNCONFIRM
+                result.status = process.PROCESS_SWAP_NEW
                 results_new.append(result)
 
-        commit_results(results_new)
+        self.commit_results(results_new)
 
         return True
 
