@@ -190,6 +190,7 @@ class ScanBusiness(IBusiness):
                 result.from_address = swap.to_address
                 result.amount = swap.amount
                 result.coin = swap.coin
+                result.token = swap.token
                 result.tx_raw = swap.tx_hash
                 result.is_confirm = process.PROCESS_UNCONFIRM
                 result.status = process.PROCESS_SWAP_NEW
