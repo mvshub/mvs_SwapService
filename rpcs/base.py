@@ -16,7 +16,7 @@ class Base:
     def get_transaction(self, txid):
         pass
 
-    def total_supply(self, token_name=None):
+    def get_total_supply(self, token_name=None):
         pass
 
     def best_block_number(self):
@@ -45,8 +45,9 @@ class Base:
         dec = self.decimals(token)
         return decimal.Decimal(wei) / decimal.Decimal(10.0**dec)
 
-    def before_swap(self, account, passphase, settings):
-        return None
+    def before_swap(self, token, amount, settings):
+        # 0: success, 1: need process
+        return 0, None
 
     def after_swap(self, token, amount, settings):
-        return None
+        return 0, None

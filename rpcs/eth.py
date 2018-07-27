@@ -44,18 +44,18 @@ class Eth(Base):
 
     def get_coins(self):
         coins=[]
-        supply = self.total_supply()
+        supply = self.get_total_supply()
         if supply != 0:
             coin = Coin()
             coin.name = self.name
             coin.token = self.name
-            coin.total_supply =  self.from_wei(token=None,wei=supply) 
+            coin.total_supply =  self.from_wei(token=None,wei=supply)
             coin.decimal = 18
             coins.append(coin)
         return coins
 
 
-    def total_supply(self, token_name=None):
+    def get_total_supply(self, token_name=None):
         res = requests.get('https://www.etherchain.org/api/supply', timeout=5)
         if res.status_code != 200:
             raise RpcException('bad request code,%s' % res.status_code)
@@ -64,11 +64,11 @@ class Eth(Base):
         except Exception as e:
             logging.error('bad response content, failed to parse,%s' % res.text)
             return 0
-            
+
         return supply
 
     def get_block_by_height(self, height, addresses):
-        
+
         logging.info(">>>>>>>>>> ETH : get_block_by_height")
         block = self.make_request('eth_getBlockByNumber', [hex(int(height)), True])
         block['txs'] = []
@@ -81,7 +81,7 @@ class Eth(Base):
             tx['isBinder'] = False
             tx['type'] = self.name
             if tx['to'] is None :
-                continue          
+                continue
             elif tx['to'] == self.contract_mapaddress:
                 input_ = tx['input']
                 if len(input_) != 202:
@@ -94,7 +94,7 @@ class Eth(Base):
             else:
                 if  tx['to'] not in addresses:
                     continue
-                
+
                 tx['swap_address'] = tx['to']
                 tx['token'] = 'ETH'
 
@@ -102,7 +102,7 @@ class Eth(Base):
 
 
         return block
-    
+
     def is_swap(self, tx, addresses):
         if 'type' not in tx  or tx['type'] != self.name:
             return False

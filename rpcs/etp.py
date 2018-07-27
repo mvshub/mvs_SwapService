@@ -52,7 +52,7 @@ class Etp(Base):
     def get_coins(self):
         coins = []
         for x in self.tokens:
-            supply = self.total_supply(x['name'])
+            supply = self.get_total_supply(x['name'])
             if supply != 0:
                 coin = Coin()
                 coin.name = self.name
@@ -62,21 +62,31 @@ class Etp(Base):
                 coins.append(coin)
         return coins
 
-    def total_supply(self, token_name=None):
-        res = self.make_request('getasset', [token_name])
+    def get_total_supply(self, token=None):
+        res = self.make_request('getasset', [token])
         assets = res['result']
         if len(assets) > 0:
             supply = int(assets[0]['maximum_supply'])
-            if token_name in self.token_names:
-                supply = self.from_wei(token_name, supply)
+            if token in self.token_names:
+                supply = self.from_wei(token, supply)
                 return supply
         return 0
 
-    def secondary_issue(self, account, passphase, to_did, symbol, volume):
+    def get_account_asset(self, account, passphrase, token):
+        res = self.make_request('getaccountasset', [account, passphrase, token])
+        assets = res['result']
+        if len(assets) > 0:
+            supply = int(assets[0]['quantity'])
+            if token in self.token_names:
+                supply = self.from_wei(token, supply)
+                return supply
+        return 0
+
+    def secondary_issue(self, account, passphrase, to_did, symbol, volume):
         tx_hash = None
         try:
             res = self.make_request(
-                'secondaryissue', [account, passphase, to_did, symbol, volume])
+                'secondaryissue', [account, passphrase, to_did, symbol, volume])
             result = res['result']
             if result:
                 tx_hash = result['hash']
@@ -174,15 +184,15 @@ class Etp(Base):
             raise
         return result
 
-    def new_address(self, account, passphase):
-        res = self.make_request('getnewaddress', [account, passphase])
+    def new_address(self, account, passphrase):
+        res = self.make_request('getnewaddress', [account, passphrase])
         addresses = res['result']
         if addresses is not None and len(addresses) > 0:
             return addresses[0]
         return None
 
-    def get_addresses(self, account, passphase):
-        res = self.make_request('listaddresses', [account, passphase])
+    def get_addresses(self, account, passphrase):
+        res = self.make_request('listaddresses', [account, passphrase])
         addresses = res['result']
         return addresses
 
@@ -197,4 +207,12 @@ class Etp(Base):
         return 0
 
     def before_swap(self, token, amount, settings):
-        return None
+        account = setting.get('account')
+        passphrase = setting.get('passphrase')
+        to_did = setting.get('did')
+
+        volume = self.get_account_asset(account, passphrase, token)
+        if volume < amount:
+            tx_hash = self.secondary_issue(account, passphrase, to_did, token, amount - volume)
+            return 1, tx_hash
+        return 0, None

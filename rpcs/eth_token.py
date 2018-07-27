@@ -14,7 +14,7 @@ class EthToken(Eth):
         self.tokens = settings['tokens']
         self.token_names=[]
         self.contract_addresses=[]
-       
+
         self.contract_mapaddress = settings['contract_mapaddress']
 
         for x in self.tokens:
@@ -51,7 +51,7 @@ class EthToken(Eth):
     def get_coins(self):
         coins=[]
         for x in self.tokens:
-            supply = self.total_supply(x['name'])
+            supply = self.get_total_supply(x['name'])
             if supply != 0:
                 coin = Coin()
                 coin.name = self.name
@@ -61,7 +61,7 @@ class EthToken(Eth):
                 coins.append(coin)
         return coins
 
-    def total_supply(self, name=None):
+    def get_total_supply(self, name=None):
         contract = self.get_contractaddress(name)
         if contract is None:
             return 0
