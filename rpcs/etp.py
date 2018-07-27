@@ -7,9 +7,8 @@ from utils.exception import RpcException, CriticalException
 import json
 import decimal
 import logging
-from models.constants import Status
+from models.constants import Status,Error
 from models.coin import Coin
-
 
 class Etp(Base):
     rpc_version = "2.0"

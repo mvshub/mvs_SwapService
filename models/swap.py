@@ -6,8 +6,9 @@ class Swap(db.Model):
     __tablename__ = 'swap'
 
     iden = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    # deposit_id = db.Column(db.Integer, primary_key=True)
-    to_address = db.Column(db.String(128), nullable=False)
+    swap_address = db.Column(db.String(128))
+    from_address = db.Column(db.String(128))
+    to_address = db.Column(db.String(128))
     amount = db.Column(db.Numeric(64, 18), nullable=False)
     tx_hash = db.Column(db.String(256))
     tx_index = db.Column(db.Integer)
@@ -16,7 +17,7 @@ class Swap(db.Model):
     tx_time = db.Column(db.Numeric(32))
     token = db.Column(db.String(64))
     coin = db.Column(db.String(64))
-    
+
     # new confirmed transferred committed
     status = db.Column(db.Integer, nullable=False)
     create_time = db.Column(db.Numeric(32), nullable=False)
@@ -25,6 +26,8 @@ class Swap(db.Model):
     def copy(cls, dep_):
         dep = Swap()
         dep.iden = dep_.iden
+        dep.swap_address = dep_.swap_address
+        dep.from_address = dep_.from_address
         dep.to_address = dep_.to_address
         dep.amount = dep_.amount
         dep.tx_hash = dep_.tx_hash
@@ -37,6 +40,3 @@ class Swap(db.Model):
         dep.status = dep_.status
         dep.create_time = dep_.create_time
         return dep
-
-    def __repr__(self):
-        return "<Swap %d: %s>" % (self.iden, self.tx_hash)
