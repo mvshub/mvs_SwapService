@@ -5,9 +5,11 @@ import json
 import decimal
 import logging
 import binascii
-from modles.coin import Coin
+from models.coin import Coin
+
 
 class Eth(Base):
+
     def __init__(self, settings):
         Base.__init__(self, settings)
         self.name = 'ETH' if settings.get('name') is None else settings['name']
@@ -24,14 +26,16 @@ class Eth(Base):
         return False
 
     def make_request(self, method, params=[]):
-        data = {"jsonrpc":"2.0","method":method,"params":params,"id":83}
-        res = requests.post('http://%s:%s' % (self.settings['host'], self.settings['port']), json.dumps(data), headers = {'Content-Type':'application/json'}, timeout=5)
+        data = {"jsonrpc": "2.0", "method": method, "params": params, "id": 83}
+        res = requests.post('http://%s:%s' % (self.settings['host'], self.settings[
+                            'port']), json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=5)
         if res.status_code != 200:
             raise RpcException('bad request code,%s' % res.status_code)
         try:
             js = json.loads(res.text)
         except Exception as e:
-            raise RpcException('bad response content, failed to parse,%s' % res.text)
+            raise RpcException(
+                'bad response content, failed to parse,%s' % res.text)
         if js.get('error') is not None:
             raise RpcException('%s' % js['error']['message'])
         # if js.get('result') is None:
@@ -43,17 +47,16 @@ class Eth(Base):
         return int(res, 16)
 
     def get_coins(self):
-        coins=[]
+        coins = []
         supply = self.get_total_supply()
         if supply != 0:
             coin = Coin()
             coin.name = self.name
             coin.token = self.name
-            coin.total_supply =  self.from_wei(token=None,wei=supply)
+            coin.total_supply = self.from_wei(token=None, wei=supply)
             coin.decimal = 18
             coins.append(coin)
         return coins
-
 
     def get_total_supply(self, token_name=None):
         res = requests.get('https://www.etherchain.org/api/supply', timeout=5)
@@ -62,7 +65,8 @@ class Eth(Base):
         try:
             js = json.loads(res.text)
         except Exception as e:
-            logging.error('bad response content, failed to parse,%s' % res.text)
+            logging.error(
+                'bad response content, failed to parse,%s' % res.text)
             return 0
 
         return supply
@@ -70,7 +74,8 @@ class Eth(Base):
     def get_block_by_height(self, height, addresses):
 
         logging.info(">>>>>>>>>> ETH : get_block_by_height")
-        block = self.make_request('eth_getBlockByNumber', [hex(int(height)), True])
+        block = self.make_request('eth_getBlockByNumber', [
+                                  hex(int(height)), True])
         block['txs'] = []
         for i, tx in enumerate(block['transactions']):
             tx['index'] = i
@@ -80,19 +85,21 @@ class Eth(Base):
             tx['amount'] = tx['value']
             tx['isBinder'] = False
             tx['type'] = self.name
-            if tx['to'] is None :
+            if tx['to'] is None:
                 continue
             elif tx['to'] == self.contract_mapaddress:
                 input_ = tx['input']
                 if len(input_) != 202:
                     continue
                 strLen = int('0x' + input_[134:138], 16)
-                tx['to'] = str(binascii.unhexlify(input_[138:202])[:strLen], "utf-8")
+                tx['to'] = str(binascii.unhexlify(
+                    input_[138:202])[:strLen], "utf-8")
 
                 tx['isBinder'] = True
-                logging.info('new binder found, from:%s, to:%s' % (tx['from'], tx['to']))
+                logging.info('new binder found, from:%s, to:%s' %
+                             (tx['from'], tx['to']))
             else:
-                if  tx['to'] not in addresses:
+                if tx['to'] not in addresses:
                     continue
 
                 tx['swap_address'] = tx['to']
@@ -100,35 +107,31 @@ class Eth(Base):
 
             block['txs'].append(tx)
 
-
         return block
 
     def is_swap(self, tx, addresses):
-        if 'type' not in tx  or tx['type'] != self.name:
+        if 'type' not in tx or tx['type'] != self.name:
             return False
 
         if tx['value'] <= 0:
             return False
-        if tx['token'] is None or tx['token'] != self.name :
+        if tx['token'] is None or tx['token'] != self.name:
             return False
 
         return True
-
-    def is_deposit(self, name, tx, addresses):
-        if tx['to'] in addresses:
-            return True
-        return False
 
     def get_transaction(self, txid):
         res = self.make_request('eth_getTransactionByHash', [txid])
         if not res:
             return res
-        res['blockNumber'] = int(res['blockNumber'], 16) if res['blockNumber'] else 0
+        res['blockNumber'] = int(res['blockNumber'], 16) if res[
+            'blockNumber'] else 0
         res['to'] = '' if res.get('to') is None else res['to']
         return res
 
     def unlock_account(self, address, passphrase, unlock_time=10):
-        res = self.make_request('personal_unlockAccount', [address, passphrase, unlock_time])
+        res = self.make_request('personal_unlockAccount', [
+                                address, passphrase, unlock_time])
         return res
 
     def new_address(self, account, passphase):
@@ -144,22 +147,25 @@ class Eth(Base):
         return int(res, 16)
 
     def transfer(self, passphrase, from_, to_, amount):
-        options = {'from':from_, 'to':to_, 'value':hex(int(amount))}
+        options = {'from': from_, 'to': to_, 'value': hex(int(amount))}
         gas = self.estimate_gas(options)
         options['gas'] = gas
 
         # self.unlock_account(from_, passphrase)
 
         res = self.make_request('eth_sendTransaction', [options])
-        return res, gas*self.settings['gasPrice']
+        return res, gas * self.settings['gasPrice']
 
     def best_block_number(self):
         res = self.make_request('eth_blockNumber')
         return int(res, 16)
 
     def new_filter(self, block_height, address):
-        res = self.make_request('eth_newFilter', [{'fromBlock':hex(block_height),
-                                              'toBlock':hex(block_height), 'address':address, 'topics':[]}])
+        res = self.make_request('eth_newFilter',
+                                [{'fromBlock': hex(block_height),
+                                  'toBlock': hex(block_height),
+                                  'address': address,
+                                  'topics': []}])
         return res
 
     def get_filter_logs(self, f):

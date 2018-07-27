@@ -3,7 +3,7 @@ import decimal
 import logging
 from utils.exception import TransactionNotfoundException
 import binascii
-from modles.coin import Coin
+from models.coin import Coin
 
 class EthToken(Eth):
 

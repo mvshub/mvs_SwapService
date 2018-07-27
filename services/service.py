@@ -5,7 +5,7 @@ from utils import response
 from flask import Flask, jsonify
 from flask_migrate import Migrate, MigrateCommand
 import sqlalchemy_utils
-from modles import db
+from models import db
 from gevent.pywsgi import WSGIServer
 from gevent import monkey
 import logging

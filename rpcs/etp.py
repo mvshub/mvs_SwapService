@@ -4,7 +4,7 @@ from utils.exception import RpcException, CriticalException
 import json
 import decimal
 import logging
-from modles.coin import Coin
+from models.coin import Coin
 
 
 class Etp(Base):
@@ -91,8 +91,8 @@ class Etp(Base):
             if result:
                 tx_hash = result['hash']
         except RpcException as e:
-            logging.error("failed to secondary issue {}, volume: {}, error: {}".format(
-                token, volume, str(e)))
+            logging.error("failed to secondary issue {} to {}, volume: {}, error: {}".format(
+                token, to_did, volume, str(e)))
             raise
         return tx_hash
 

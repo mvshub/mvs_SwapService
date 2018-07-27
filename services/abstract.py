@@ -4,9 +4,9 @@ from functools import partial
 from flask import request
 import json
 from utils.parameter import parameter_check
-# from modles import process, db
+# from models import process, db
 import time
-from modles.address import Address
+from models.address import Address
 import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session

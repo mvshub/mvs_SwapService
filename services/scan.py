@@ -1,9 +1,9 @@
 from services.abstract import AbstractService
 from services.scanbusiness import ScanBusiness
 from utils import response
-from modles.swap import Swap
-from modles import process
-from modles import db
+from models.swap import Swap
+from models import process
+from models import db
 import logging
 
 
