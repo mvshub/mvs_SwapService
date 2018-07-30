@@ -159,7 +159,7 @@ class ScanBusiness(IBusiness):
     def before_swap(self, swap_rpc, result):
         err = 0
         if not result.tx_hash or result.status == int(Status.Swap_New):
-            if not swap_rpc.is_swap_address_valid(result.to_address):
+            if not swap_rpc.is_to_address_valid(result.to_address):
                 return -1
 
             swap_coin = self.get_swap_coin(result)

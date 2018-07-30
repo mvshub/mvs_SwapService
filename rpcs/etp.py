@@ -48,7 +48,7 @@ class Etp(Base):
             pass
         return res.text
 
-    def is_swap_address_valid(self, did):
+    def is_to_address_valid(self, did):
         res = self.make_request('getdid', [did])
         dids = res['result']
         if dids and len(dids) == 1:
