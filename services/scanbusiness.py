@@ -177,6 +177,7 @@ class ScanBusiness(IBusiness):
                 result.tx_hash = tx
                 result.status = int(Status.Swap_Send)
                 result.confirm_status = int(Status.Tx_Unconfirm)
+                db.message = "send tx success,wait for confirm"
                 db.session.add(result)
                 db.session.commit()
 
@@ -217,8 +218,9 @@ class ScanBusiness(IBusiness):
                 result.confirm_status = int(Status.Tx_Unconfirm)
 
                 issue_coin.status = int(Status.Token_Issue)
+                db.message = "send issue tx success,wait for confirm"
                 db.session.add(issue_coin)
-
+                db.session.commit()
                 logging.info('success issue asset:%s, tx_hash:%s ' %
                              (result.token, result.tx_hash))
 
