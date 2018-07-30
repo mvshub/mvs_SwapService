@@ -75,6 +75,14 @@ class ScanBusiness(IBusiness):
 
         for r in results:
             try:
+                
+                if not r.to_address:
+                    b = db.session.query(Binder).filter_by(
+                        binder=r.from_address).order_by(Binder.iden.desc()).all()
+                    if not b or len(b) == 0:
+                        continue
+                    r.to_address = b[0].to
+
                 rpc = self.get_swap_rpc(r)
                 if not rpc:
                     continue
@@ -82,20 +90,8 @@ class ScanBusiness(IBusiness):
                 err = self.before_swap(rpc, r)
                 if err != 0:
                     continue
-
-                swap_coin = self.get_swap_coin(r)
-                swap_settings = self.get_rpc_settings(swap_coin)
-                tx = rpc.transfer_asset(
-                    r.to_address, r.token, r.amount, swap_settings)
-                if tx:
-                    r.tx_hash = tx
-                    r.status = int(Status.Swap_Send)
-                    r.confirm_status = int(Status.Tx_Unconfirm)
-                    db.session.add(r)
-                    db.session.commit()
-
-                    logging.info('success send asset: {}, {}, to: {}, tx_hash = {}'.format(
-                        r.token, r.amount, r.to_address, r.tx_hash))
+                
+                err = self.send_swap_tx(rpc, r)
 
             except Exception as e:
                 logging.error('process swap exception, coin:%s, token: %s, error:%s' % (
@@ -122,7 +118,7 @@ class ScanBusiness(IBusiness):
                 minconf = self.min_confirm_map[swap_coin]
                 tx = rpc.get_transaction(r.tx_hash)
 
-                if tx != None and tx['blockNumber'] + minconf <= block_num:
+                if tx != None and tx['blockNumber'] != 0 and tx['blockNumber'] + minconf <= block_num:
                     r.confirm_status = int(Status.Tx_Confirm)
                     logging.info('confirm tx:%s,tx_height:%d, cur_number:%d' %
                                  (r.tx_hash, tx['blockNumber'], block_num))
@@ -136,6 +132,7 @@ class ScanBusiness(IBusiness):
 
                     elif r.status == int(Status.Swap_Send):
                         r.status = int(Status.Swap_Finish)
+                        r.confirm_time = int(time.time() * 1000)
                         logging.info('finish swap, coin:%s, token=%s, swap_id:%s, tx_raw:%s, from:%s, to:%s' %
                                      (r.coin, r.token, r.swap_id, r.tx_raw, r.from_address, r.to_address))
 
@@ -152,8 +149,29 @@ class ScanBusiness(IBusiness):
             return found[0]
         return None
 
+    def send_swap_tx(self,rpc,result):
+        if result.status == Status.Swap_New or \
+        (result.status == Status.Swap_Issue and result.confirm_status == Status.Tx_Confirm):
+            swap_coin = self.get_swap_coin(result)
+            swap_settings = self.get_rpc_settings(swap_coin)
+            tx = rpc.transfer_asset(
+                result.to_address, result.token, result.amount, swap_settings)
+            if tx:
+                result.tx_hash = tx
+                result.status = int(Status.Swap_Send)
+                result.confirm_status = int(Status.Tx_Unconfirm)
+                db.session.add(result)
+                db.session.commit()
+
+                logging.info('success send asset: {}, {}, to: {}, tx_hash = {}'.format(
+                    result.token, result.amount, result.to_address, result.tx_hash))
+        
+        return Error.Success
+        
+        
+
     def before_swap(self, swap_rpc, result):
-        err = 0
+        err = Error.Success
         if not result.tx_hash or result.status == int(Status.Swap_New):
             if not swap_rpc.is_to_address_valid(result.to_address):
                 return -1
@@ -230,27 +248,24 @@ class ScanBusiness(IBusiness):
             result.tx_raw = swap.tx_hash
             result.confirm_status = int(Status.Tx_Unconfirm)
             result.status = int(Status.Swap_New)
-            results.append(result)
+            db.session.add(result)
+            db.session.commit()
 
-            if result.coin.startswith('ETH') and not result.to_address:
-                b = db.session.query(Binder).filter_by(
-                    binder=result.from_address).order_by(Binder.iden.desc()).all()
-                if not b or len(b) == 0:
-                    continue
-                result.to_address = b[0].to
+            results.append(result)
 
             logging.info('scan swap, coin:%s, token:%s, swap_id:%s, tx_raw:%s, from:%s, to:%s' %
                          (result.coin, result.token, result.swap_id, result.tx_raw,
                           ("" if not result.from_address else result.from_address),
                           ("" if not result.to_address else result.to_address)))
 
+
+
         self.commit_results(results)
 
         return True
 
     def process_max_swap_id(self):
-        # self.swap_maxid = self.get_max_swap_id()
-        self.swap_maxid = 0
+        self.swap_maxid = self.get_max_swap_id()
         return False
 
     def start(self):
