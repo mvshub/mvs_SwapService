@@ -19,7 +19,7 @@ class Result(db.Model):
     confirm_status = db.Column(db.Integer, default=0)
     status = db.Column(db.Integer, default=0)
     confirm_time = db.Column(db.Numeric(32), default=0)
-    message = db.Column(db.String(256))
+    message = db.Column(db.Text)
 
     @classmethod
     def copy(cls, dep_):

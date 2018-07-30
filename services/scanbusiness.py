@@ -6,7 +6,7 @@ from models.swap import Swap
 from models.binder import Binder
 from models.coin import Coin
 from models.result import Result
-from models.constants import Status, Error
+from models.constants import Status, Error,SwapException
 from utils import response
 from utils import notify
 from utils.timeit import timeit
@@ -81,23 +81,35 @@ class ScanBusiness(IBusiness):
                     b = db.session.query(Binder).filter_by(
                         binder=r.from_address).order_by(Binder.iden.desc()).all()
                     if not b or len(b) == 0:
-                        continue
+                        raise SwapException(Error.EXCEPTION_GET_BINDER)
                     r.to_address = b[0].to
 
                 rpc = self.get_swap_rpc(r)
                 if not rpc:
-                    continue
+                     raise SwapException(Error.EXCEPTION_GET_BINDER)
 
-                err = self.before_swap(rpc, r)
-                if err != 0:
-                    continue
-
-                err = self.send_swap_tx(rpc, r)
-
-            except Exception as e:
+                self.before_swap(rpc, r)
+                self.send_swap_tx(rpc, r)
+   
+            except SwapException as e:
+                r.message = e.get_error_str()
                 logging.error('process swap exception, coin:%s, token: %s, error:%s' % (
-                    r.coin, r.token, str(e)))
-                logging.error('%s', traceback.format_exc())
+                    r.coin, r.token, r.message))
+                import traceback
+                tb = traceback.format_exc()
+                logging.error('%s', tb)
+                
+            except Exception as e:
+                r.message = str(e)
+                logging.error('process swap exception, coin:%s, token: %s, error:%s' % (
+                    r.coin, r.token, r.message))
+                import traceback
+                tb = traceback.format_exc()
+                logging.error('%s', tb)
+
+            finally:
+                db.session.add(r)
+                db.session.commit()
 
     @timeit
     def process_confirm(self):
@@ -131,10 +143,12 @@ class ScanBusiness(IBusiness):
                         issue_coin.status = int(Status.Token_Normal)
                         db.session.add(issue_coin)
                         db.session.commit()
+                        r.message = "confirm issued tx success"
 
                     elif r.status == int(Status.Swap_Send):
                         r.status = int(Status.Swap_Finish)
                         r.confirm_time = int(time.time() * 1000)
+                        r.message = "confirm send tx success, swap finish"
                         logging.info('finish swap, coin:%s, token=%s, swap_id:%s, tx_raw:%s, from:%s, to:%s' %
                                      (r.coin, r.token, r.swap_id, r.tx_raw, r.from_address, r.to_address))
 
@@ -175,7 +189,7 @@ class ScanBusiness(IBusiness):
         err = Error.Success
         if not result.tx_hash or result.status == int(Status.Swap_New):
             if not swap_rpc.is_to_address_valid(result.to_address):
-                return -1
+                raise SwapException(SwapException.EXCEPTION_INVAILD_ADDRESS)
 
             swap_coin = self.get_swap_coin(result)
             swap_settings = self.get_rpc_settings(swap_coin)
@@ -186,12 +200,12 @@ class ScanBusiness(IBusiness):
             if not issue_coin:
                 logging.info("coin:%s, token %s not exist in the db" %
                              (result.coin, result.token))
-                return -1
+                raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST)
 
             if issue_coin.status == int(Status.Token_Issue):
                 logging.info("coin:%s, token %s is issuing" %
                              (result.coin, result.token))
-                return -2
+                raise SwapException(Error.EXCEPTION_COIN_ISSUING)
 
             total_supply = issue_coin.total_supply
 
@@ -204,9 +218,6 @@ class ScanBusiness(IBusiness):
 
                 issue_coin.status = int(Status.Token_Issue)
                 db.session.add(issue_coin)
-
-                db.session.add(result)
-                db.session.commit()
 
                 logging.info('success issue asset:%s, tx_hash:%s ' %
                              (result.token, result.tx_hash))

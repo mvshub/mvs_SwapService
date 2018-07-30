@@ -13,12 +13,38 @@ class Status(IntEnum):
     Swap_Send = 3
     Swap_Finish = 4
 
-    Tx_Unconfirm = 5
-    Tx_Confirm = 6
+    Tx_Unconfirm = 0
+    Tx_Confirm = 1
 
-    Token_Normal = 7
-    Token_Issue = 8
+    Token_Normal = 0
+    Token_Issue = 1
+
 
 
 class Error(IntEnum):
     Success = 0
+    EXCEPTION_GET_BINDER = 1
+    EXCEPTION_GET_COINRPC = 2
+    EXCEPTION_INVAILD_ADDRESS = 3
+    EXCEPTION_COIN_NOT_EXIST = 4
+    EXCEPTION_COIN_ISSUING = 5
+
+
+
+class SwapException(Exception):
+    def __init__(self, errcode_):
+        self.errcode = errcode_
+
+    errmsg={
+       Error.Success:"",
+       Error.EXCEPTION_GET_BINDER:"cannot find bind address in db",
+       Error.EXCEPTION_GET_COINRPC:"failed to get rpc",
+       Error.EXCEPTION_INVAILD_ADDRESS:"Invailed to_address",
+       Error.EXCEPTION_COIN_NOT_EXIST:"Coin does not exist",
+       Error.EXCEPTION_COIN_ISSUING:"Coin is issuing,cannot issue again"
+    }  
+    def get_error_str(self):
+        if self.errcode in self.errmsg:
+            return self.errmsg[self.errcode]
+
+        return ""
