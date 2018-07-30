@@ -189,7 +189,7 @@ class ScanBusiness(IBusiness):
         err = Error.Success
         if not result.tx_hash or result.status == int(Status.Swap_New):
             if not swap_rpc.is_to_address_valid(result.to_address):
-                raise SwapException(SwapException.EXCEPTION_INVAILD_ADDRESS)
+                raise SwapException(Error.EXCEPTION_INVAILD_ADDRESS)
 
             swap_coin = self.get_swap_coin(result)
             swap_settings = self.get_rpc_settings(swap_coin)
