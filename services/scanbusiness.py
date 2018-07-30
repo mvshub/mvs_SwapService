@@ -86,7 +86,7 @@ class ScanBusiness(IBusiness):
 
                 rpc = self.get_swap_rpc(r)
                 if not rpc:
-                     raise SwapException(Error.EXCEPTION_GET_BINDER)
+                     raise SwapException(Error.EXCEPTION_GET_COINRPC)
 
                 self.before_swap(rpc, r)
                 self.send_swap_tx(rpc, r)
