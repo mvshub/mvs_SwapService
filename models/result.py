@@ -7,7 +7,7 @@ class Result(db.Model):
 
     iden = db.Column(db.Integer, primary_key=True, autoincrement=True)
     swap_id = db.Column(db.Integer, nullable=False)
-    from_address = db.Column(db.String(128), nullable=False)
+    from_address = db.Column(db.String(128))
     to_address = db.Column(db.String(128))
     amount = db.Column(db.Numeric(64, 18), nullable=False)
 

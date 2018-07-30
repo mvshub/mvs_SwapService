@@ -264,10 +264,12 @@ class Etp(Base):
         symbol = self.get_erc_symbol(token)
         volume = self.get_total_supply(symbol)
 
-        logging.info("get_total_supply: {}, {}".format(symbol, volume))
-
         if volume < total_supply:
             issue_volume = self.to_wei(symbol, total_supply - volume)
+
+            logging.info("secondary_issue: to: {}, token: {}, volume: {}".format(
+                to_did, symbol, issue_volume))
+
             tx_hash = self.secondary_issue(
                 account, passphrase, to_did, symbol, issue_volume)
             return Error.Success, tx_hash
