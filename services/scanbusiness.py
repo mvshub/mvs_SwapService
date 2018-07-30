@@ -13,6 +13,7 @@ from utils.timeit import timeit
 import threading
 import time
 import logging
+import traceback
 from decimal import Decimal
 from functools import partial
 from sqlalchemy.sql import func
@@ -47,7 +48,7 @@ class ScanBusiness(IBusiness):
         results = db.session.query(Result).join(
             sub, sub.c.sid == Result.swap_id).all()
         if results and len(results) > 0:
-            logging.info("get_max_swap_id: {}".format(results[0]))
+            logging.info("get_max_swap_id: {}".format(results[0].iden))
             return results[0].iden
 
         return 0
@@ -96,9 +97,7 @@ class ScanBusiness(IBusiness):
             except Exception as e:
                 logging.error('process swap exception, coin:%s, token: %s, error:%s' % (
                     r.coin, r.token, str(e)))
-                import traceback
-                tb = traceback.format_exc()
-                logging.error('%s', tb)
+                logging.error('%s', traceback.format_exc())
 
     @timeit
     def process_confirm(self):
@@ -142,9 +141,7 @@ class ScanBusiness(IBusiness):
                     db.session.add(r)
             except Exception as e:
                 logging.error('failed to get tx: %s,%s' % (r.tx_hash, e))
-                import traceback
-                tb = traceback.format_exc()
-                logging.error('%s', tb)
+                logging.error('%s', traceback.format_exc())
 
         db.session.commit()
         return True

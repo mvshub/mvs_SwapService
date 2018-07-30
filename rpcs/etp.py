@@ -85,7 +85,7 @@ class Etp(Base):
         return coins
 
     def get_total_supply(self, token=None):
-        if token and token in self.token_names:
+        if token:
             res = self.make_request('getasset', [token])
             assets = res['result']
             if len(assets) > 0:
@@ -100,13 +100,12 @@ class Etp(Base):
         assets = res['result']
         if len(assets) > 0:
             supply = int(assets[0]['quantity'])
-            if symbol in self.token_names:
-                supply = self.from_wei(symbol, supply)
-                return supply
+            supply = self.from_wei(symbol, supply)
+            return supply
         return 0
 
     def secondary_issue(self, account, passphrase, to_did, symbol, volume):
-        logging.info("secondaryissue: to_did: {}, symbol: {}, volume: {}".format(
+        logging.info("secondary_issue: to_did: {}, symbol: {}, volume: {}".format(
             to_did, symbol, volume))
         tx_hash = None
         try:
@@ -266,9 +265,6 @@ class Etp(Base):
 
         if volume < total_supply:
             issue_volume = self.to_wei(symbol, total_supply - volume)
-
-            logging.info("secondary_issue: to: {}, token: {}, volume: {}".format(
-                to_did, symbol, issue_volume))
 
             tx_hash = self.secondary_issue(
                 account, passphrase, to_did, symbol, issue_volume)
