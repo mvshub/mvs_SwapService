@@ -100,6 +100,25 @@ class EthToken(Eth):
                                 {'from': from_address, 'to': contract, 'data': data}])
         return res, 0
 
+    def transfer2(self, name, passphrase, from_address, to_address, amount):
+        if to_address.startswith('0x'):
+            arg_to = to_address[2:]
+        else:
+            arg_to = to_address
+
+        data = '0xa9059cbb' + '0' * (64-len(arg_to)) + arg_to + ('%064x' % amount)
+        res = self.make_request('eth_sendTransaction', [
+                                {'from': from_address, 'to': to_address, 'data': data}])
+        return res, 0
+
+    def transfer_asset(self, to, token, amount, settings):
+
+        address = settings["scan_address"]
+
+        self.unlock_account(address, settings['passphrase'])
+
+        return self.transfer2(None, None, address, to, self.to_wei(token, amount))[0]
+
     def decimals(self, name):
         for i in self.tokens:
             if i['name'] == name:
@@ -111,6 +130,9 @@ class EthToken(Eth):
         if not res:
             return res
 
+        if not res['blockNumber']:
+            return
+
         res['blockNumber'] = int(res['blockNumber'], 16)
         input_ = res['input']
         if len(input_) != 138:
@@ -121,7 +143,7 @@ class EthToken(Eth):
         res['to'] = to_addr
         res['value'] = value
         receipt = self.make_request('eth_getTransactionReceipt', [txid])
-        if not receipt['logs']:
+        if not (receipt and receipt['logs']):
             return
         return res
 
