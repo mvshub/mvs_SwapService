@@ -24,13 +24,15 @@ class ScanBusiness(IBusiness):
         IBusiness.__init__(self, service=service_, rpc=None, setting=settings)
         self.rpcs = {}
         self.min_confirm_map = {}
+        self.enabled_coins = []
         self.rpcmanager = rpcmanager_
 
         for s in self.setting['services']:
+            coin = s['coin']
+            self.rpcs[coin] = self.rpcmanager.get_available_feed(s['rpc'])
+            self.min_confirm_map[coin] = s['minconf']
             if s['enable']:
-                coin = s['coin']
-                self.rpcs[coin] = self.rpcmanager.get_available_feed(s['rpc'])
-                self.min_confirm_map[coin] = s['minconf']
+                self.enabled_coins.append(coin)
 
         self.coin_swap_map = {
             'ETH': 'ETP',
@@ -68,17 +70,11 @@ class ScanBusiness(IBusiness):
     def commit_results(self, results):
         if not results:
             return
+
         err = Error.Success
 
         for r in results:
             try:
-                if not r.to_address:
-                    b = db.session.query(Binder).filter_by(
-                        binder=r.from_address).order_by(Binder.iden.desc()).all()
-                    if not b:
-                        continue
-                    r.to_address = b[0].to
-
                 rpc = self.get_swap_rpc(r)
                 if not rpc:
                     continue
@@ -221,6 +217,9 @@ class ScanBusiness(IBusiness):
             if r:
                 continue
 
+            if swap.coin not in self.enabled_coins:
+                continue
+
             result = Result()
             result.swap_id = swap.iden
             result.from_address = swap.from_address
@@ -233,7 +232,14 @@ class ScanBusiness(IBusiness):
             result.status = int(Status.Swap_New)
             results.append(result)
 
-            logging.info('scan swap, coin:%s, token=%s, swap_id:%s, tx_raw:%s, from:%s, to:%s' %
+            if result.coin.startswith('ETH') and not result.to_address:
+                b = db.session.query(Binder).filter_by(
+                    binder=result.from_address).order_by(Binder.iden.desc()).all()
+                if not b or len(b) == 0:
+                    continue
+                result.to_address = b[0].to
+
+            logging.info('scan swap, coin:%s, token:%s, swap_id:%s, tx_raw:%s, from:%s, to:%s' %
                          (result.coin, result.token, result.swap_id, result.tx_raw,
                           ("" if not result.from_address else result.from_address),
                           ("" if not result.to_address else result.to_address)))
