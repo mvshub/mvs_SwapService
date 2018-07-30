@@ -7,8 +7,9 @@ from utils.exception import RpcException, CriticalException
 import json
 import decimal
 import logging
-from models.constants import Status,Error
+from models.constants import Status, Error
 from models.coin import Coin
+
 
 class Etp(Base):
     rpc_version = "2.0"
@@ -49,11 +50,22 @@ class Etp(Base):
         return res.text
 
     def is_to_address_valid(self, did):
-        res = self.make_request('getdid', [did])
-        dids = res['result']
-        if dids and len(dids) == 1:
+        dids = self.get_did(did)
+        if dids and len(dids) > 0:
             return True
+
+        if self.is_address_valid(did):
+            return True
+
         return False
+
+    def get_did(self, did):
+        res = self.make_request('getdid', [did])
+        return res['result']
+
+    def is_address_valid(self, address):
+        res = self.make_request('validateaddress', [did])
+        return res['result']['is_valid']
 
     def get_balance(self, name, address):
         res = self.make_request('getaddressetp', [address])
