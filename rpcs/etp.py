@@ -121,16 +121,10 @@ class Etp(Base):
         return tx_hash
 
     def send_asset(self, account, passphrase, to, symbol, amount):
-        return self.send_asset_impl('sendasset', account, passphrase, to, symbol, amount)
-
-    def did_send_asset(self, account, passphrase, to, symbol, amount):
-        return self.send_asset_impl('didsendasset', account, passphrase, to, symbol, amount)
-
-    def send_asset_impl(self, method, account, passphrase, to, symbol, amount):
         tx_hash = None
         try:
             res = self.make_request(
-                method, [account, passphrase, to, symbol, amount])
+                'didsendasset', [account, passphrase, to, symbol, amount])
             result = res['result']
             if result:
                 tx_hash = result['hash']
@@ -282,7 +276,4 @@ class Etp(Base):
 
         account = settings.get('account')
         passphrase = settings.get('passphrase')
-        if self.is_address_valid(to):
-            return self.send_asset(account, passphrase, to, symbol, volume)
-        else:
-            return self.did_send_asset(account, passphrase, to, symbol, volume)
+        return self.send_asset(account, passphrase, to, symbol, volume)
