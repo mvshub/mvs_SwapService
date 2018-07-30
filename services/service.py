@@ -1,10 +1,10 @@
 from services.iserver import IService
 from services.scan import ScanService
 from rpcs.rpcmanager import RpcManager
+from models import db
 from utils import response
 from flask import Flask, jsonify
 import sqlalchemy_utils
-from models import db
 from gevent.pywsgi import WSGIServer
 from gevent import monkey
 import logging
@@ -38,7 +38,6 @@ class SwapService(IService):
     def start(self):
         self.app = Flask(__name__)
 
-
         @self.app.route('/')
         def root():
             return response.make_response(response.ERR_SUCCESS, 'SwapService')
@@ -46,7 +45,6 @@ class SwapService(IService):
         @self.app.errorhandler(404)
         def not_found(error):
             return response.make_response(response.ERR_SERVER_ERROR, '404: SwapService page not found')
-
 
         self.setup_db()
         self.rpcmanager.start()

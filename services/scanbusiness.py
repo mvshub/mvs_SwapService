@@ -79,10 +79,6 @@ class ScanBusiness(IBusiness):
                         continue
                     r.to_address = b[0].to
 
-                rpc = self.get_swap_rpc(r.coin)
-                if not rpc:
-                    continue
-
                 rpc = self.get_swap_rpc(r)
                 if not rpc:
                     continue
@@ -102,12 +98,12 @@ class ScanBusiness(IBusiness):
                     db.session.add(r)
                     db.session.commit()
 
-                        logging.info('success send asset: {}, {}, to: {}, tx_hash = {}'.format(
-                            r.token, r.amount, r.to_address, r.tx_hash))
+                    logging.info('success send asset: {}, {}, to: {}, tx_hash = {}'.format(
+                        r.token, r.amount, r.to_address, r.tx_hash))
 
             except Exception as e:
-                logging.error('process swap exception, coin:%s token: %s, error:%s' % (
-                   r.coin, r.token, str(e)))
+                logging.error('process swap exception, coin:%s, token: %s, error:%s' % (
+                    r.coin, r.token, str(e)))
 
     @timeit
     def process_confirm(self):
@@ -115,7 +111,6 @@ class ScanBusiness(IBusiness):
             confirm_status=int(Status.Tx_Unconfirm)).all()
         if not results:
             return True
-
 
         for r in results:
             if r.tx_hash == None:
@@ -145,8 +140,8 @@ class ScanBusiness(IBusiness):
 
                     elif r.status == int(Status.Swap_Send):
                         r.status = int(Status.Swap_Finish)
-                        logging.info('finish swap,coin:%s, token=%s, swap_id:%s, tx_raw:%s, from:%s,to:%s' %
-                        (r.coin, r.token, r.swap_id,r.tx_raw, r.from_address, r.to_address))
+                        logging.info('finish swap, coin:%s, token=%s, swap_id:%s, tx_raw:%s, from:%s, to:%s' %
+                                     (r.coin, r.token, r.swap_id, r.tx_raw, r.from_address, r.to_address))
 
                     db.session.add(r)
             except Exception as e:
@@ -238,9 +233,10 @@ class ScanBusiness(IBusiness):
             result.status = int(Status.Swap_New)
             results.append(result)
 
-            logging.info('scan swap,coin:%s, token=%s, swap_id:%s, tx_raw:%s, from:%s, to:%s' %
-            (result.coin, result.token, result.swap_id,result.tx_raw,
-            ("" if not result.from_address else result.from_address),("" if not result.to_address else result.to_address)  ))
+            logging.info('scan swap, coin:%s, token=%s, swap_id:%s, tx_raw:%s, from:%s, to:%s' %
+                         (result.coin, result.token, result.swap_id, result.tx_raw,
+                          ("" if not result.from_address else result.from_address),
+                          ("" if not result.to_address else result.to_address)))
 
         self.commit_results(results)
 
