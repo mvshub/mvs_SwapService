@@ -6,7 +6,7 @@ from models.swap import Swap
 from models.binder import Binder
 from models.coin import Coin
 from models.result import Result
-from models.constants import Status, Error,SwapException
+from models.constants import Status, Error, SwapException
 from utils import response
 from utils import notify
 from utils.timeit import timeit
@@ -86,11 +86,11 @@ class ScanBusiness(IBusiness):
 
                 rpc = self.get_swap_rpc(r)
                 if not rpc:
-                     raise SwapException(Error.EXCEPTION_GET_COINRPC)
+                    raise SwapException(Error.EXCEPTION_GET_COINRPC)
 
                 self.before_swap(rpc, r)
                 self.send_swap_tx(rpc, r)
-   
+
             except SwapException as e:
                 r.message = e.get_error_str()
                 logging.error('process swap exception, coin:%s, token: %s, error:%s' % (
@@ -98,7 +98,7 @@ class ScanBusiness(IBusiness):
                 import traceback
                 tb = traceback.format_exc()
                 logging.error('%s', tb)
-                
+
             except Exception as e:
                 r.message = str(e)
                 logging.error('process swap exception, coin:%s, token: %s, error:%s' % (
@@ -266,9 +266,8 @@ class ScanBusiness(IBusiness):
             if not result.to_address:
                 b = db.session.query(Binder).filter_by(
                     binder=result.from_address).order_by(Binder.iden.desc()).all()
-                if not b or len(b) == 0:
-                    continue
-                result.to_address = b[0].to
+                if b and len(b) > 0:
+                    result.to_address = b[0].to
 
             db.session.add(result)
             db.session.commit()
