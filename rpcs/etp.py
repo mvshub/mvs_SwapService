@@ -141,9 +141,7 @@ class Etp(Base):
         return tx_hash
 
     def get_block_by_height(self, height, addresses):
-        res = self.make_request('getblockheader', ['-t', int(height)])
-        block_hash = res['result']['hash']
-        res = self.make_request('getblock', [block_hash, 'true'])
+        res = self.make_request('getblock', [height])
         timestamp = res['result']['timestamp']
         transactions = res['result']['transactions']
 
@@ -165,33 +163,37 @@ class Etp(Base):
                     tx['blockNumber'] = height
                     tx['index'] = i
                     tx['hash'] = trans['hash']
-                    tx['to'] = to_addr
+                    tx['swap_address'] = to_addr
                     tx['output_index'] = j
                     tx['time'] = int(timestamp)
                     tx['input_addresses'] = input_addresses
                     tx['script'] = output['script']
                     tx['token'] = output['attachment']['symbol']
                     tx['value'] = int(output['attachment']['quantity'])
+                    tx['from'] = None
 
                 elif output['attachment']['type'] == 'message':
                     address = output['attachment']['content'].lower()
                     if not address.startswith('0x'):
                         address = "0x{}".format(address)
-                    tx['swap_address'] = address
+                    tx['to'] = address
 
-            if tx.get('token') is not None and tx.get('swap_address') is not None:
-                address = tx.get('swap_address')
-                if len(address) < 42 or not self.is_hex(address[2:]):
-                    logging.error("transfer {} - {}, height: {}, hash: {}, invalid swap_address: {}".format(
+            if tx.get('token') is not None and tx.get('to') is not None:
+                address = tx.get('to')
+                if self.is_invalid_to_address(address):
+                    logging.error("transfer {} - {}, height: {}, hash: {}, invalid to: {}".format(
                         tx['token'], tx['value'], tx['hash'], tx['blockNumber'], address))
                     continue
 
                 txs.append(tx)
-                logging.info("transfer {} - {}, height: {}, hash: {}, swap_address: {}".format(
-                    tx['token'], tx['value'], tx['hash'], tx['blockNumber'], address))
+                logging.info("transfer {} - {}, height: {}, hash: {}, to: {}".format(
+                    tx['token'], tx['value'], tx['blockNumber'], tx['hash'], address))
 
         res['txs'] = txs
         return res
+
+    def is_invalid_to_address(self, address):
+        return address is None or len(address) < 42 or not self.is_hex(address[2:])
 
     def is_hex(self, s):
         if s is None or s == '':
