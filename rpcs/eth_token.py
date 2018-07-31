@@ -1,9 +1,10 @@
 from rpcs.eth import Eth
 import decimal
-import logging
+from utils.log.logger import Logger
 from utils.exception import TransactionNotfoundException
 import binascii
 from models.coin import Coin
+
 
 class EthToken(Eth):
 
@@ -12,8 +13,8 @@ class EthToken(Eth):
         self.name = settings['name']
 
         self.tokens = settings['tokens']
-        self.token_names=[]
-        self.contract_addresses=[]
+        self.token_names = []
+        self.contract_addresses = []
 
         self.contract_mapaddress = settings['contract_mapaddress']
 
@@ -21,7 +22,7 @@ class EthToken(Eth):
             self.token_names.append(x['name'])
             self.contract_addresses.append(x['contract_address'])
 
-        logging.info("EthToken: contract_address: {}, contract_mapaddress".format(
+        Logger.info("EthToken: contract_address: {}, contract_mapaddress".format(
             self.contract_addresses, self.contract_mapaddress))
 
     def start(self):
@@ -49,14 +50,14 @@ class EthToken(Eth):
         return int(balance, 16)
 
     def get_coins(self):
-        coins=[]
+        coins = []
         for x in self.tokens:
             supply = self.get_total_supply(x['name'])
             if supply != 0:
                 coin = Coin()
                 coin.name = self.name
                 coin.token = x['name']
-                coin.total_supply = self.from_wei(x['name'],supply)
+                coin.total_supply = self.from_wei(x['name'], supply)
                 coin.decimal = self.decimals(coin.token)
                 coins.append(coin)
         return coins
@@ -72,7 +73,7 @@ class EthToken(Eth):
 
     def symbol(self, name=None, contract=None):
         if contract is None:
-            contract =  self.get_contractaddress(name)
+            contract = self.get_contractaddress(name)
 
         if contract is None:
             return ""
@@ -110,7 +111,8 @@ class EthToken(Eth):
         else:
             arg_to = to_address
 
-        data = '0xa9059cbb' + '0' * (64-len(arg_to)) + arg_to + ('%064x' % amount)
+        data = '0xa9059cbb' + '0' * \
+            (64 - len(arg_to)) + arg_to + ('%064x' % amount)
         res = self.make_request('eth_sendTransaction', [
                                 {'from': from_address, 'to': contract, 'data': data}])
         return res, 0
@@ -156,7 +158,7 @@ class EthToken(Eth):
         return res
 
     def is_swap(self, tx, addresses):
-        if 'type' not in tx  or tx['type'] != self.name:
+        if 'type' not in tx or tx['type'] != self.name:
             return False
 
         if tx['value'] <= 0:
@@ -166,15 +168,13 @@ class EthToken(Eth):
 
         return True
 
-
-
     def get_block_by_height(self, height, addresses):
         block = self.make_request(
             'eth_getBlockByNumber', [hex(int(height)), True])
 
-        block['txs']=[]
+        block['txs'] = []
         for i, tx in enumerate(block['transactions']):
-            if tx['to'] is None or tx['to'] not in (self.contract_addresses,self.contract_mapaddress):
+            if tx['to'] is None or tx['to'] not in (self.contract_addresses, self.contract_mapaddress):
                 tx['to'] = 'create contract'
                 continue
 
@@ -205,10 +205,12 @@ class EthToken(Eth):
                 if len(input_) != 202:
                     continue
                 strLen = int('0x' + input_[134:138], 16)
-                tx['to'] = str(binascii.unhexlify(input_[138:202])[:strLen], "utf-8")
+                tx['to'] = str(binascii.unhexlify(
+                    input_[138:202])[:strLen], "utf-8")
 
                 tx['isBinder'] = True
-                logging.info('new binder found, from:%s, to:%s' % (tx['from'], tx['to']))
+                Logger.info('new binder found, from:%s, to:%s' %
+                            (tx['from'], tx['to']))
 
             block['txs'].append(tx)
 

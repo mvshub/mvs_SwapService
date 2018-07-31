@@ -2,7 +2,6 @@ from services.abstract import AbstractService
 from services.scanbusiness import ScanBusiness
 from utils import response
 from models import db
-import logging
 
 
 class ScanService(AbstractService):

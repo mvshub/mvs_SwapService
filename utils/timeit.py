@@ -1,6 +1,5 @@
 import time
-import logging
-
+from utils.log.logger import Logger
 
 def timeit(f):
     def wrapper(*args, **kwargs):
@@ -9,6 +8,6 @@ def timeit(f):
         t2 = time.time()
         t = t2 - t1
         if t > 0.5:
-            logging.info('func(%s) costs %s' % (f.__name__, t))
+            Logger.info('func(%s) costs %s' % (f.__name__, t))
         return res
     return wrapper

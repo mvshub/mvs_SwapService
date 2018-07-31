@@ -1,9 +1,9 @@
 from rpcs.base import Base
 import requests
+from utils.log.logger import Logger
 from utils.exception import RpcException, CriticalException
 import json
 import decimal
-import logging
 import binascii
 from models.coin import Coin
 
@@ -63,7 +63,7 @@ class Eth(Base):
         try:
             js = json.loads(res.text)
         except Exception as e:
-            logging.error(
+            Logger.error(
                 'bad response content, failed to parse,%s' % res.text)
             return 0
 
@@ -92,7 +92,7 @@ class Eth(Base):
                     input_[138:202])[:strLen], "utf-8")
 
                 tx['isBinder'] = True
-                logging.info('new binder found, from:%s, to:%s' %
+                Logger.info('new binder found, from:%s, to:%s' %
                              (tx['from'], tx['to']))
             else:
                 if tx['to'] not in addresses:

@@ -3,11 +3,11 @@ from services.scan import ScanService
 from rpcs.rpcmanager import RpcManager
 from models import db
 from utils import response
+from utils.log.logger import Logger
 from flask import Flask, jsonify
 import sqlalchemy_utils
 from gevent.pywsgi import WSGIServer
 from gevent import monkey
-import logging
 
 
 # need to patch sockets to make requests async
@@ -55,8 +55,8 @@ class SwapService(IService):
 
         self.http = WSGIServer(
             (self.settings['host'], self.settings['port']), self.app.wsgi_app)
-        logging.info('server %s,%s' %
-                     (self.settings['host'], self.settings['port']))
+        Logger.info('server %s:%s' %
+                    (self.settings['host'], self.settings['port']))
         self.http.serve_forever()
 
     def stop(self):

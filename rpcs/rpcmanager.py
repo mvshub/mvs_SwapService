@@ -1,6 +1,5 @@
 import collections
 import importlib
-import logging
 from utils.exception import RpcException, CriticalException
 import random
 

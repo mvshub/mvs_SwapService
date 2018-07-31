@@ -1,7 +1,6 @@
 import traceback
-import logging
-
+from utils.log.logger import Logger
 
 def trace():
     for line in traceback.format_stack():
-        logging.info(line.strip())
+        Logger.info(line.strip())
