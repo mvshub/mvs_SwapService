@@ -11,7 +11,7 @@ from os.path import dirname, abspath
 # import:
 # from utils.log.logger import Logger
 #
-# Logger.info("balabala")
+# Logger.get().info("balabala")
 
 
 class Logger():
@@ -41,43 +41,3 @@ class Logger():
                     log = Logger()
                     Logger.loggerInstance = log.get_by_name("root")
         return Logger.loggerInstance
-
-    @staticmethod
-    def info(text):
-        try:
-            Logger.get().info(text)
-        except Exception as e:
-            #print("Logger error:",str(e))
-            pass
-
-    @staticmethod
-    def debug(text):
-        try:
-            Logger.get().debug(text)
-        except Exception as e:
-            #print("Logger error:",str(e))
-            pass
-
-    @staticmethod
-    def error(text):
-        try:
-            Logger.get().error(text)
-        except Exception as e:
-            #print("Logger error:",str(e))
-            pass
-
-    @staticmethod
-    def fatal(text):
-        try:
-            Logger.get().fatal(text)
-        except Exception as e:
-            #print("Logger error:",str(e))
-            pass
-
-    @staticmethod
-    def critical(text):
-        try:
-            Logger.get().critical(text)
-        except Exception as e:
-            #print("Logger error:",str(e))
-            pass
