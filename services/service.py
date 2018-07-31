@@ -2,6 +2,8 @@ from services.iserver import IService
 from services.scan import ScanService
 from rpcs.rpcmanager import RpcManager
 from models import db
+from models.result import Result
+from models.constants import Status, Error, SwapException
 from utils import response
 from utils.log.logger import Logger
 from flask import Flask, jsonify
@@ -9,9 +11,11 @@ import sqlalchemy_utils
 from gevent.pywsgi import WSGIServer
 from gevent import monkey
 
-
-# need to patch sockets to make requests async
-monkey.patch_all()
+from flask import Flask,render_template,request
+from flask_bootstrap import Bootstrap
+from flask_wtf import FlaskForm 
+from wtforms import StringField, FileField, DateTimeField, BooleanField, HiddenField, SubmitField, PasswordField, TextAreaField, SelectField 
+from wtforms.validators import  DataRequired, Required, Length, Email, Regexp, EqualTo 
 
 
 class SwapService(IService):
@@ -37,6 +41,7 @@ class SwapService(IService):
 
     def start(self):
         self.app = Flask(__name__)
+        self.app.config.from_object('config.config')
 
         @self.app.route('/')
         def root():
@@ -45,6 +50,13 @@ class SwapService(IService):
         @self.app.errorhandler(404)
         def not_found(error):
             return response.make_response(response.ERR_SERVER_ERROR, '404: SwapService page not found')
+
+        @self.app.route('/date/<date>')
+        def swap_date(date):
+            results = db.session.query(Result).filter_by(confirm_date=date, status=4).all()
+            return render_template('swap.html',results=results)
+
+
 
         self.setup_db()
         self.rpcmanager.start()
