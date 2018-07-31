@@ -16,9 +16,12 @@ class Result(db.Model):
 
     tx_raw = db.Column(db.String(256))
     tx_hash = db.Column(db.String(256))
+    tx_height = db.Column(db.Integer)
+    confirm_height = db.Column(db.Integer)
     confirm_status = db.Column(db.Integer, default=0)
     status = db.Column(db.Integer, default=0)
-    confirm_time = db.Column(db.Numeric(32), default=0)
+    confirm_date = db.Column(db.Numeric(16), default=0)
+    confirm_time = db.Column(db.Numeric(16), default=0)
     message = db.Column(db.Text)
 
     @classmethod

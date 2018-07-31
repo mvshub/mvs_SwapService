@@ -147,7 +147,10 @@ class ScanBusiness(IBusiness):
 
                     elif r.status == int(Status.Swap_Send):
                         r.status = int(Status.Swap_Finish)
-                        r.confirm_time = int(time.time() * 1000)
+                        r.tx_height = tx['blockNumber']
+                        r.confirm_height = block_num
+                        r.confirm_date = int(time.strftime('%4Y%2m%2d', time.localtime()))
+                        r.confirm_time = int(time.strftime('%2H%2M%2S', time.localtime()))
                         r.message = "confirm send tx success, swap finish"
                         logging.info('finish swap, coin:%s, token=%s, swap_id:%s, tx_raw:%s, from:%s, to:%s' %
                                      (r.coin, r.token, r.swap_id, r.tx_raw, r.from_address, r.to_address))
