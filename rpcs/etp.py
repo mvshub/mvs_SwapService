@@ -20,7 +20,7 @@ class Etp(Base):
         self.name = 'ETP'
         self.tokens = settings['tokens']
         self.token_names = [x['name'] for x in self.tokens]
-        Logger.info("init type {}, tokens: {}".format(
+        Logger.get().info("init type {}, tokens: {}".format(
             self.name, self.token_names))
 
     def start(self):
@@ -105,7 +105,7 @@ class Etp(Base):
         return 0
 
     def secondary_issue(self, account, passphrase, to_did, symbol, volume):
-        Logger.info("secondary_issue: to_did: {}, symbol: {}, volume: {}".format(
+        Logger.get().info("secondary_issue: to_did: {}, symbol: {}, volume: {}".format(
             to_did, symbol, volume))
         tx_hash = None
         try:
@@ -115,7 +115,7 @@ class Etp(Base):
             if result:
                 tx_hash = result['hash']
         except RpcException as e:
-            Logger.error("failed to secondary issue {} to {}, volume: {}, error: {}".format(
+            Logger.get().error("failed to secondary issue {} to {}, volume: {}, error: {}".format(
                 symbol, to_did, volume, str(e)))
             raise
         return tx_hash
@@ -129,7 +129,7 @@ class Etp(Base):
             if result:
                 tx_hash = result['hash']
         except RpcException as e:
-            Logger.error("failed to send asset to {}, symbol: {}, amount: {}, error: {}".format(
+            Logger.get().error("failed to send asset to {}, symbol: {}, amount: {}, error: {}".format(
                 to, symbol, amount, str(e)))
             raise
         return tx_hash
@@ -175,12 +175,12 @@ class Etp(Base):
             if tx.get('token') is not None and tx.get('to') is not None:
                 address = tx.get('to')
                 if self.is_invalid_to_address(address):
-                    Logger.error("transfer {} - {}, height: {}, hash: {}, invalid to: {}".format(
+                    Logger.get().error("transfer {} - {}, height: {}, hash: {}, invalid to: {}".format(
                         tx['token'], tx['value'], tx['hash'], tx['blockNumber'], address))
                     continue
 
                 txs.append(tx)
-                Logger.info("transfer {} - {}, height: {}, hash: {}, to: {}".format(
+                Logger.get().info("transfer {} - {}, height: {}, hash: {}, to: {}".format(
                     tx['token'], tx['value'], tx['blockNumber'], tx['hash'], address))
 
         res['txs'] = txs
@@ -220,7 +220,7 @@ class Etp(Base):
             if result:
                 result['blockNumber'] = result['height']
         except RpcException as e:
-            Logger.error("failed to get transaction: {}".format(str(e)))
+            Logger.get().error("failed to get transaction: {}".format(str(e)))
             raise
         return result
 
@@ -250,7 +250,7 @@ class Etp(Base):
         return "ERC.{}".format(token)
 
     def before_swap(self, token, amount, total_supply, settings):
-        # Logger.info("before_swap: token: {}, amount: {}".format(token, amount))
+        # Logger.get().info("before_swap: token: {}, amount: {}".format(token, amount))
 
         account = settings.get('account')
         passphrase = settings.get('passphrase')
@@ -270,7 +270,7 @@ class Etp(Base):
         symbol = self.get_erc_symbol(token)
         volume = int(decimal.Decimal(amount))
 
-        Logger.info("transfer_asset: to: {}, token: {}, amount: {}".format(
+        Logger.get().info("transfer_asset: to: {}, token: {}, amount: {}".format(
             to, symbol, volume))
 
         account = settings.get('account')

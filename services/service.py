@@ -55,7 +55,7 @@ class SwapService(IService):
 
         self.http = WSGIServer(
             (self.settings['host'], self.settings['port']), self.app.wsgi_app)
-        Logger.info('server %s:%s' %
+        Logger.get().info('server %s:%s' %
                     (self.settings['host'], self.settings['port']))
         self.http.serve_forever()
 

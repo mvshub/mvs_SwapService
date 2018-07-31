@@ -9,7 +9,7 @@ def main():
     service = SwapService(settings)
 
     def stop_signal(a, b):
-        Logger.info('receive signal, %s, %s' % (a, b))
+        Logger.get().info('receive signal, %s, %s' % (a, b))
         service.stop()
 
     signal.signal(signal.SIGINT, stop_signal)
@@ -17,12 +17,12 @@ def main():
     try:
         service.start()
     except Exception as e:
-        Logger.error('failed to start service, %s' % e)
+        Logger.get().error('failed to start service, %s' % e)
         import traceback
-        Logger.error('{}'.format(traceback.format_exc()))
+        Logger.get().error('{}'.format(traceback.format_exc()))
 
     service.stop()
-    Logger.info('end...')
+    Logger.get().info('end...')
 
 
 if __name__ == '__main__':

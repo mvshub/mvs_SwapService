@@ -22,7 +22,7 @@ class EthToken(Eth):
             self.token_names.append(x['name'])
             self.contract_addresses.append(x['contract_address'])
 
-        Logger.info("EthToken: contract_address: {}, contract_mapaddress".format(
+        Logger.get().info("EthToken: contract_address: {}, contract_mapaddress".format(
             self.contract_addresses, self.contract_mapaddress))
 
     def start(self):
@@ -124,7 +124,8 @@ class EthToken(Eth):
         address = settings["scan_address"]
 
         if not self.unlock_account(address, settings['passphrase']):
-            logging.info('Failed to unlock_account, address:%s, passphrase:%s' % (address, settings['passphrase']))
+            Logger.get().info('Failed to unlock_account, address:%s, passphrase:%s'
+                              % (address, settings['passphrase']))
             return
 
         return self.transfer2(token, None, address, to, self.to_wei(token, amount))[0]
@@ -209,8 +210,8 @@ class EthToken(Eth):
                     input_[138:202])[:strLen], "utf-8")
 
                 tx['isBinder'] = True
-                Logger.info('new binder found, from:%s, to:%s' %
-                            (tx['from'], tx['to']))
+                Logger.get().info('new binder found, from:%s, to:%s' %
+                                  (tx['from'], tx['to']))
 
             block['txs'].append(tx)
 

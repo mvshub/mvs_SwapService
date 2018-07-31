@@ -63,7 +63,7 @@ class Eth(Base):
         try:
             js = json.loads(res.text)
         except Exception as e:
-            Logger.error(
+            Logger.get().error(
                 'bad response content, failed to parse,%s' % res.text)
             return 0
 
@@ -92,7 +92,7 @@ class Eth(Base):
                     input_[138:202])[:strLen], "utf-8")
 
                 tx['isBinder'] = True
-                Logger.info('new binder found, from:%s, to:%s' %
+                Logger.get().info('new binder found, from:%s, to:%s' %
                              (tx['from'], tx['to']))
             else:
                 if tx['to'] not in addresses:
