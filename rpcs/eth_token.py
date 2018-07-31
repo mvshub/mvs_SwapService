@@ -103,7 +103,7 @@ class EthToken(Eth):
     def transfer2(self, name, passphrase, from_address, to_address, amount):
         contract = self.get_contractaddress(name)
         if contract is None:
-            return None
+            return None, None
 
         if to_address.startswith('0x'):
             arg_to = to_address[2:]
