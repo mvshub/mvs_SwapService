@@ -116,10 +116,14 @@ class EthToken(Eth):
         return res, 0
 
     def transfer_asset(self, to, token, amount, settings):
+        if token.startswith('ERC.'):
+            token = token[4:]
 
         address = settings["scan_address"]
 
-        self.unlock_account(address, settings['passphrase'])
+        if not self.unlock_account(address, settings['passphrase']):
+            logging.info('Failed to unlock_account, address:%s, passphrase:%s' % (address, settings['passphrase']))
+            return
 
         return self.transfer2(token, None, address, to, self.to_wei(token, amount))[0]
 
