@@ -250,8 +250,7 @@ class Etp(Base):
         return "ERC.{}".format(token)
 
     def before_swap(self, token, amount, total_supply, settings):
-        Logger.info("before_swap: token: {}, amount: {}, settings: {}".format(
-            token, amount, settings))
+        # Logger.info("before_swap: token: {}, amount: {}".format(token, amount))
 
         account = settings.get('account')
         passphrase = settings.get('passphrase')
@@ -271,8 +270,8 @@ class Etp(Base):
         symbol = self.get_erc_symbol(token)
         volume = int(decimal.Decimal(amount))
 
-        Logger.info("transfer_asset: to: {}, token: {}, amount: {}, settings: {}".format(
-            to, symbol, volume, settings))
+        Logger.info("transfer_asset: to: {}, token: {}, amount: {}".format(
+            to, symbol, volume))
 
         account = settings.get('account')
         passphrase = settings.get('passphrase')
