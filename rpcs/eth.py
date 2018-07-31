@@ -145,10 +145,20 @@ class Eth(Base):
     def transfer(self, passphrase, from_, to_, amount):
         options = {'from': from_, 'to': to_, 'value': hex(int(amount))}
         gas = self.estimate_gas(options)
-        options['gas'] = gas
+        options['gas'] = hex(gas)
 
         res = self.make_request('eth_sendTransaction', [options])
-        return res, gas * self.settings['gasPrice']
+        #return res, gas * self.settings['gasPrice']
+        return res, 0
+
+    def transfer_asset(self, to, token, amount, settings):
+        address = settings["scan_address"]
+
+        if not self.unlock_account(address, settings['passphrase']):
+            #logging.info('Failed to unlock_account, address:%s, passphrase:%s' % (address, settings['passphrase']))
+            return
+
+        return self.transfer(None, address, to, amount)[0]
 
     def best_block_number(self):
         res = self.make_request('eth_blockNumber')
