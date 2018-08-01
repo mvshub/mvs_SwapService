@@ -181,7 +181,7 @@ class SwapBusiness(IBusiness):
                 result.status = int(Status.Swap_Send)
                 result.confirm_status = int(Status.Tx_Unconfirm)
                 result.fee = int(fee * 10000)
-                db.message = "send tx success,wait for confirm"
+                db.message = "send tx success, wait for confirm"
                 db.session.add(result)
                 db.session.commit()
 
@@ -203,8 +203,8 @@ class SwapBusiness(IBusiness):
                 name=result.coin, token=result.token).order_by(Coin.iden.desc()).first()
 
             if not issue_coin:
-                Logger.get().info("coin:%s, token %s not exist in the db" %
-                                  (result.coin, result.token))
+                Logger.get().error("coin:%s, token %s not exist in the db" %
+                                   (result.coin, result.token))
                 raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST)
 
             if issue_coin.status == int(Status.Token_Issue):
@@ -222,7 +222,7 @@ class SwapBusiness(IBusiness):
                 result.confirm_status = int(Status.Tx_Unconfirm)
 
                 issue_coin.status = int(Status.Token_Issue)
-                db.message = "send issue tx success,wait for confirm"
+                db.message = "send issue tx success, wait for confirm"
                 db.session.add(issue_coin)
                 db.session.commit()
                 Logger.get().info('success issue asset:%s, tx_hash:%s ' %
