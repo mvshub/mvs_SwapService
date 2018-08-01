@@ -35,7 +35,8 @@
             "decimal": 18,
             "type": "rpcs.eth.Eth",
             "host":"10.10.10.175",
-            "port":8545
+            "port":8545,
+            "fee" : 0.03
         },
         {
             "id":3,

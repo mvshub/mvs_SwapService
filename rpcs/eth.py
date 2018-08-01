@@ -143,13 +143,17 @@ class Eth(Base):
         return int(res, 16)
 
     def transfer(self, passphrase, from_, to_, amount):
-        options = {'from': from_, 'to': to_, 'value': hex(int(amount))}
+        fee = self.settings['fee']
+
+        fee_amount = int(fee * int(amount))
+
+        options = {'from': from_, 'to': to_, 'value': hex(int(amount) - fee_amount)}
         gas = self.estimate_gas(options)
         options['gas'] = hex(gas)
 
         res = self.make_request('eth_sendTransaction', [options])
         #return res, gas * self.settings['gasPrice']
-        return res, 0
+        return res, fee
 
     def transfer_asset(self, to, token, amount, settings):
         address = settings["scan_address"]
