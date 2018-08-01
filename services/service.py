@@ -21,6 +21,7 @@ from wtforms.validators import DataRequired, Required, Length, Email, Regexp, Eq
 from sqlalchemy.sql import func
 import json
 
+
 class SwapService(IService):
 
     def __init__(self, settings):
@@ -85,22 +86,21 @@ class SwapService(IService):
                 func.sum(Result.amount),
                 func.count(1)).group_by(Result.coin, Result.token, Result.status).having(Result.status == 4).all()
 
-            for result in results:
-                result.amount = Decimal(result.amount).quantize(Decimal('0'))
-
-            return render_template('report.html', date=date, reports=results)
+            temp = [(i[0], i[1], Decimal(i[2]).quantize(Decimal('0')), i[3])
+                    for i in results]
+            return render_template('report.html', date=date, reports=temp)
 
         @self.app.route('/tx/<tx_raw>')
         def swap_raw(tx_raw):
             results = db.session.query(Result).filter_by(tx_raw=tx_raw).all()
-            
+
             for result in results:
                 result.amount = Decimal(result.amount).quantize(Decimal('0'))
-                result.confirm_status = constants.ConfirmStr[result.confirm_status]
+                result.confirm_status = constants.ConfirmStr[
+                    result.confirm_status]
                 result.status = constants.StatusStr[result.status]
 
-            return render_template('transaction.html',tx_raw =tx_raw,  results=results)
- 
+            return render_template('transaction.html', tx_raw=tx_raw,  results=results)
 
         self.http = WSGIServer(
             (self.settings['host'], self.settings['port']), self.app.wsgi_app)
