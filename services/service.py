@@ -10,13 +10,15 @@ from flask import Flask, jsonify
 import sqlalchemy_utils
 from gevent.pywsgi import WSGIServer
 from gevent import monkey
+from decimal import Decimal
 
-from flask import Flask,render_template,request
+from flask import Flask, render_template, request
 from flask_bootstrap import Bootstrap
-from flask_wtf import FlaskForm 
-from wtforms import StringField, FileField, DateTimeField, BooleanField, HiddenField, SubmitField, PasswordField, TextAreaField, SelectField 
-from wtforms.validators import  DataRequired, Required, Length, Email, Regexp, EqualTo 
+from flask_wtf import FlaskForm
+from wtforms import StringField, FileField, DateTimeField, BooleanField, HiddenField, SubmitField, PasswordField, TextAreaField, SelectField
+from wtforms.validators import DataRequired, Required, Length, Email, Regexp, EqualTo
 from sqlalchemy.sql import func
+
 
 class SwapService(IService):
 
@@ -51,7 +53,6 @@ class SwapService(IService):
         def not_found(error):
             return response.make_response(response.ERR_SERVER_ERROR, '404: SwapService page not found')
 
-
         self.setup_db()
         self.rpcmanager.start()
 
@@ -59,35 +60,37 @@ class SwapService(IService):
             self.app, self.rpcmanager, self.settings['scans'])
         self.scan.start()
 
-
         @self.app.route('/date/<date>')
         def swap_date(date):
-            results = db.session.query(Result).filter_by(confirm_date=date, status=4).all()
-            return render_template('swap.html',results=results)
+            results = db.session.query(Result).filter_by(
+                confirm_date=date, status=4).all()
+            for result in results:
+                result.amount = Decimal(result.amount).quantize(Decimal('0'))
+            return render_template('swap.html', date=date, results=results)
 
         @self.app.route('/<coin>/<token>')
-        def swap_coin(coin,token):
-            results = db.session.query(Result).filter_by(coin=coin, token=token, status=4).all()
-            return render_template('swap.html',results=results)
-
+        def swap_coin(coin, token):
+            results = db.session.query(Result).filter_by(
+                coin=coin, token=token, status=4).all()
+            for result in results:
+                result.amount = Decimal(result.amount).quantize(Decimal('0'))
+            return render_template('swap.html', token=token, results=results)
 
         @self.app.route('/report/<date>')
         def swap_report(date):
             # results = db.session.query(Result).group_by(coin,token).all()
             results = db.session.query(
-            Result.coin,
-            Result.token,
-            func.sum(Result.amount),
-            func.count(1)).group_by(Result.coin,Result.token,Result.status).having(Result.status == 4).all()
+                Result.coin,
+                Result.token,
+                func.sum(Result.amount),
+                func.count(1)).group_by(Result.coin, Result.token, Result.status).having(Result.status == 4).all()
 
-
-            return render_template('report.html',reports=results)
-
+            return render_template('report.html', date=date, reports=results)
 
         self.http = WSGIServer(
             (self.settings['host'], self.settings['port']), self.app.wsgi_app)
         Logger.get().info('server %s:%s' %
-                    (self.settings['host'], self.settings['port']))
+                          (self.settings['host'], self.settings['port']))
         self.http.serve_forever()
 
     def stop(self):

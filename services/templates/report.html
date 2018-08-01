@@ -1,21 +1,55 @@
 <!doctype html>
 <html>
+
+    <head>
+      <meta charset="UTF-8">
+      <title>{{ date }}</title>
+
+      <style>
+        table, tr, td, th {
+          padding: 4;
+          margin: 4;
+        }
+
+        table {
+          border-color: #fffffb;
+        }
+
+        table tr {
+          border-color: #fffffb;
+        }
+
+        table th, table td{
+          border-color: #fffffb;
+        }
+
+        table tr:nth-child(odd){
+          background: #fffffb;
+        }
+        table tr:nth-child(even){
+          background: #f6f5ec;
+        }
+
+      </style>
+
+    </head>
+
    <body>
-   
+
       <table border = 1>
-        <td> coin </td>
-        <td> token </td>
-        <td> sum</td>
-        <td> count </td>
+        <td align="center" width="25%"> Coin </td>
+        <td align="center" width="25%"> Token </td>
+        <td align="center" width="25%"> Total</td>
+        <td align="center" width="25%"> Count </td>
           {% for values in reports %}
               <tr>
                   {% for v in values %}
                    <td> {{ v }} </td>
                   {% endfor %}
               </tr>
-              
+
           {% endfor %}
       </table>
-      
+
    </body>
 </html>
