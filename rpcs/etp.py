@@ -64,6 +64,9 @@ class Etp(Base):
         return res['result']
 
     def is_address_valid(self, address):
+        if address is None or address == '':
+            return False
+
         res = self.make_request('validateaddress', [address])
         return res['result']['is_valid']
 
