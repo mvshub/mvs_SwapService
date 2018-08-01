@@ -19,7 +19,22 @@ class Status(IntEnum):
     Token_Normal = 0
     Token_Issue = 1
 
+StatusStr = {
+    Status.Swap_New:'New',
+    Status.Swap_Issue:'Issue',
+    Status.Swap_Send:'Send',
+    Status.Swap_Finish:'Finish',
+}
 
+ConfirmStr = {
+    Status.Tx_Unconfirm:'Unconfirm',
+    Status.Tx_Confirm:'Confirmed',
+}
+
+TokenStr = {
+    Status.Token_Normal:'Normal',
+    Status.Token_Issue:'Issue',
+}
 
 class Error(IntEnum):
     Success = 0

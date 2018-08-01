@@ -38,7 +38,27 @@ class Result(db.Model):
         dep.tx_raw = dep_.tx_raw
         dep.confirm_status = dep_.confirm_status
         dep.status = dep_.status
+        dep.confirm_date = dep_.confirm_date
         dep.confirm_time = dep_.confirm_time
         dep.message = dep_.message
 
         return dep
+
+    @classmethod
+    def to_json(cls, obj):
+        #import pdb; pdb.set_trace()
+        return {
+            'swap_id' : obj.swap_id,
+            'from_address' : obj.from_address,
+            'to_address' : obj.to_address,
+            'amount' : str(obj.amount),
+            'token' : obj.token,
+            'coin' : obj.coin,
+            'tx_hash' : obj.tx_hash,
+            'tx_raw' : obj.tx_raw,
+            'confirm_status' : obj.confirm_status,
+            'status' : obj.status,
+            'confirm_date' : str(obj.confirm_date),
+            'confirm_time' : str(obj.confirm_time),
+            'message' : obj.message
+        }

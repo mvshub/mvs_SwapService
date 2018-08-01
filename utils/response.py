@@ -7,14 +7,15 @@ ERR_SERVER_ERROR = 2
 ERR_WITHDRAW_EXISTED = 3
 ERR_INVALID_ADDRESS = 4
 ERR_INVALID_AMOUNT = 5
-
+ERR_INVALID_TRANSACTION = 6
 errors = {
     ERR_SUCCESS: 'success',
     ERR_BAD_PARAMETER: 'bad parameter',
     ERR_SERVER_ERROR: 'internal server error',
     ERR_WITHDRAW_EXISTED: 'withdraw existed',
     ERR_INVALID_ADDRESS: 'invalid address',
-    ERR_INVALID_AMOUNT: 'invalid amount'
+    ERR_INVALID_AMOUNT: 'invalid amount',
+    ERR_INVALID_TRANSACTION: 'invalid raw transaction',
 }
 
 

@@ -3,6 +3,7 @@ from services.scan import ScanService
 from rpcs.rpcmanager import RpcManager
 from models import db
 from models.result import Result
+from models import constants
 from models.constants import Status, Error, SwapException
 from utils import response
 from utils.log.logger import Logger
@@ -18,7 +19,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, FileField, DateTimeField, BooleanField, HiddenField, SubmitField, PasswordField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Required, Length, Email, Regexp, EqualTo
 from sqlalchemy.sql import func
-
+import json
 
 class SwapService(IService):
 
@@ -78,14 +79,28 @@ class SwapService(IService):
 
         @self.app.route('/report/<date>')
         def swap_report(date):
-            # results = db.session.query(Result).group_by(coin,token).all()
             results = db.session.query(
                 Result.coin,
                 Result.token,
                 func.sum(Result.amount),
                 func.count(1)).group_by(Result.coin, Result.token, Result.status).having(Result.status == 4).all()
 
+            for result in results:
+                result.amount = Decimal(result.amount).quantize(Decimal('0'))
+
             return render_template('report.html', date=date, reports=results)
+
+        @self.app.route('/tx/<tx_raw>')
+        def swap_raw(tx_raw):
+            results = db.session.query(Result).filter_by(tx_raw=tx_raw).all()
+            
+            for result in results:
+                result.amount = Decimal(result.amount).quantize(Decimal('0'))
+                result.confirm_status = constants.ConfirmStr[result.confirm_status]
+                result.status = constants.StatusStr[result.status]
+
+            return render_template('transaction.html',tx_raw =tx_raw,  results=results)
+ 
 
         self.http = WSGIServer(
             (self.settings['host'], self.settings['port']), self.app.wsgi_app)
