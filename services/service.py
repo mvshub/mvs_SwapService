@@ -1,5 +1,5 @@
 from services.iserver import IService
-from services.scan import ScanService
+from services.swap import SwapService
 from rpcs.rpcmanager import RpcManager
 from models import db
 from models.result import Result
@@ -22,7 +22,7 @@ from sqlalchemy.sql import func
 import json
 
 
-class SwapService(IService):
+class MainService(IService):
 
     def __init__(self, settings):
         self.app = None
@@ -54,13 +54,6 @@ class SwapService(IService):
         @self.app.errorhandler(404)
         def not_found(error):
             return response.make_response(response.ERR_SERVER_ERROR, '404: SwapService page not found')
-
-        self.setup_db()
-        self.rpcmanager.start()
-
-        self.scan = ScanService(
-            self.app, self.rpcmanager, self.settings['scans'])
-        self.scan.start()
 
         @self.app.route('/date/<date>')
         def swap_date(date):
@@ -102,6 +95,15 @@ class SwapService(IService):
 
             return render_template('transaction.html', tx_raw=tx_raw,  results=results)
 
+        # start swap service
+        self.setup_db()
+        self.rpcmanager.start()
+
+        self.swap = SwapService(
+            self.app, self.rpcmanager, self.settings['scans'])
+        self.swap.start()
+
+        # start wsgi server
         self.http = WSGIServer(
             (self.settings['host'], self.settings['port']), self.app.wsgi_app)
         Logger.get().info('server %s:%s' %
@@ -112,5 +114,5 @@ class SwapService(IService):
         if hasattr(self, 'http'):
             self.http.stop()
 
-        if hasattr(self, 'scan'):
-            self.scan.stop()
+        if hasattr(self, 'swap'):
+            self.swap.stop()

@@ -1,12 +1,12 @@
 from utils.log.logger import Logger
-from services.service import SwapService
+from services.service import MainService
 import json
 import signal
 
 
 def main():
     settings = json.loads(open('config/service.json').read())
-    service = SwapService(settings)
+    service = MainService(settings)
 
     def stop_signal(a, b):
         Logger.get().info('receive signal, %s, %s' % (a, b))

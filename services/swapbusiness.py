@@ -18,7 +18,7 @@ from functools import partial
 from sqlalchemy.sql import func
 
 
-class ScanBusiness(IBusiness):
+class SwapBusiness(IBusiness):
 
     def __init__(self, service_, rpcmanager_, settings):
         IBusiness.__init__(self, service=service_, rpc=None, setting=settings)
