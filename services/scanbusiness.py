@@ -91,10 +91,11 @@ class ScanBusiness(IBusiness):
                 self.send_swap_tx(rpc, r)
 
             except SwapException as e:
-                r.message = e.get_error_str()
-                Logger.get().error('process swap exception, coin:%s, token: %s, error:%s' % (
-                    r.coin, r.token, r.message))
-                Logger.get().error('{}'.format(traceback.format_exc()))
+                if e.errcode != Error.EXCEPTION_COIN_ISSUING:
+                    r.message = e.get_error_str()
+                    Logger.get().error('process swap exception, coin:%s, token: %s, error:%s' % (
+                        r.coin, r.token, r.message))
+                    Logger.get().error('{}'.format(traceback.format_exc()))
 
             except Exception as e:
                 r.message = str(e)
@@ -129,8 +130,8 @@ class ScanBusiness(IBusiness):
 
                 if tx != None and tx['blockNumber'] != 0 and tx['blockNumber'] + minconf <= block_num:
                     r.confirm_status = int(Status.Tx_Confirm)
-                    Logger.get().info('confirm tx:%s,tx_height:%d, cur_number:%d' %
-                                (r.tx_hash, tx['blockNumber'], block_num))
+                    Logger.get().info('confirm tx: %s, tx_height: %d, cur_number: %d' %
+                                      (r.tx_hash, tx['blockNumber'], block_num))
 
                     if r.status == int(Status.Swap_Issue):
                         issue_coin = db.session.query(Coin).filter_by(
@@ -144,11 +145,13 @@ class ScanBusiness(IBusiness):
                         r.status = int(Status.Swap_Finish)
                         r.tx_height = tx['blockNumber']
                         r.confirm_height = block_num
-                        r.confirm_date = int(time.strftime('%4Y%2m%2d', time.localtime()))
-                        r.confirm_time = int(time.strftime('%2H%2M%2S', time.localtime()))
+                        r.confirm_date = int(time.strftime(
+                            '%4Y%2m%2d', time.localtime()))
+                        r.confirm_time = int(time.strftime(
+                            '%2H%2M%2S', time.localtime()))
                         r.message = "confirm send tx success, swap finish"
                         Logger.get().info('finish swap, coin:%s, token=%s, swap_id:%s, tx_raw:%s, from:%s, to:%s' %
-                                    (r.coin, r.token, r.swap_id, r.tx_raw, r.from_address, r.to_address))
+                                          (r.coin, r.token, r.swap_id, r.tx_raw, r.from_address, r.to_address))
 
                     db.session.add(r)
             except Exception as e:
@@ -198,12 +201,12 @@ class ScanBusiness(IBusiness):
 
             if not issue_coin:
                 Logger.get().info("coin:%s, token %s not exist in the db" %
-                            (result.coin, result.token))
+                                  (result.coin, result.token))
                 raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST)
 
             if issue_coin.status == int(Status.Token_Issue):
-                Logger.get().info("coin:%s, token %s is issuing" %
-                            (result.coin, result.token))
+                # Logger.get().info("coin:%s, token %s is issuing" %
+                #             (result.coin, result.token))
                 raise SwapException(Error.EXCEPTION_COIN_ISSUING)
 
             total_supply = issue_coin.total_supply
@@ -220,7 +223,7 @@ class ScanBusiness(IBusiness):
                 db.session.add(issue_coin)
                 db.session.commit()
                 Logger.get().info('success issue asset:%s, tx_hash:%s ' %
-                            (result.token, result.tx_hash))
+                                  (result.token, result.tx_hash))
 
         return err
 
@@ -254,7 +257,7 @@ class ScanBusiness(IBusiness):
             result.swap_id = swap.iden
             result.from_address = swap.from_address
             result.to_address = swap.to_address
-            result.amount = swap.amount
+            result.amount = Decimal(swap.amount).quantize(Decimal('0'))
             result.coin = swap.coin
             result.token = swap.token
             result.tx_raw = swap.tx_hash
@@ -273,9 +276,9 @@ class ScanBusiness(IBusiness):
             results.append(result)
 
             Logger.get().info('scan swap, coin:%s, token:%s, swap_id:%s, tx_raw:%s, from:%s, to:%s' %
-                        (result.coin, result.token, result.swap_id, result.tx_raw,
-                         ("" if not result.from_address else result.from_address),
-                         ("" if not result.to_address else result.to_address)))
+                              (result.coin, result.token, result.swap_id, result.tx_raw,
+                               ("" if not result.from_address else result.from_address),
+                                  ("" if not result.to_address else result.to_address)))
 
         self.commit_results(results)
 
