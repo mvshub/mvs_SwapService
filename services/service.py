@@ -51,12 +51,6 @@ class SwapService(IService):
         def not_found(error):
             return response.make_response(response.ERR_SERVER_ERROR, '404: SwapService page not found')
 
-        @self.app.route('/date/<date>')
-        def swap_date(date):
-            results = db.session.query(Result).filter_by(confirm_date=date, status=4).all()
-            return render_template('swap.html',results=results)
-
-
 
         self.setup_db()
         self.rpcmanager.start()
@@ -64,6 +58,19 @@ class SwapService(IService):
         self.scan = ScanService(
             self.app, self.rpcmanager, self.settings['scans'])
         self.scan.start()
+
+
+        @self.app.route('/date/<date>')
+        def swap_date(date):
+            results = db.session.query(Result).filter_by(confirm_date=date, status=4).all()
+            return render_template('swap.html',results=results)
+
+        @self.app.route('/<coin>/<token>')
+        def swap_coin(coin,token):
+            results = db.session.query(Result).filter_by(coin=coin, token=token, status=4).all()
+            return render_template('swap.html',results=results)
+
+
 
         self.http = WSGIServer(
             (self.settings['host'], self.settings['port']), self.app.wsgi_app)
