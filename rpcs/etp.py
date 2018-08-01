@@ -278,4 +278,4 @@ class Etp(Base):
 
         account = settings.get('account')
         passphrase = settings.get('passphrase')
-        return self.send_asset(account, passphrase, to, symbol, volume)
+        return self.send_asset(account, passphrase, to, symbol, volume), 0

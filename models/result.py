@@ -24,6 +24,8 @@ class Result(db.Model):
     confirm_time = db.Column(db.Numeric(16), default=0)
     message = db.Column(db.Text)
 
+    fee = db.Column(db.Integer) # unit: n * 1/10000
+
     @classmethod
     def copy(cls, dep_):
         dep = Result()
@@ -41,6 +43,7 @@ class Result(db.Model):
         dep.confirm_date = dep_.confirm_date
         dep.confirm_time = dep_.confirm_time
         dep.message = dep_.message
+        dep.fee = dep_.fee
 
         return dep
 

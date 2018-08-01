@@ -172,12 +172,13 @@ class SwapBusiness(IBusiness):
                 (result.status == Status.Swap_Issue and result.confirm_status == Status.Tx_Confirm):
             swap_coin = self.get_swap_coin(result)
             swap_settings = self.get_rpc_settings(swap_coin)
-            tx = rpc.transfer_asset(
+            tx, fee = rpc.transfer_asset(
                 result.to_address, result.token, result.amount, swap_settings)
             if tx:
                 result.tx_hash = tx
                 result.status = int(Status.Swap_Send)
                 result.confirm_status = int(Status.Tx_Unconfirm)
+                result.fee = int(fee * 10000)
                 db.message = "send tx success,wait for confirm"
                 db.session.add(result)
                 db.session.commit()

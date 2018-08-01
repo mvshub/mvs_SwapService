@@ -38,6 +38,12 @@ class EthToken(Eth):
                 return x['contract_address']
         return None
 
+    def get_fee(self, name):
+        for x in self.tokens:
+            if x['name'] == name:
+                return x['fee']
+        return 0
+
     def get_balance(self, name, address):
         contract = self.get_contractaddress(name)
         if contract is None:
@@ -104,18 +110,21 @@ class EthToken(Eth):
     def transfer2(self, name, passphrase, from_address, to_address, amount):
         contract = self.get_contractaddress(name)
         if contract is None:
-            return None, None
+            return None, 0
+
+        fee = self.get_fee(name)
 
         if to_address.startswith('0x'):
             arg_to = to_address[2:]
         else:
             arg_to = to_address
 
-        data = '0xa9059cbb' + '0' * \
-            (64 - len(arg_to)) + arg_to + ('%064x' % amount)
+        fee_amount = int(fee * amount)
+
+        data = '0xa9059cbb' + '0' * (64 - len(arg_to)) + arg_to + ('%064x' % (amount-fee_amount) )
         res = self.make_request('eth_sendTransaction', [
                                 {'from': from_address, 'to': contract, 'data': data}])
-        return res, 0
+        return res, fee
 
     def transfer_asset(self, to, token, amount, settings):
         if token.startswith('ERC.'):
@@ -126,9 +135,9 @@ class EthToken(Eth):
         if not self.unlock_account(address, settings['passphrase']):
             Logger.get().info('Failed to unlock_account, address:%s, passphrase:%s'
                               % (address, settings['passphrase']))
-            return
+            return None, 0
 
-        return self.transfer2(token, None, address, to, self.to_wei(token, amount))[0]
+        return self.transfer2(token, None, address, to, self.to_wei(token, amount))
 
     def decimals(self, name):
         for i in self.tokens:

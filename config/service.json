@@ -49,13 +49,15 @@
                     "name":"ABC",
                     "contract_address":"0x7cf4d8fdec9244e774272aac648d33e051fd83f4",
                     "enable":true,
-                    "decimal": 5
+                    "decimal": 5,
+                    "fee" : 0.05
                 },
                 {
                     "name":"SMT",
                     "contract_address":"0x1f6726942499fb079c476f3c0962c1674594c743",
                     "enable":true,
-                    "decimal": 4
+                    "decimal": 4,
+                    "fee" : 0.05
                 }
             ]
         }
