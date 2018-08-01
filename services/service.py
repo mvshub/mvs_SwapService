@@ -58,17 +58,31 @@ class MainService(IService):
         @self.app.route('/date/<date>')
         def swap_date(date):
             results = db.session.query(Result).filter_by(
-                confirm_date=date, status=4).all()
-            for result in results:
-                result.amount = Decimal(result.amount).quantize(Decimal('0'))
-            return render_template('swap.html', date=date, results=results)
+                date=date).all()
+
+            records = []
+            for r in results:
+                record ={}
+                record['swap_id'] = r.swap_id 
+                record['coin/token'] = "/".join((r.coin, r.token))
+                record['tx_from'] = r.tx_from
+                record['from'] = r.from_address
+                record['to'] = r.to_address
+                record['amount'] = r.amount
+                record['time'] = r.time
+                record['tx_height']=r.tx_height
+                record['message'] = constants.ProcessStr(r.status,r.confirm_status)
+                record['finish'] = 0 if r.status==Status.Swap_Finish else 1
+                records.append(record)
+                print (record)
+
+
+            return render_template('date.html', date=date, results=records)
 
         @self.app.route('/<coin>/<token>')
         def swap_coin(coin, token):
             results = db.session.query(Result).filter_by(
                 coin=coin, token=token, status=4).all()
-            for result in results:
-                result.amount = Decimal(result.amount).quantize(Decimal('0'))
             return render_template('swap.html', token=token, results=results)
 
         @self.app.route('/report/<date>')
@@ -77,23 +91,21 @@ class MainService(IService):
                 Result.coin,
                 Result.token,
                 func.sum(Result.amount),
-                func.count(1)).group_by(Result.coin, Result.token, Result.status).having(Result.status == 4).all()
+                func.count(1)).group_by(Result.coin, Result.token, Result.status, Result.date).\
+                having(Result.status == 4, Result.date==date).all()
+    
+            return render_template('report.html', date=date, reports=results)
 
-            temp = [(i[0], i[1], Decimal(i[2]).quantize(Decimal('0')), i[3])
-                    for i in results]
-            return render_template('report.html', date=date, reports=temp)
-
-        @self.app.route('/tx/<tx_raw>')
-        def swap_raw(tx_raw):
-            results = db.session.query(Result).filter_by(tx_raw=tx_raw).all()
+        @self.app.route('/tx/<tx_from>')
+        def swap_raw(tx_from):
+            results = db.session.query(Result).filter_by(tx_from=tx_from).all()
 
             for result in results:
-                result.amount = Decimal(result.amount).quantize(Decimal('0'))
                 result.confirm_status = constants.ConfirmStr[
                     result.confirm_status]
                 result.status = constants.StatusStr[result.status]
 
-            return render_template('transaction.html', tx_raw=tx_raw,  results=results)
+            return render_template('transaction.html', tx_from=tx_from,  results=results)
 
         # start swap service
         self.setup_db()

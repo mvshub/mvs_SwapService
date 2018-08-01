@@ -1,7 +1,6 @@
 from . import db
 import time
 
-
 class Result(db.Model):
     __tablename__ = 'result'
 
@@ -9,19 +8,19 @@ class Result(db.Model):
     swap_id = db.Column(db.Integer, nullable=False)
     from_address = db.Column(db.String(128))
     to_address = db.Column(db.String(128))
-    amount = db.Column(db.Numeric(64, 18), nullable=False)
+    amount = db.Column(db.BigInteger, nullable=False)
 
     coin = db.Column(db.String(64), nullable=False)
     token = db.Column(db.String(64), nullable=False)
 
-    tx_raw = db.Column(db.String(256))
+    tx_from = db.Column(db.String(256))
     tx_hash = db.Column(db.String(256))
     tx_height = db.Column(db.Integer)
     confirm_height = db.Column(db.Integer)
-    confirm_status = db.Column(db.Integer, default=0)
-    status = db.Column(db.Integer, default=0)
-    confirm_date = db.Column(db.Numeric(16), default=0)
-    confirm_time = db.Column(db.Numeric(16), default=0)
+    confirm_status = db.Column(db.SmallInteger, default=0)
+    status = db.Column(db.SmallInteger, default=0)
+    date = db.Column(db.Integer, default=0)
+    time = db.Column(db.Integer, default=0)
     message = db.Column(db.Text)
 
     fee = db.Column(db.Integer) # unit: n * 1/10000
@@ -37,11 +36,11 @@ class Result(db.Model):
         dep.token = dep_.token
         dep.coin = dep_.coin
         dep.tx_hash = dep_.tx_hash
-        dep.tx_raw = dep_.tx_raw
+        dep.tx_from = dep_.tx_from
         dep.confirm_status = dep_.confirm_status
         dep.status = dep_.status
-        dep.confirm_date = dep_.confirm_date
-        dep.confirm_time = dep_.confirm_time
+        dep.date = dep_.date
+        dep.time = dep_.time
         dep.message = dep_.message
         dep.fee = dep_.fee
 
@@ -58,10 +57,10 @@ class Result(db.Model):
             'token' : obj.token,
             'coin' : obj.coin,
             'tx_hash' : obj.tx_hash,
-            'tx_raw' : obj.tx_raw,
+            'tx_from' : obj.tx_from,
             'confirm_status' : obj.confirm_status,
             'status' : obj.status,
-            'confirm_date' : str(obj.confirm_date),
-            'confirm_time' : str(obj.confirm_time),
+            'date' : str(obj.date),
+            'time' : str(obj.time),
             'message' : obj.message
         }

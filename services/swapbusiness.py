@@ -104,6 +104,8 @@ class SwapBusiness(IBusiness):
                 Logger.get().error('{}'.format(traceback.format_exc()))
 
             finally:
+                r.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
+                r.time = int(time.strftime('%2H%2M%2S', time.localtime()))
                 db.session.add(r)
                 db.session.commit()
 
@@ -145,13 +147,13 @@ class SwapBusiness(IBusiness):
                         r.status = int(Status.Swap_Finish)
                         r.tx_height = tx['blockNumber']
                         r.confirm_height = block_num
-                        r.confirm_date = int(time.strftime(
+                        r.date = int(time.strftime(
                             '%4Y%2m%2d', time.localtime()))
-                        r.confirm_time = int(time.strftime(
+                        r.time = int(time.strftime(
                             '%2H%2M%2S', time.localtime()))
                         r.message = "confirm send tx success, swap finish"
-                        Logger.get().info('finish swap, coin:%s, token=%s, swap_id:%s, tx_raw:%s, from:%s, to:%s' %
-                                          (r.coin, r.token, r.swap_id, r.tx_raw, r.from_address, r.to_address))
+                        Logger.get().info('finish swap, coin:%s, token=%s, swap_id:%s, tx_from:%s, from:%s, to:%s' %
+                                          (r.coin, r.token, r.swap_id, r.tx_from, r.from_address, r.to_address))
 
                     db.session.add(r)
             except Exception as e:
@@ -261,10 +263,11 @@ class SwapBusiness(IBusiness):
             result.amount = Decimal(swap.amount).quantize(Decimal('0'))
             result.coin = swap.coin
             result.token = swap.token
-            result.tx_raw = swap.tx_hash
+            result.tx_from = swap.tx_hash
             result.confirm_status = int(Status.Tx_Unconfirm)
             result.status = int(Status.Swap_New)
-
+            result.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
+            result.time = int(time.strftime('%2H%2M%2S', time.localtime()))
             if not result.to_address:
                 b = db.session.query(Binder).filter_by(
                     binder=result.from_address).order_by(Binder.iden.desc()).all()
@@ -276,8 +279,8 @@ class SwapBusiness(IBusiness):
 
             results.append(result)
 
-            Logger.get().info('scan swap, coin:%s, token:%s, swap_id:%s, tx_raw:%s, from:%s, to:%s' %
-                              (result.coin, result.token, result.swap_id, result.tx_raw,
+            Logger.get().info('scan swap, coin:%s, token:%s, swap_id:%s, tx_from:%s, from:%s, to:%s' %
+                              (result.coin, result.token, result.swap_id, result.tx_from,
                                ("" if not result.from_address else result.from_address),
                                   ("" if not result.to_address else result.to_address)))
 

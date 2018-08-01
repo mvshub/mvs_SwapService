@@ -3,7 +3,7 @@
 
     <head>
       <meta charset="UTF-8">
-      <title>raw_tx:{{ tx_raw }}</title>
+      <title>raw_tx:{{ tx_from }}</title>
 
       <style>
         table, tr, td, th {
@@ -60,8 +60,8 @@
                   <td align="center"> {{ value.tx_hash }} </td>
                   <td align="center"> {{ value.confirm_status }} </td>
                   <td align="center"> {{ value.status }} </td>
-                  <td align="center"> {{ value.confirm_date }} </td>
-                  <td align="center"> {{ value.confirm_time }} </td>
+                  <td align="center"> {{ value.date }} </td>
+                  <td align="center"> {{ value.time }} </td>
                   <td align="center"> {{ value.message }} </td>
               </tr>
 

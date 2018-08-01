@@ -31,6 +31,19 @@ ConfirmStr = {
     Status.Tx_Confirm:'Confirmed',
 }
 
+def ProcessStr(status, confirm):
+    if status == Status.Swap_New:
+        return "Scan transaction,waitting for process"
+    elif Status == Status.Swap_Issue:
+        return "SecondIssue Asset,"+ "waitting for confirm " \
+        if confirm == Status.Tx_Unconfirm else "confirm tx success"
+    elif status == Status.Swap_Send:
+        return "Send Asset,"+ "waitting for confirm " \
+        if confirm == Status.Tx_Unconfirm else "confirm tx success"
+    
+    return "Swap finished"
+
+
 TokenStr = {
     Status.Token_Normal:'Normal',
     Status.Token_Issue:'Issue',
