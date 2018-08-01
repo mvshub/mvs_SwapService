@@ -16,7 +16,7 @@ from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm 
 from wtforms import StringField, FileField, DateTimeField, BooleanField, HiddenField, SubmitField, PasswordField, TextAreaField, SelectField 
 from wtforms.validators import  DataRequired, Required, Length, Email, Regexp, EqualTo 
-
+from sqlalchemy.sql import func
 
 class SwapService(IService):
 
@@ -70,6 +70,18 @@ class SwapService(IService):
             results = db.session.query(Result).filter_by(coin=coin, token=token, status=4).all()
             return render_template('swap.html',results=results)
 
+
+        @self.app.route('/report/<date>')
+        def swap_report(date):
+            # results = db.session.query(Result).group_by(coin,token).all()
+            results = db.session.query(
+            Result.coin,
+            Result.token,
+            func.sum(Result.amount),
+            func.count(1)).group_by(Result.coin,Result.token,Result.status).having(Result.status == 4).all()
+
+
+            return render_template('report.html',reports=results)
 
 
         self.http = WSGIServer(

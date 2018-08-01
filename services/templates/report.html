@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+   <body>
+   
+      <table border = 1>
+        <td> coin </td>
+        <td> token </td>
+        <td> sum</td>
+        <td> count </td>
+          {% for values in reports %}
+              <tr>
+                  {% for v in values %}
+                   <td> {{ v }} </td>
+                  {% endfor %}
+              </tr>
+              
+          {% endfor %}
+      </table>
+      
+   </body>
+</html>
