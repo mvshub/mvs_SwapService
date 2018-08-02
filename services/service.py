@@ -71,7 +71,7 @@ class MainService(IService):
                 record['from'] = r.from_address
                 record['to'] = r.to_address
                 record['amount'] = r.amount
-                record['time'] = r.time
+                record['time'] = "%d:%d:%d" % (r.time//10000, r.time//100%100, r.time%100)
                 record['tx_height'] = r.tx_height
                 record['message'] = constants.ProcessStr(
                     r.status, r.confirm_status)
@@ -81,11 +81,20 @@ class MainService(IService):
 
             return render_template('date.html', date=date, results=records)
 
-        @self.app.route('/<coin>/<token>')
-        def swap_coin(coin, token):
+        @self.app.route('/<token>')
+        def swap_token(token):
             results = db.session.query(Result).filter_by(
+<<<<<<< 6590e137485258ae065f93084630e97aaf541794
                 coin=coin, token=token, status=int(Status.Swap_Finish)).all()
             return render_template('swap.html', coin=coin, token=token, results=results)
+=======
+                 token=token, status=int(Status.Swap_Finish)).all()
+
+            for result in results:
+                result.time = "%d:%d:%d" % (result.time//10000, result.time//100%100, result.time%100)
+                
+            return render_template('token.html', token=token, results=results)
+>>>>>>> update html
 
         @self.app.route('/report/<date>')
         def swap_report(date):
@@ -94,9 +103,13 @@ class MainService(IService):
                 Result.token,
                 func.sum(Result.amount),
                 func.count(1)).group_by(Result.coin, Result.token, Result.status, Result.date).\
+<<<<<<< 6590e137485258ae065f93084630e97aaf541794
                 having(Result.status == int(Status.Swap_Finish),
                        Result.date == date).all()
 
+=======
+                having(Result.status == int(Status.Swap_Finish)).having(Result.date == date).all()
+>>>>>>> update html
             return render_template('report.html', date=date, reports=results)
 
         @self.app.route('/tx/<tx_from>')
@@ -106,6 +119,8 @@ class MainService(IService):
             for result in results:
                 result.confirm_status = constants.ConfirmStr[
                     result.confirm_status]
+                result.time = "%d:%d:%d" % (result.time//10000, result.time//100%100, result.time%100)
+
                 result.status = constants.StatusStr[result.status]
 
             return render_template('transaction.html', tx_from=tx_from,  results=results)
@@ -124,7 +139,7 @@ class MainService(IService):
                 record['from'] = r.from_address
                 record['to'] = r.to_address
                 record['amount'] = r.amount
-                record['time'] = r.time
+                record['time'] = "%d:%d:%d" % (r.time//10000, r.time//100%100, r.time%100)
                 record['tx_height'] = r.tx_height
                 record['message'] = constants.ProcessStr(
                     r.status, r.confirm_status)

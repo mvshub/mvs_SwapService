@@ -15,10 +15,15 @@
         <td align="center" width="25%"> Total</td>
         <td align="center" width="25%"> Count </td>
           {% for values in reports %}
-              <tr>
-                  {% for v in values %}
-                   <td> {{ v }} </td>
-                  {% endfor %}
+              <tr>             
+                <td> {{ values[0] }} </td>                 
+                <td align="center">
+                    <a href= "{{ url_for( 'swap_token', token=values[1]) }}"> 
+                        {{ values[1] }}
+                    </a>
+                </td>                 
+                <td> {{ values[2] }} </td>                 
+                <td> {{ values[3] }} </td>                 
               </tr>
 
           {% endfor %}

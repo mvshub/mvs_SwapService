@@ -11,11 +11,12 @@
 
         <table>
             <td align="center" width="5%"> Swap ID </td>
-            <td align="center" width="5%"> Coin/Token </td>
+            <td align="center" width="5%"> Coin </td>
+            <td align="center" width="5%"> Token </td>
             <td align="center" width="20%"> From</td>
             <td align="center" width="20%"> To </td>
             <td align="center" width="10%"> Amount </td>
-            <td align="center" width="25%"> Message </td>
+            <td align="center" width="20%"> Message </td>
             <td align="center" width="5%"> Time </td>
             <td align="center" width="5%"> Detail</td>
 
@@ -23,10 +24,11 @@
             <tr>
 
               <td align="center"> {{ value["swap_id"] }} </td>
+                <td align="right"> {{ value["coin"] }} </td>
                 <td align="right">
-                  <a href= "{{ url_for( 'swap_coin', coin=value['coin'], token= value['token']) }}">
-                    {{ value["coin"] }}/{{ value["token"] }}
-                  </a>
+                    <a href= "{{ url_for( 'swap_token', token= value['token']) }}">
+                      {{ value["token"] }}
+                    </a>
                 </td>
                 <td align="right">
                     <a href= "{{ url_for( 'swap_address', address=value['from']) }}">

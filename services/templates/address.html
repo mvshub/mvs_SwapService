@@ -12,6 +12,7 @@
         <table >
             <td align="center" width="5%"> swap_id </td>
             <td align="center" width="5%"> Coin/Token </td>
+            <td align="center" width="5%"> Token </td>
             <td align="center" width="20%"> From</td>
             <td align="center" width="20%"> To </td>
             <td align="center" width="10%"> Amount </td>
@@ -23,15 +24,24 @@
             <tr>
 
               <td align="center"> {{ value["swap_id"] }} </td>
-                <td align="center">
-                  <a href= "{{ url_for( 'swap_coin', coin=value['coin'], token= value['token']) }}">
-                    {{ value["coin"] }}/{{ value["token"] }}
+              <td align="center"> {{ value["coin"] }} </td>
+                <td align="center">  
+                  <a href= "{{ url_for( 'swap_token', token= value['token']) }}">
+                    {{ value["token"] }}
                   </a>
                 </td>
-                <td align="right"> {{ value["from"] }} </td>
-                <td align="right"> {{ value["to"] }} </td>
-                <td align="right"> {{ value["amount"] }} </td>
-                <td align="center" style="{{ 'background-color:#fffffb;' if value['finish']==0 else 'background-color:#F08080;' }}"> {{ value["message"] }} </td>
+                <td align="center">
+                    <a href= "{{ url_for( 'swap_address', address=value['from']) }}"> 
+                    {{ value["from"] }}
+                    </a>
+                </td>
+                <td align="center">
+                    <a href= "{{ url_for( 'swap_address', address=value['to']) }}"> 
+                        {{ value["to"] }}
+                    </a>
+                </td>
+                <td align="center"> {{ value["amount"] }} </td>
+                <td align="center" style="{{ 'background-color:#fffffb;' if value['finish']==0 }}"> {{ value["message"] }} </td>
                 <td align="center"> {{ value["time"] }} </td>
                 <td align="center">
                     <a href= "{{ url_for( 'swap_raw' , tx_from=value['tx_from'] ) }}">

@@ -53,9 +53,21 @@
               <tr>
                   <td align="center"> {{ value.swap_id }} </td>
                   <td align="center"> {{ value.coin }} </td>
-                  <td align="center"> {{ value.token }} </td>
-                  <td align="center"> {{ value.from_address }} </td>
-                  <td align="center"> {{ value.to_address }} </td>
+                  <td align="right">
+                      <a href= "{{ url_for( 'swap_token', token= value['token']) }}">
+                        {{ value["token"] }}
+                      </a>
+                  </td>
+                  <td align="center">
+                      <a href= "{{ url_for( 'swap_address', address=value.from_address) }}"> 
+                      {{ value.from_address }}
+                      </a>
+                  </td>
+                  <td align="center">
+                      <a href= "{{ url_for( 'swap_address', address=value.to_address) }}"> 
+                          {{ value.to_address }}
+                      </a>
+                  </td>  
                   <td align="center"> {{ value.amount }} </td>
                   <td align="center"> {{ value.tx_hash }} </td>
                   <td align="center"> {{ value.confirm_status }} </td>
