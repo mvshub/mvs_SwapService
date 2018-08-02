@@ -75,7 +75,8 @@ class MainService(IService):
                 record['tx_height'] = r.tx_height
                 record['message'] = constants.ProcessStr(
                     r.status, r.confirm_status)
-                record['finish'] = 0 if r.status == Status.Swap_Finish else 1
+                record['finish'] = 0 if r.status == int(
+                    Status.Swap_Finish) else 1
                 records.append(record)
 
             return render_template('date.html', date=date, results=records)
@@ -83,7 +84,7 @@ class MainService(IService):
         @self.app.route('/<coin>/<token>')
         def swap_coin(coin, token):
             results = db.session.query(Result).filter_by(
-                coin=coin, token=token, status=4).all()
+                coin=coin, token=token, status=int(Status.Swap_Finish)).all()
             return render_template('swap.html', coin=coin, token=token, results=results)
 
         @self.app.route('/report/<date>')
@@ -93,7 +94,8 @@ class MainService(IService):
                 Result.token,
                 func.sum(Result.amount),
                 func.count(1)).group_by(Result.coin, Result.token, Result.status, Result.date).\
-                having(Result.status == 4, Result.date == date).all()
+                having(Result.status == int(Status.Swap_Finish),
+                       Result.date == date).all()
 
             return render_template('report.html', date=date, reports=results)
 
@@ -126,7 +128,8 @@ class MainService(IService):
                 record['tx_height'] = r.tx_height
                 record['message'] = constants.ProcessStr(
                     r.status, r.confirm_status)
-                record['finish'] = 0 if r.status == Status.Swap_Finish else 1
+                record['finish'] = 0 if r.status == int(
+                    Status.Swap_Finish) else 1
                 records.append(record)
 
             return render_template('address.html', address=address, results=records)
