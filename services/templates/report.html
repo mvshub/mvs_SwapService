@@ -3,40 +3,13 @@
 
     <head>
       <meta charset="UTF-8">
-      <title>{{ date }}</title>
-
-      <style>
-        table, tr, td, th {
-          padding: 4;
-          margin: 4;
-        }
-
-        table {
-          border-color: #fffffb;
-        }
-
-        table tr {
-          border-color: #fffffb;
-        }
-
-        table th, table td{
-          border-color: #fffffb;
-        }
-
-        table tr:nth-child(odd){
-          background: #fffffb;
-        }
-        table tr:nth-child(even){
-          background: #f6f5ec;
-        }
-
-      </style>
-
+      <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+      <title>{{ 'Report {}'.format(date) }}</title>
     </head>
 
    <body>
 
-      <table border = 1>
+      <table>
         <td align="center" width="25%"> Coin </td>
         <td align="center" width="25%"> Token </td>
         <td align="center" width="25%"> Total</td>

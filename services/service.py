@@ -63,8 +63,8 @@ class MainService(IService):
 
             records = []
             for r in results:
-                record ={}
-                record['swap_id'] = r.swap_id 
+                record = {}
+                record['swap_id'] = r.swap_id
                 record['coin'] = r.coin
                 record['token'] = r.token
                 record['tx_from'] = r.tx_from
@@ -72,11 +72,11 @@ class MainService(IService):
                 record['to'] = r.to_address
                 record['amount'] = r.amount
                 record['time'] = r.time
-                record['tx_height']=r.tx_height
-                record['message'] = constants.ProcessStr(r.status,r.confirm_status)
-                record['finish'] = 0 if r.status==Status.Swap_Finish else 1
+                record['tx_height'] = r.tx_height
+                record['message'] = constants.ProcessStr(
+                    r.status, r.confirm_status)
+                record['finish'] = 0 if r.status == Status.Swap_Finish else 1
                 records.append(record)
-
 
             return render_template('date.html', date=date, results=records)
 
@@ -84,7 +84,7 @@ class MainService(IService):
         def swap_coin(coin, token):
             results = db.session.query(Result).filter_by(
                 coin=coin, token=token, status=4).all()
-            return render_template('swap.html', token=token, results=results)
+            return render_template('swap.html', coin=coin, token=token, results=results)
 
         @self.app.route('/report/<date>')
         def swap_report(date):
@@ -93,8 +93,8 @@ class MainService(IService):
                 Result.token,
                 func.sum(Result.amount),
                 func.count(1)).group_by(Result.coin, Result.token, Result.status, Result.date).\
-                having(Result.status == 4, Result.date==date).all()
-    
+                having(Result.status == 4, Result.date == date).all()
+
             return render_template('report.html', date=date, reports=results)
 
         @self.app.route('/tx/<tx_from>')
@@ -110,11 +110,12 @@ class MainService(IService):
 
         @self.app.route('/address/<address>')
         def swap_address(address):
-            results = db.session.query(Result).filter(or_(Result.from_address == address, Result.to_address ==address)).all()
+            results = db.session.query(Result).filter(
+                or_(Result.from_address == address, Result.to_address == address)).all()
             records = []
             for r in results:
-                record ={}
-                record['swap_id'] = r.swap_id 
+                record = {}
+                record['swap_id'] = r.swap_id
                 record['coin'] = r.coin
                 record['token'] = r.token
                 record['tx_from'] = r.tx_from
@@ -122,11 +123,11 @@ class MainService(IService):
                 record['to'] = r.to_address
                 record['amount'] = r.amount
                 record['time'] = r.time
-                record['tx_height']=r.tx_height
-                record['message'] = constants.ProcessStr(r.status,r.confirm_status)
-                record['finish'] = 0 if r.status==Status.Swap_Finish else 1
+                record['tx_height'] = r.tx_height
+                record['message'] = constants.ProcessStr(
+                    r.status, r.confirm_status)
+                record['finish'] = 0 if r.status == Status.Swap_Finish else 1
                 records.append(record)
-
 
             return render_template('address.html', address=address, results=records)
 
