@@ -98,8 +98,8 @@ class MainService(IService):
                 Result.token,
                 func.sum(Result.amount),
                 func.count(1)).group_by(Result.coin, Result.token, Result.status, Result.date).\
-                having(Result.status == int(Status.Swap_Finish),
-                       Result.date == date).all()
+                having(Result.status == int(Status.Swap_Finish)).\
+                having(Result.date == date).all()
 
             return render_template('report.html', date=date, reports=results)
 
