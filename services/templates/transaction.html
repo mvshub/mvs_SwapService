@@ -37,14 +37,14 @@
    <body>
       <a>tx_from:{{ tx_from }}</a>
       <table border = 1>
-        <td align="center" width="5%"> swap_id </td>
+        <td align="center" width="5%"> Swap ID </td>
         <td align="center" width="5%"> Coin</td>
         <td align="center" width="5%"> Token </td>
         <td align="center" width="10%"> From </td>
         <td align="center" width="10%"> To </td>
         <td align="center" width="15%"> Amount </td>
-        <td align="center" width="15%"> Tx </td>
-        <td align="center" width="5%"> Is_confirm </td>
+        <td align="center" width="15%"> Transaction </td>
+        <td align="center" width="5%"> Confirmed </td>
         <td align="center" width="5%"> Status </td>
         <td align="center" width="10%"> Date </td>
         <td align="center" width="10%"> Time </td>
@@ -59,15 +59,15 @@
                       </a>
                   </td>
                   <td align="center">
-                      <a href= "{{ url_for( 'swap_address', address=value.from_address) }}"> 
+                      <a href= "{{ url_for( 'swap_address', address=value.from_address) }}">
                       {{ value.from_address }}
                       </a>
                   </td>
                   <td align="center">
-                      <a href= "{{ url_for( 'swap_address', address=value.to_address) }}"> 
+                      <a href= "{{ url_for( 'swap_address', address=value.to_address) }}">
                           {{ value.to_address }}
                       </a>
-                  </td>  
+                  </td>
                   <td align="center"> {{ value.amount }} </td>
                   <td align="center"> {{ value.tx_hash }} </td>
                   <td align="center"> {{ value.confirm_status }} </td>
