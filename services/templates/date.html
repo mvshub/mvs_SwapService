@@ -41,7 +41,7 @@
                     </a>
                 </td>
                 <td align="right"> {{ value["amount"] }} </td>
-                <td align="center" style="{{ 'background-color:#fffffb;' if value['finish']==0 }}"> {{ value["message"] }} </td>
+                <td align="center" > {{ value["message"] }} </td>
                 <td align="center"> {{ value["time"] }} </td>
                 <td align="center">
                     <a href= "{{ url_for( 'swap_raw' , tx_from=value['tx_from'] ) }}">

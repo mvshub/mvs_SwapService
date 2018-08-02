@@ -19,7 +19,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, FileField, DateTimeField, BooleanField, HiddenField, SubmitField, PasswordField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Required, Length, Email, Regexp, EqualTo
 from sqlalchemy.sql import func
-from sqlalchemy import or_
+from sqlalchemy import or_,case
 import json
 
 
@@ -93,14 +93,17 @@ class MainService(IService):
 
         @self.app.route('/report/<date>')
         def swap_report(date):
+            finished = case([(Result.status == int(Status.Swap_Finish), 1)], else_=0)
+            unfinished = case([(Result.status != int(Status.Swap_Finish), 1)], else_=0)
             results = db.session.query(
                 Result.coin,
                 Result.token,
                 func.sum(Result.amount),
-                func.count(1)).group_by(Result.coin, Result.token, Result.status, Result.date).\
-                having(Result.status == int(Status.Swap_Finish)).\
+                func.sum(finished),\
+                func.sum(unfinished)).\
+                group_by(Result.coin, Result.token, Result.date).\
                 having(Result.date == date).all()
-
+            
             return render_template('report.html', date=date, reports=results)
 
         @self.app.route('/tx/<tx_from>')
