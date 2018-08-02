@@ -18,6 +18,7 @@
             <td align="center" width="10%"> Height </td>
             <td align="center" width="10%"> Date </td>
             <td align="center" width="10%"> Time </td>
+            <td align="center" width="10%"> Detail </td>
 
             {% for value in results %}
             <tr>
@@ -41,6 +42,11 @@
                         </a>
                 </td>
                 <td align="center"> {{ value.time }} </td>
+                <td align="center">
+                        <a href= "{{ url_for( 'swap_raw' , tx_from=value.tx_from ) }}">
+                              More
+                        </a>
+                </td>
             </tr>
             {% endfor %}
         </table>
