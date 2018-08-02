@@ -16,5 +16,16 @@ class SwapService(AbstractService):
         self.businesses = SwapBusiness(self, self.rpcmanager, self.settings)
         self.businesses.start()
 
+        self.register_service('/service/%s/block/number',
+                             self.process_get_block_number, '%s_block_number')
+
+    def process_get_block_number(self, rpc, setting):
+        self.get_best_block_number(rpc)
+        return response.make_response(result=self.best_block_number)
+
+    def get_best_block_number(self, rpc):
+        self.best_block_number = rpc.best_block_number()
+        return self.best_block_number
+
     def stop(self):
         AbstractService.stop(self)

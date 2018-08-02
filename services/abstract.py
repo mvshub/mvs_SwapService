@@ -32,7 +32,7 @@ class AbstractService(IService):
             )
         )
 
-    def registe_service(self, uri, f, name, methods=['GET']):
+    def register_service(self, uri, f, name, methods=['GET']):
         Logger.get().info('register service, {}, {}, {}'.format(uri, name, methods))
         self.services.append(
             {'uri': uri, 'f': f, 'name': name, 'methods': methods})
@@ -44,8 +44,7 @@ class AbstractService(IService):
                 continue
             for s in self.services:
                 url = s['uri'] % d['coin']
-                endpoint = s['name']
-                #'%s_%s' % (s['name'], i)
+                endpoint = s['name'] % d['coin']
                 Logger.get().info('route {}'.format(url))
                 f = partial(
                     s['f'], self.rpcmanager.get_available_feed(d['rpc']))

@@ -33,6 +33,8 @@ pip3 install flask
 pip3 install flask-sqlalchemy
 pip3 install sqlalchemy-utils
 pip3 install flask-migrate
+pip3 install flask_bootstrap
+pip3 install flask_wtf
 ```
 
 3. create database 'wallet'
@@ -57,11 +59,6 @@ modify key path in config/service.json.
 Run:
 ```bash
 python3 main.py
-```
-
-Enable coin address in explorer:
-```
-http://127.0.0.1:8081/service/{coin_name}/address
 ```
 
 #### Requirements
