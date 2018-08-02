@@ -20,7 +20,7 @@ default mysql database config (see config/service.json)
 "mysql_host":"127.0.0.1",
 "mysql_port":3306,
 "mysql_user":"root",
-"mysql_passwd":"root123456",
+"mysql_passwd":"123456",
 "mysql_db":"wallet",
 ```
 

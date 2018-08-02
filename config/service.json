@@ -70,8 +70,8 @@
         "services":[
             {
                 "rpc":1,
-                "minconf":12,
                 "coin":"ETP",
+                "minconf":12,
                 "retry_interval":300,
                 "account":"test1",
                 "passphrase":"test123456",
