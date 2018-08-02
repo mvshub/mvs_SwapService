@@ -130,6 +130,7 @@ class MainService(IService):
                 record['from'] = r.from_address
                 record['to'] = r.to_address
                 record['amount'] = r.amount
+                record['date'] = r.date
                 record['time'] = "%d:%d:%d" % (r.time//10000, r.time//100%100, r.time%100)
                 record['tx_height'] = r.tx_height
                 record['message'] = constants.ProcessStr(

@@ -72,7 +72,11 @@
                   <td align="center"> {{ value.tx_hash }} </td>
                   <td align="center"> {{ value.confirm_status }} </td>
                   <td align="center"> {{ value.status }} </td>
-                  <td align="center"> {{ value.date }} </td>
+                  <td align="center">
+                      <a href= "{{ url_for( 'swap_date', date=value.date) }}"> 
+                          {{ value.date }}
+                      </a>
+                  </td>
                   <td align="center"> {{ value.time }} </td>
                   <td align="center"> {{ value.message }} </td>
               </tr>

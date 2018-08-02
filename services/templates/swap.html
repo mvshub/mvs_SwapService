@@ -27,7 +27,11 @@
                 <td align="right"> {{ value.to_address }} </td>
                 <td align="right"> {{ value.amount }} </td>
                 <td align="right"> {{ value.tx_height }} </td>
-                <td align="center"> {{ value.date }} </td>
+                <td align="center">
+                        <a href= "{{ url_for( 'swap_date', date=value.date) }}"> 
+                            {{ value.date }}
+                        </a>
+                </td>
                 <td align="center"> {{ value.time }} </td>
             </tr>
             {% endfor %}

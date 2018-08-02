@@ -11,12 +11,13 @@
 
         <table >
             <td align="center" width="5%"> Swap ID </td>
-            <td align="center" width="5%"> Coin/Token </td>
+            <td align="center" width="5%"> Coin </td>
             <td align="center" width="5%"> Token </td>
             <td align="center" width="20%"> From</td>
             <td align="center" width="20%"> To </td>
             <td align="center" width="10%"> Amount </td>
-            <td align="center" width="25%"> Message </td>
+            <td align="center" width="20%"> Message </td>
+            <td align="center" width="5%"> Date </td>
             <td align="center" width="5%"> Time </td>
             <td align="center" width="5%"> Detail</td>
 
@@ -25,29 +26,34 @@
 
               <td align="center"> {{ value["swap_id"] }} </td>
               <td align="center"> {{ value["coin"] }} </td>
-                <td align="center">
+              <td align="center">  
                   <a href= "{{ url_for( 'swap_token', token= value['token']) }}">
                     {{ value["token"] }}
                   </a>
-                </td>
-                <td align="right">
-                    <a href= "{{ url_for( 'swap_address', address=value['from']) }}">
-                    {{ value["from"] }}
-                    </a>
-                </td>
-                <td align="right">
-                    <a href= "{{ url_for( 'swap_address', address=value['to']) }}">
-                        {{ value["to"] }}
-                    </a>
-                </td>
-                <td align="right"> {{ value["amount"] }} </td>
-                <td align="center" style="{{ 'background-color:#fffffb;' if value['finish']==0 }}"> {{ value["message"] }} </td>
-                <td align="center"> {{ value["time"] }} </td>
-                <td align="center">
-                    <a href= "{{ url_for( 'swap_raw' , tx_from=value['tx_from'] ) }}">
-                          More
-                    </a>
-                </td>
+              </td>
+              <td align="right">
+                  <a href= "{{ url_for( 'swap_address', address=value['from']) }}"> 
+                  {{ value["from"] }}
+                  </a>
+              </td>
+              <td align="right">
+                  <a href= "{{ url_for( 'swap_address', address=value['to']) }}"> 
+                      {{ value["to"] }}
+                  </a>
+              </td>
+              <td align="right"> {{ value["amount"] }} </td>
+              <td align="center" > {{ value["message"] }} </td>
+              <td align="center">
+                  <a href= "{{ url_for( 'swap_date', date=value['date']) }}"> 
+                      {{ value["date"] }}
+                  </a>
+              </td>
+              <td align="center"> {{ value["time"] }} </td>
+              <td align="center">
+                  <a href= "{{ url_for( 'swap_raw' , tx_from=value['tx_from'] ) }}">
+                        More
+                  </a>
+              </td>
             </tr>
             {% endfor %}
         </table>
