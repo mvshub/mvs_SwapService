@@ -48,7 +48,7 @@ class Base:
         dec = self.decimals(token)
         return decimal.Decimal(wei) / decimal.Decimal(10.0**dec)
 
-    def before_swap(self, token, amount, total_supply, settings):
+    def before_swap(self, token, amount, issue_coin, settings):
         # 0: success, 1: need process
         return 0, None
 

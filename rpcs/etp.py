@@ -252,17 +252,20 @@ class Etp(Base):
     def get_erc_symbol(self, token):
         return "ERC.{}".format(token)
 
-    def before_swap(self, token, amount, total_supply, settings):
+    def before_swap(self, token, amount, issue_coin, settings):
         # Logger.get().info("before_swap: token: {}, amount: {}".format(token, amount))
 
-        account = settings.get('account')
-        passphrase = settings.get('passphrase')
-        to_did = settings.get('did')
         symbol = self.get_erc_symbol(token)
         volume = self.get_total_supply(symbol)
 
+        total_supply = issue_coin.total_supply
         if volume < total_supply:
-            issue_volume = self.to_wei(symbol, total_supply - volume)
+            account = settings.get('account')
+            passphrase = settings.get('passphrase')
+            to_did = settings.get('did')
+            amount = total_supply - volume
+            issue_volume = int(
+                amount * decimal.Decimal(10.0 ** issue_coin.decimal))
 
             tx_hash = self.secondary_issue(
                 account, passphrase, to_did, symbol, issue_volume)

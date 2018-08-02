@@ -212,10 +212,8 @@ class SwapBusiness(IBusiness):
                 #             (result.coin, result.token))
                 raise SwapException(Error.EXCEPTION_COIN_ISSUING)
 
-            total_supply = issue_coin.total_supply
-
             err, tx = swap_rpc.before_swap(
-                result.token, result.amount, total_supply, swap_settings)
+                result.token, result.amount, issue_coin, swap_settings)
             if err == Error.Success and tx is not None:
                 result.tx_hash = tx
                 result.status = int(Status.Swap_Issue)
