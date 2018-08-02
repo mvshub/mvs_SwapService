@@ -7,7 +7,7 @@ from models import constants
 from models.constants import Status, Error, SwapException
 from utils import response
 from utils.log.logger import Logger
-from flask import Flask, jsonify
+from flask import Flask, jsonify,redirect,url_for
 import sqlalchemy_utils
 from gevent.pywsgi import WSGIServer
 from gevent import monkey
@@ -19,7 +19,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, FileField, DateTimeField, BooleanField, HiddenField, SubmitField, PasswordField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Required, Length, Email, Regexp, EqualTo
 from sqlalchemy.sql import func
-from sqlalchemy import or_,case
+from sqlalchemy import or_,and_,case
 import json
 
 
@@ -56,11 +56,45 @@ class MainService(IService):
         def not_found(error):
             return response.make_response(response.ERR_SERVER_ERROR, '404: SwapService page not found')
 
+        @self.app.route('/<coin>/<token>/<date>/<int:status>')
+        def swap_status(coin,token,date,status=0):
+
+            if status == 0:
+                results = db.session.query(Result).filter_by(
+                    date=date,coin=coin,token=token).all()
+            elif status == 1:
+                results = db.session.query(Result).filter_by(\
+                date=date,coin=coin,token=token,status=int(Status.Swap_Finish)).all()
+            else:
+                results = db.session.query(Result).\
+                filter(and_(Result.date==date, Result.coin==coin, Result.token==token,\
+                Result.status != int(Status.Swap_Finish))).all()
+            
+            records = []
+            for r in results:
+                record = {}
+                record['swap_id'] = r.swap_id
+                record['coin'] = r.coin
+                record['token'] = r.token
+                record['tx_from'] = r.tx_from
+                record['from'] = r.from_address
+                record['to'] = r.to_address
+                record['amount'] = r.amount
+                record['time'] = "%d:%d:%d" % (r.time//10000, r.time//100%100, r.time%100)
+                record['tx_height'] = r.tx_height
+                record['message'] = constants.ProcessStr(
+                    r.status, r.confirm_status)
+                record['finish'] = 0 if r.status == int(
+                    Status.Swap_Finish) else 1
+                records.append(record)
+
+            return render_template('date.html', date=date, results=records)
+
+
         @self.app.route('/date/<date>')
         def swap_date(date):
             results = db.session.query(Result).filter_by(
-                date=date).all()
-
+                    date=date).all()
             records = []
             for r in results:
                 record = {}
@@ -84,7 +118,7 @@ class MainService(IService):
         @self.app.route('/<token>')
         def swap_token(token):
             results = db.session.query(Result).filter_by(
-                 token=token, status=int(Status.Swap_Finish)).all()
+                 token=token).all()
 
             for result in results:
                 result.time = "%d:%d:%d" % (result.time//10000, result.time//100%100, result.time%100)
@@ -94,13 +128,17 @@ class MainService(IService):
         @self.app.route('/report/<date>')
         def swap_report(date):
             finished = case([(Result.status == int(Status.Swap_Finish), 1)], else_=0)
-            unfinished = case([(Result.status != int(Status.Swap_Finish), 1)], else_=0)
+            total_amount = case([(Result.status == int(Status.Swap_Finish), Result.amount)], else_=0)
+            pending = case([(Result.status != int(Status.Swap_Finish), 1)], else_=0)
+            total_pending = case([(Result.status != int(Status.Swap_Finish), Result.amount)], else_=0)
+
             results = db.session.query(
                 Result.coin,
                 Result.token,
-                func.sum(Result.amount),
+                func.sum(total_amount),
                 func.sum(finished),\
-                func.sum(unfinished)).\
+                func.sum(pending),\
+                func.sum(total_pending)).\
                 group_by(Result.coin, Result.token, Result.date).\
                 having(Result.date == date).all()
             

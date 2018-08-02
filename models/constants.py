@@ -19,6 +19,11 @@ class Status(IntEnum):
     Token_Normal = 0
     Token_Issue = 1
 
+    Record_All = 0,
+    Record_Finish = 1,
+    Record_Pending = 2,
+
+
 StatusStr = {
     Status.Swap_New:'New',
     Status.Swap_Issue:'Issue',

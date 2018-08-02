@@ -10,11 +10,12 @@
    <body>
 
       <table>
-        <td align="center" width="20%"> Coin </td>
-        <td align="center" width="20%"> Token </td>
-        <td align="center" width="20%"> Total</td>
-        <td align="center" width="20%"> Complete </td>
-        <td align="center" width="20%"> Pending </td>
+        <td align="center" width="10%"> Coin </td>
+        <td align="center" width="10%"> Token </td>
+        <td align="center" width="20%"> Processed Amount</td>
+        <td align="center" width="20%"> Processed Num </td>
+        <td align="center" width="20%"> Pending Amount</td>
+        <td align="center" width="20%"> Pending Num</td>
           {% for values in reports %}
               <tr>
                 <td align="right"> {{ values[0] }} </td>
@@ -24,8 +25,17 @@
                     </a>
                 </td>
                 <td align="right"> {{ values[2] }} </td>
-                <td align="center"> {{ values[3] }} </td>
+                <td align="center"> 
+                    <a href= "{{ url_for( 'swap_status', coin=values[0],token=values[1],date=date,status=1) }}">
+                            {{ values[3] }}
+                    </a>
+                </td>
                 <td align="center"> {{ values[4] }} </td>
+                <td align="center"> 
+                    <a href= "{{ url_for( 'swap_status', coin=values[0],token=values[1],date=date,status=2) }}">
+                            {{ values[5] }}
+                    </a>
+                </td>
               </tr>
 
           {% endfor %}
