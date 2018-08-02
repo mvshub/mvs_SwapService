@@ -19,6 +19,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, FileField, DateTimeField, BooleanField, HiddenField, SubmitField, PasswordField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Required, Length, Email, Regexp, EqualTo
 from sqlalchemy.sql import func
+from sqlalchemy import or_
 import json
 
 
@@ -64,7 +65,8 @@ class MainService(IService):
             for r in results:
                 record ={}
                 record['swap_id'] = r.swap_id 
-                record['coin/token'] = "/".join((r.coin, r.token))
+                record['coin'] = r.coin
+                record['token'] = r.token
                 record['tx_from'] = r.tx_from
                 record['from'] = r.from_address
                 record['to'] = r.to_address
@@ -74,7 +76,6 @@ class MainService(IService):
                 record['message'] = constants.ProcessStr(r.status,r.confirm_status)
                 record['finish'] = 0 if r.status==Status.Swap_Finish else 1
                 records.append(record)
-                print (record)
 
 
             return render_template('date.html', date=date, results=records)
@@ -106,6 +107,28 @@ class MainService(IService):
                 result.status = constants.StatusStr[result.status]
 
             return render_template('transaction.html', tx_from=tx_from,  results=results)
+
+        @self.app.route('/address/<address>')
+        def swap_address(address):
+            results = db.session.query(Result).filter(or_(Result.from_address == address, Result.to_address ==address)).all()
+            records = []
+            for r in results:
+                record ={}
+                record['swap_id'] = r.swap_id 
+                record['coin'] = r.coin
+                record['token'] = r.token
+                record['tx_from'] = r.tx_from
+                record['from'] = r.from_address
+                record['to'] = r.to_address
+                record['amount'] = r.amount
+                record['time'] = r.time
+                record['tx_height']=r.tx_height
+                record['message'] = constants.ProcessStr(r.status,r.confirm_status)
+                record['finish'] = 0 if r.status==Status.Swap_Finish else 1
+                records.append(record)
+
+
+            return render_template('address.html', address=address, results=records)
 
         # start swap service
         self.setup_db()

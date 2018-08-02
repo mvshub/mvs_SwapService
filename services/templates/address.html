@@ -3,7 +3,7 @@
 
     <head>
       <meta charset="UTF-8">
-      <title>{{ date }}</title>
+      <title>{{ address }}</title>
 
       <style>
         table, tr, td, th {
@@ -41,16 +41,8 @@
                     {{ value["coin"] }}/{{ value["token"] }}
                   </a>
                 </td>
-                <td align="center">
-                    <a href= "{{ url_for( 'swap_address', address=value['from']) }}"> 
-                    {{ value["from"] }}
-                    </a>
-                </td>
-                <td align="center">
-                    <a href= "{{ url_for( 'swap_address', address=value['to']) }}"> 
-                        {{ value["to"] }}
-                    </a>
-                </td>
+                <td align="center"> {{ value["from"] }} </td>
+                <td align="center"> {{ value["to"] }} </td>
                 <td align="center"> {{ value["amount"] }} </td>
                 <td align="center"> {{ value["time"] }} </td>
                 <td align="center"> {{ value["message"] }} </td>
