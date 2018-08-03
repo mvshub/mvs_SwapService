@@ -126,14 +126,18 @@ class SwapBusiness(IBusiness):
 
             swap_coin = self.get_swap_coin(r)
             try:
-                block_num = rpc.best_block_number()
+                current_height = rpc.best_block_number()
                 minconf = self.min_confirm_map[swap_coin]
                 tx = rpc.get_transaction(r.tx_hash)
+                if tx == None or tx['blockNumber'] == 0:
+                    continue
 
-                if tx != None and tx['blockNumber'] != 0 and tx['blockNumber'] + minconf <= block_num:
+                tx_height = int(tx['blockNumber'])
+                if tx_height + minconf <= current_height:
                     r.confirm_status = int(Status.Tx_Confirm)
-                    Logger.get().info('confirm tx: %s, tx_height: %d, cur_height: %d' %
-                                      (r.tx_hash, tx['blockNumber'], block_num))
+                    Logger.get().info(
+                        'confirm tx: {}, tx_height: {}, cur_height: {}'.format(
+                            r.tx_hash, tx_height, current_height))
 
                     if r.status == int(Status.Swap_Issue):
                         issue_coin = db.session.query(Coin).filter_by(
@@ -146,16 +150,18 @@ class SwapBusiness(IBusiness):
                     elif r.status == int(Status.Swap_Send):
                         r.status = int(Status.Swap_Finish)
                         r.tx_height = tx['blockNumber']
-                        r.confirm_height = block_num
+                        r.confirm_height = current_height
                         r.date = int(time.strftime(
                             '%4Y%2m%2d', time.localtime()))
                         r.time = int(time.strftime(
                             '%2H%2M%2S', time.localtime()))
                         r.message = "confirm send tx success, swap finish"
-                        Logger.get().info('finish swap, coin: %s, token: %s, swap_id: %s, tx_from: %s, from: %s, to: s' %
-                                          (r.coin, r.token, r.swap_id, r.tx_from, r.from_address, r.to_address))
+                        Logger.get().info(
+                            'finish swap, coin: {}, token: {}, swap_id: {}, tx_from: {}, from: {}, to: {}'.format(
+                                r.coin, r.token, r.swap_id, r.tx_from, r.from_address, r.to_address))
 
                     db.session.add(r)
+
             except Exception as e:
                 Logger.get().error('failed to get tx: %s, error: %s' % (r.tx_hash, e))
                 Logger.get().error('{}'.format(traceback.format_exc()))
