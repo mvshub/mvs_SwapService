@@ -8,7 +8,6 @@ from utils.exception import RpcException, CriticalException
 import json
 import decimal
 import math
-from models.constants import MAX_ERC_2_ETP_DECIMAL
 from models.constants import Status, Error
 from models.coin import Coin
 
@@ -91,14 +90,14 @@ class Etp(Base):
             assets = res['result']
             if len(assets) > 0:
                 total = sum([int(x['maximum_supply']) for x in assets])
-                supply = self.from_etp_wei(token, total)
+                supply = self.from_wei(token, total)
                 return supply
         return 0
 
     def secondary_issue(self, account, passphrase, to_did, symbol, amount):
         tx_hash = None
         try:
-            volume = self.to_etp_wei(symbol, amount, ceil=True)
+            volume = self.to_wei(symbol, amount, ceil=True)
             res = self.make_request(
                 'secondaryissue', [account, passphrase, to_did, symbol, volume])
             result = res['result']
@@ -149,7 +148,7 @@ class Etp(Base):
     def send_asset(self, account, passphrase, to, symbol, amount):
         tx_hash = None
         try:
-            volume = self.to_etp_wei(symbol, amount)
+            volume = self.to_wei(symbol, amount)
             res = self.make_request(
                 'didsendasset', [account, passphrase, to, symbol, volume])
             result = res['result']
@@ -210,31 +209,6 @@ class Etp(Base):
 
     def get_erc_symbol(self, token):
         return "ERC.{}".format(token)
-
-    def to_etp_wei(self, token, amount, ceil=False):
-        dec = self.get_decimal(token)
-        exponent = MAX_ERC_2_ETP_DECIMAL - dec
-        if exponent < 0:
-            exponent = -exponent
-            if ceil:
-                volume = int(math.ceil(amount * (10 ** exponent)))
-            else:
-                volume = int(amount * (10 ** exponent))
-        else:
-            if ceil:
-                volume = int(math.ceil(amount))
-            else:
-                volume = int(amount)
-        return volume
-
-    def from_etp_wei(self, token, volume):
-        dec = self.get_decimal(token)
-        exponent = MAX_ERC_2_ETP_DECIMAL - dec
-        if exponent < 0:
-            amount = volume * (10 ** exponent)
-        else:
-            amount = volume
-        return amount
 
     def before_swap(self, token, amount, issue_coin, settings):
         symbol = self.get_erc_symbol(token)
