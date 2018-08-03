@@ -1,6 +1,7 @@
 from . import db
 import time
 
+
 class Result(db.Model):
     __tablename__ = 'result'
 
@@ -8,7 +9,7 @@ class Result(db.Model):
     swap_id = db.Column(db.Integer, nullable=False)
     from_address = db.Column(db.String(128))
     to_address = db.Column(db.String(128))
-    amount = db.Column(db.BigInteger, nullable=False)
+    amount = db.Column(db.Numeric(64, 18), nullable=False)
 
     coin = db.Column(db.String(64), nullable=False)
     token = db.Column(db.String(64), nullable=False)
@@ -23,7 +24,7 @@ class Result(db.Model):
     time = db.Column(db.Integer, default=0)
     message = db.Column(db.Text)
 
-    fee = db.Column(db.Integer) # unit: n * 1/10000
+    fee = db.Column(db.Integer)  # unit: n * 1/10000
 
     @classmethod
     def copy(cls, dep_):
@@ -50,17 +51,17 @@ class Result(db.Model):
     def to_json(cls, obj):
         #import pdb; pdb.set_trace()
         return {
-            'swap_id' : obj.swap_id,
-            'from_address' : obj.from_address,
-            'to_address' : obj.to_address,
-            'amount' : str(obj.amount),
-            'token' : obj.token,
-            'coin' : obj.coin,
-            'tx_hash' : obj.tx_hash,
-            'tx_from' : obj.tx_from,
-            'confirm_status' : obj.confirm_status,
-            'status' : obj.status,
-            'date' : str(obj.date),
-            'time' : str(obj.time),
-            'message' : obj.message
+            'swap_id': obj.swap_id,
+            'from_address': obj.from_address,
+            'to_address': obj.to_address,
+            'amount': str(obj.amount),
+            'token': obj.token,
+            'coin': obj.coin,
+            'tx_hash': obj.tx_hash,
+            'tx_from': obj.tx_from,
+            'confirm_status': obj.confirm_status,
+            'status': obj.status,
+            'date': str(obj.date),
+            'time': str(obj.time),
+            'message': obj.message
         }

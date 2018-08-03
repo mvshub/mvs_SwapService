@@ -185,7 +185,7 @@ class SwapBusiness(IBusiness):
                 db.session.add(result)
                 db.session.commit()
 
-                Logger.get().info('success send asset: {}, {}, to: {}, tx_hash = {}'.format(
+                Logger.get().info('success send asset: token: {}, amount: {}, to: {}, tx_hash = {}'.format(
                     result.token, result.amount, result.to_address, result.tx_hash))
 
         return Error.Success
@@ -258,7 +258,7 @@ class SwapBusiness(IBusiness):
             result.swap_id = swap.iden
             result.from_address = swap.from_address
             result.to_address = swap.to_address
-            result.amount = Decimal(swap.amount).quantize(Decimal('0'))
+            result.amount = Decimal(swap.amount)
             result.coin = swap.coin
             result.token = swap.token
             result.tx_from = swap.tx_hash

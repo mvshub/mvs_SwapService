@@ -2,6 +2,7 @@
 #! encoding=utf-8
 
 import decimal
+import math
 
 
 class Base:
@@ -34,9 +35,12 @@ class Base:
     def get_decimal(self, token):
         return 0
 
-    def to_wei(self, token, amount):
+    def to_wei(self, token, amount, ceil=False):
         dec = self.get_decimal(token)
-        return int(amount * (10.0**dec))
+        if ceil:
+            return int(math.ceil(amount * decimal.Decimal(10.0**dec)))
+        else:
+            return int(amount * decimal.Decimal(10.0**dec))
 
     def from_wei(self, token, wei):
         dec = self.get_decimal(token)
