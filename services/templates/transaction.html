@@ -3,40 +3,13 @@
 
     <head>
       <meta charset="UTF-8">
+      <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
       <title>tx_from:{{ tx_from }}</title>
-
-      <style>
-        table, tr, td, th {
-          padding: 4;
-          margin: 4;
-        }
-
-        table {
-          border-color: #fffffb;
-        }
-
-        table tr {
-          border-color: #fffffb;
-        }
-
-        table th, table td{
-          border-color: #fffffb;
-        }
-
-        table tr:nth-child(odd){
-          background: #fffffb;
-        }
-        table tr:nth-child(even){
-          background: #f6f5ec;
-        }
-
-      </style>
-
     </head>
 
    <body>
       <a>tx_from:{{ tx_from }}</a>
-      <table border = 1>
+      <table border>
         <td align="center" width="5%"> Swap ID </td>
         <td align="center" width="5%"> Coin</td>
         <td align="center" width="5%"> Token </td>
