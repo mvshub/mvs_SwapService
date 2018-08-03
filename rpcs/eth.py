@@ -40,10 +40,6 @@ class Eth(Base):
             raise RpcException('%s' % js['error']['message'])
         return js['result']
 
-    def get_balance(self, name, address):
-        res = self.make_request('eth_getBalance', [address])
-        return int(res, 16)
-
     def get_coins(self):
         coins = []
         supply = self.get_total_supply()
@@ -68,53 +64,6 @@ class Eth(Base):
             return 0
 
         return supply
-
-    def get_block_by_height(self, height, addresses):
-        block = self.make_request('eth_getBlockByNumber', [
-                                  hex(int(height)), True])
-        block['txs'] = []
-        for i, tx in enumerate(block['transactions']):
-            tx['index'] = i
-            tx['blockNumber'] = int(tx['blockNumber'], 16)
-            tx['time'] = int(block['timestamp'], 16)
-            tx['value'] = int(tx['value'], 16)
-            tx['amount'] = tx['value']
-            tx['isBinder'] = False
-            tx['type'] = self.name
-            if tx['to'] is None:
-                continue
-            elif tx['to'] == self.contract_mapaddress:
-                input_ = tx['input']
-                if len(input_) != 202:
-                    continue
-                strLen = int('0x' + input_[134:138], 16)
-                tx['to'] = str(binascii.unhexlify(
-                    input_[138:202])[:strLen], "utf-8")
-
-                tx['isBinder'] = True
-                Logger.get().info('new binder found, from:%s, to:%s' %
-                             (tx['from'], tx['to']))
-            else:
-                if tx['to'] not in addresses:
-                    continue
-
-                tx['swap_address'] = tx['to']
-                tx['token'] = 'ETH'
-
-            block['txs'].append(tx)
-
-        return block
-
-    def is_swap(self, tx, addresses):
-        if 'type' not in tx or tx['type'] != self.name:
-            return False
-
-        if tx['value'] <= 0:
-            return False
-        if tx['token'] is None or tx['token'] != self.name:
-            return False
-
-        return True
 
     def get_transaction(self, txid):
         res = self.make_request('eth_getTransactionByHash', [txid])
@@ -147,12 +96,13 @@ class Eth(Base):
 
         fee_amount = int(fee * int(amount))
 
-        options = {'from': from_, 'to': to_, 'value': hex(int(amount) - fee_amount)}
+        options = {'from': from_, 'to': to_,
+                   'value': hex(int(amount) - fee_amount)}
         gas = self.estimate_gas(options)
         options['gas'] = hex(gas)
 
         res = self.make_request('eth_sendTransaction', [options])
-        #return res, gas * self.settings['gasPrice']
+        # return res, gas * self.settings['gasPrice']
         return res, fee
 
     def transfer_asset(self, to, token, amount, settings):
@@ -189,5 +139,5 @@ class Eth(Base):
             return False
         return True
 
-    def decimals(self, token):
+    def get_decimal(self, token):
         return 18

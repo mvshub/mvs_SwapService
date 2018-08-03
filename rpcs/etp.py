@@ -7,6 +7,8 @@ from utils.log.logger import Logger
 from utils.exception import RpcException, CriticalException
 import json
 import decimal
+import math
+from models.constants import MAX_ERC_2_ETP_DECIMAL
 from models.constants import Status, Error
 from models.coin import Coin
 
@@ -70,10 +72,6 @@ class Etp(Base):
         res = self.make_request('validateaddress', [address])
         return res['result']['is_valid']
 
-    def get_balance(self, name, address):
-        res = self.make_request('getaddressetp', [address])
-        return res['result']['unspent']
-
     def get_coins(self):
         coins = []
         for x in self.tokens:
@@ -83,7 +81,7 @@ class Etp(Base):
                 coin.name = self.name
                 coin.token = x['name']
                 coin.total_supply = supply
-                coin.decimal = self.decimals(coin.token)
+                coin.decimal = self.get_decimal(coin.token)
                 coins.append(coin)
         return coins
 
@@ -93,30 +91,22 @@ class Etp(Base):
             assets = res['result']
             if len(assets) > 0:
                 total = sum([int(x['maximum_supply']) for x in assets])
-                supply = self.from_wei(token, total)
+                supply = self.from_etp_wei(token, total)
                 return supply
         return 0
 
-    def get_account_asset(self, account, passphrase, symbol):
-        res = self.make_request(
-            'getaccountasset', [account, passphrase, symbol])
-        assets = res['result']
-        if len(assets) > 0:
-            supply = int(assets[0]['quantity'])
-            supply = self.from_wei(symbol, supply)
-            return supply
-        return 0
-
-    def secondary_issue(self, account, passphrase, to_did, symbol, volume):
-        Logger.get().info("secondary_issue: to_did: {}, symbol: {}, volume: {}".format(
-            to_did, symbol, volume))
+    def secondary_issue(self, account, passphrase, to_did, symbol, amount):
         tx_hash = None
         try:
+            volume = self.to_etp_wei(symbol, amount, ceil=True)
             res = self.make_request(
                 'secondaryissue', [account, passphrase, to_did, symbol, volume])
             result = res['result']
             if result:
                 tx_hash = result['hash']
+
+            Logger.get().info("send_asset: to: {}, symbol: {}, amount: {}, volume: {}, tx_hash: {}".format(
+                to_did, symbol, amount, volume, tx_hash))
         except RpcException as e:
             Logger.get().error("failed to secondary issue {} to {}, volume: {}, error: {}".format(
                 symbol, to_did, volume, str(e)))
@@ -126,68 +116,21 @@ class Etp(Base):
     def send_asset(self, account, passphrase, to, symbol, amount):
         tx_hash = None
         try:
+            volume = self.to_etp_wei(symbol, amount)
             res = self.make_request(
-                'didsendasset', [account, passphrase, to, symbol, amount])
+                'didsendasset', [account, passphrase, to, symbol, volume])
             result = res['result']
             if result:
                 tx_hash = result['hash']
+
+            Logger.get().info("send_asset: to: {}, symbol: {}, amount: {}, volume: {}, tx_hash: {}".format(
+                to, symbol, amount, volume, tx_hash))
+
         except RpcException as e:
-            Logger.get().error("failed to send asset to {}, symbol: {}, amount: {}, error: {}".format(
-                to, symbol, amount, str(e)))
+            Logger.get().error("failed to send asset to {}, symbol: {}, volume: {}, error: {}".format(
+                to, symbol, volume, str(e)))
             raise
         return tx_hash
-
-    def get_block_by_height(self, height, addresses):
-        res = self.make_request('getblock', [height])
-        timestamp = res['result']['timestamp']
-        transactions = res['result']['transactions']
-
-        txs = []
-        for i, trans in enumerate(transactions):
-            input_addresses = [input_['address'] for input_ in trans[
-                'inputs'] if input_.get('address') is not None]
-
-            tx = {}
-            for j, output in enumerate(trans['outputs']):
-                to_addr = '' if output.get(
-                    'address') is None else output['address']
-
-                if output['attachment']['type'] == 'asset-transfer':
-                    if to_addr not in addresses:
-                        continue
-
-                    tx['type'] = 'ETP'
-                    tx['blockNumber'] = height
-                    tx['index'] = i
-                    tx['hash'] = trans['hash']
-                    tx['swap_address'] = to_addr
-                    tx['output_index'] = j
-                    tx['time'] = int(timestamp)
-                    tx['input_addresses'] = input_addresses
-                    tx['script'] = output['script']
-                    tx['token'] = output['attachment']['symbol']
-                    tx['value'] = int(output['attachment']['quantity'])
-                    tx['from'] = None
-
-                elif output['attachment']['type'] == 'message':
-                    address = output['attachment']['content'].lower()
-                    if not address.startswith('0x'):
-                        address = "0x{}".format(address)
-                    tx['to'] = address
-
-            if tx.get('token') is not None and tx.get('to') is not None:
-                address = tx.get('to')
-                if self.is_invalid_to_address(address):
-                    Logger.get().error("transfer {} - {}, height: {}, hash: {}, invalid to: {}".format(
-                        tx['token'], tx['value'], tx['hash'], tx['blockNumber'], address))
-                    continue
-
-                txs.append(tx)
-                Logger.get().info("transfer {} - {}, height: {}, hash: {}, to: {}".format(
-                    tx['token'], tx['value'], tx['blockNumber'], tx['hash'], address))
-
-        res['txs'] = txs
-        return res
 
     def is_invalid_to_address(self, address):
         return address is None or len(address) < 42 or not self.is_hex(address[2:])
@@ -197,23 +140,6 @@ class Etp(Base):
             return False
         import re
         return re.fullmatch(r"^[0-9a-f]+", s) is not None
-
-    def is_swap(self, tx, addresses):
-        if tx['type'] != self.name:
-            return False
-        if tx['value'] <= 0:
-            return False
-        if tx['token'] is None:
-            return False
-
-        if tx['token'] not in self.token_names:
-            return False
-        if set(tx['input_addresses']).intersection(set(addresses)):
-            return False
-
-        if tx['script'].find('numequalverify') < 0 and tx['to'] in addresses:
-            return True
-        return False
 
     def get_transaction(self, txid):
         result = None
@@ -243,7 +169,7 @@ class Etp(Base):
         res = self.make_request('getheight')
         return res['result']
 
-    def decimals(self, token):
+    def get_decimal(self, token):
         for i in self.tokens:
             if i['name'] == token:
                 return i['decimal']
@@ -252,33 +178,48 @@ class Etp(Base):
     def get_erc_symbol(self, token):
         return "ERC.{}".format(token)
 
+    def to_etp_wei(self, token, amount, ceil=False):
+        dec = self.get_decimal(token)
+        exponent = MAX_ERC_2_ETP_DECIMAL - dec
+        if exponent < 0:
+            exponent = -exponent
+            if ceil:
+                volume = int(math.ceil(amount * (10 ** exponent)))
+            else:
+                volume = int(amount * (10 ** exponent))
+        else:
+            if ceil:
+                volume = int(math.ceil(amount))
+            else:
+                volume = int(amount)
+        return volume
+
+    def from_etp_wei(self, token, volume):
+        dec = self.get_decimal(token)
+        exponent = MAX_ERC_2_ETP_DECIMAL - dec
+        if exponent < 0:
+            amount = volume * (10 ** exponent)
+        else:
+            amount = volume
+        return amount
+
     def before_swap(self, token, amount, issue_coin, settings):
-        # Logger.get().info("before_swap: token: {}, amount: {}".format(token, amount))
-
         symbol = self.get_erc_symbol(token)
-        volume = self.get_total_supply(symbol)
+        supply = self.get_total_supply(symbol)
 
-        total_supply = issue_coin.total_supply
-        if volume < total_supply:
+        if supply < issue_coin.total_supply:
             account = settings.get('account')
             passphrase = settings.get('passphrase')
             to_did = settings.get('did')
-            amount = total_supply - volume
-            issue_volume = int(
-                amount * decimal.Decimal(10.0 ** issue_coin.decimal))
+            issue_amount = issue_coin.total_supply - decimal.Decimal(supply)
 
             tx_hash = self.secondary_issue(
-                account, passphrase, to_did, symbol, issue_volume)
+                account, passphrase, to_did, symbol, issue_amount)
             return Error.Success, tx_hash
         return Error.Success, None
 
     def transfer_asset(self, to, token, amount, settings):
         symbol = self.get_erc_symbol(token)
-        volume = int(decimal.Decimal(amount))
-
-        Logger.get().info("transfer_asset: to: {}, token: {}, amount: {}".format(
-            to, symbol, volume))
-
         account = settings.get('account')
         passphrase = settings.get('passphrase')
-        return self.send_asset(account, passphrase, to, symbol, volume), 0
+        return self.send_asset(account, passphrase, to, symbol, amount), 0

@@ -30,6 +30,11 @@
                     "name":"ERC.TAC",
                     "enable":true,
                     "decimal": 14
+                },
+                {
+                    "name":"ERC.ETH",
+                    "enable":true,
+                    "decimal": 18
                 }
             ]
         },
@@ -56,7 +61,7 @@
                     "contract_address":"0x0506e5ef752ea1129a7e6ed41df5e93131bee8a7",
                     "enable":true,
                     "decimal": 5,
-                    "fee" : 0.05
+                    "fee" : 0.04
                 },
                 {
                     "name":"SMT",
@@ -70,7 +75,7 @@
                     "contract_address":"0x7cf4d8fdec9244e774272aac648d33e051fd83f4",
                     "enable":true,
                     "decimal": 14,
-                    "fee" : 0.05
+                    "fee" : 0.06
                 }
             ]
         }

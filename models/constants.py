@@ -6,6 +6,8 @@ from enum import IntEnum
 
 FETCH_MAX_ROW = 1000
 
+MAX_ERC_2_ETP_DECIMAL = 9
+
 
 class Status(IntEnum):
     Swap_New = 1
@@ -45,7 +47,7 @@ def ProcessStr(status, confirm):
     elif status == Status.Swap_Send:
         return "Send Asset,"+ "waitting for confirm " \
         if confirm == Status.Tx_Unconfirm else "confirm tx success"
-    
+
     return "Swap finished"
 
 
@@ -75,7 +77,7 @@ class SwapException(Exception):
        Error.EXCEPTION_INVAILD_ADDRESS:"Invailed to_address",
        Error.EXCEPTION_COIN_NOT_EXIST:"Coin does not exist",
        Error.EXCEPTION_COIN_ISSUING:"Coin is issuing,cannot issue again"
-    }  
+    }
     def get_error_str(self):
         if self.errcode in self.errmsg:
             return self.errmsg[self.errcode]

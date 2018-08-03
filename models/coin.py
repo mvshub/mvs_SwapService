@@ -9,7 +9,7 @@ class Coin(db.Model):
     block_height = db.Column(db.Integer)
     name = db.Column(db.String(64))
     token = db.Column(db.String(64))
-    total_supply = db.Column(db.Integer)
+    total_supply = db.Column(db.Numeric(64, 18), nullable=False)
     decimal = db.Column(db.Integer)
     status = db.Column(db.Integer)
 
