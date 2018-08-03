@@ -133,7 +133,7 @@ class Etp(Base):
             raise
         return tx_hash
 
-    def createasset(self, account, passphrase, to_did, decimal, rate, symbol, amount):
+    def create_asset(self, account, passphrase, to_did, decimal, rate, symbol, amount):
         try:
             volume = self.to_wei(symbol, amount, ceil=True)
             res = self.make_request(
@@ -141,10 +141,10 @@ class Etp(Base):
                                 '-n', decimal, '-r', rate, '-s', symbol, '-v', volume])
             result = res['result']
 
-            Logger.get().info("createasset: to: {}, symbol: {}, amount: {}, volume: {}, deccimal: {}, rate: {}".
+            Logger.get().info("create_asset: to: {}, symbol: {}, amount: {}, volume: {}, deccimal: {}, rate: {}".
                               format(to_did, symbol, amount, volume, decimal, rate))
         except RpcException as e:
-            Logger.get().error("failed to createasset {} to {}, volume: {}, error: {}".format(
+            Logger.get().error("failed to create_asset {} to {}, volume: {}, error: {}".format(
                 symbol, to_did, volume, str(e)))
             raise
 
@@ -223,9 +223,9 @@ class Etp(Base):
             to_did = settings.get('did')
             issue_amount = issue_coin.total_supply - decimal.Decimal(supply)
 
-            if not is_asset_exist(symbol):
+            if not self.is_asset_exist(symbol):
                 dec = self.get_decimal(symbol)
-                self.createasset(account, passphrase, to_did,
+                self.create_asset(account, passphrase, to_did,
                                  dec, -1, symbol, issue_amount)
                 tx_hash = self.issue(account, passphrase, symbol)
                 return Error.Success, tx_hash

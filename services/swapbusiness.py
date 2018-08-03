@@ -132,7 +132,7 @@ class SwapBusiness(IBusiness):
 
                 if tx != None and tx['blockNumber'] != 0 and tx['blockNumber'] + minconf <= block_num:
                     r.confirm_status = int(Status.Tx_Confirm)
-                    Logger.get().info('confirm tx: %s, tx_height: %d, cur_number: %d' %
+                    Logger.get().info('confirm tx: %s, tx_height: %d, cur_height: %d' %
                                       (r.tx_hash, tx['blockNumber'], block_num))
 
                     if r.status == int(Status.Swap_Issue):
@@ -152,12 +152,12 @@ class SwapBusiness(IBusiness):
                         r.time = int(time.strftime(
                             '%2H%2M%2S', time.localtime()))
                         r.message = "confirm send tx success, swap finish"
-                        Logger.get().info('finish swap, coin:%s, token=%s, swap_id:%s, tx_from:%s, from:%s, to:%s' %
+                        Logger.get().info('finish swap, coin: %s, token: %s, swap_id: %s, tx_from: %s, from: %s, to: s' %
                                           (r.coin, r.token, r.swap_id, r.tx_from, r.from_address, r.to_address))
 
                     db.session.add(r)
             except Exception as e:
-                Logger.get().error('failed to get tx: %s,%s' % (r.tx_hash, e))
+                Logger.get().error('failed to get tx: %s, error: %s' % (r.tx_hash, e))
                 Logger.get().error('{}'.format(traceback.format_exc()))
 
         db.session.commit()
@@ -185,7 +185,7 @@ class SwapBusiness(IBusiness):
                 db.session.add(result)
                 db.session.commit()
 
-                Logger.get().info('success send asset: token: {}, amount: {}, to: {}, tx_hash = {}'.format(
+                Logger.get().info('success send asset: token: {}, amount: {}, to: {}, tx_hash: {}'.format(
                     result.token, result.amount, result.to_address, result.tx_hash))
 
         return Error.Success
@@ -203,7 +203,7 @@ class SwapBusiness(IBusiness):
                 name=result.coin, token=result.token).order_by(Coin.iden.desc()).first()
 
             if not issue_coin:
-                Logger.get().error("coin:%s, token %s not exist in the db" %
+                Logger.get().error("coin: %s, token: %s not exist in the db" %
                                    (result.coin, result.token))
                 raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST)
 
@@ -223,7 +223,7 @@ class SwapBusiness(IBusiness):
                 db.message = "send issue tx success, wait for confirm"
                 db.session.add(issue_coin)
                 db.session.commit()
-                Logger.get().info('success issue asset:%s, tx_hash:%s ' %
+                Logger.get().info('success issue asset: %s, tx_hash: %s ' %
                                   (result.token, result.tx_hash))
 
         return err
@@ -277,7 +277,7 @@ class SwapBusiness(IBusiness):
 
             results.append(result)
 
-            Logger.get().info('scan swap, coin:%s, token:%s, swap_id:%s, tx_from:%s, from:%s, to:%s' %
+            Logger.get().info('scan swap, coin: %s, token: %s, swap_id: %s, tx_from: %s, from: %s, to: %s' %
                               (result.coin, result.token, result.swap_id, result.tx_from,
                                ("" if not result.from_address else result.from_address),
                                   ("" if not result.to_address else result.to_address)))
