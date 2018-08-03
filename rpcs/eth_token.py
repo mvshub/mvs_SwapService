@@ -52,7 +52,7 @@ class EthToken(Eth):
                 coin = Coin()
                 coin.name = self.name
                 coin.token = x['name']
-                coin.total_supply = self.from_wei(x['name'], supply)
+                coin.total_supply =  supply
                 coin.decimal = self.get_decimal(coin.token)
                 coins.append(coin)
         return coins
@@ -64,7 +64,7 @@ class EthToken(Eth):
         data = '0x18160ddd'
         balance = self.make_request(
             'eth_call', [{'to': contract, 'data': data}, 'latest'])
-        return int(balance, 16)
+        return self.from_wei(name, int(balance, 16))
 
     def symbol(self, name=None, contract=None):
         if contract is None:

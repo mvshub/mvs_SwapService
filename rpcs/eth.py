@@ -47,7 +47,7 @@ class Eth(Base):
             coin = Coin()
             coin.name = self.name
             coin.token = self.name
-            coin.total_supply = self.from_wei(token=None, wei=supply)
+            coin.total_supply = supply
             coin.decimal = 18
             coins.append(coin)
         return coins
@@ -63,7 +63,7 @@ class Eth(Base):
                 'bad response content, failed to parse,%s' % res.text)
             return 0
 
-        return supply
+        return self.from_wei(token_name, wei=js['value']) 
 
     def get_transaction(self, txid):
         res = self.make_request('eth_getTransactionByHash', [txid])
