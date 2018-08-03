@@ -48,6 +48,8 @@ def ProcessStr(status, confirm):
     elif status == Status.Swap_Send:
         return "Send Asset," + "waitting for confirm " \
             if confirm == Status.Tx_Unconfirm else "confirm tx success"
+    elif status == Status.Swap_Ban:
+        return "Swap ban"
 
     return "Swap finished"
 
