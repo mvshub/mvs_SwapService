@@ -26,25 +26,29 @@
 
               <td align="center"> {{ value["swap_id"] }} </td>
               <td align="center"> {{ value["coin"] }} </td>
-              <td align="center">  
+              <td align="center">
                   <a href= "{{ url_for( 'swap_token', token= value['token']) }}">
                     {{ value["token"] }}
                   </a>
               </td>
               <td align="right">
-                  <a href= "{{ url_for( 'swap_address', address=value['from']) }}"> 
-                  {{ value["from"] }}
-                  </a>
+                  {% if value["from"] and value["from"] != address %}
+                    <a href= "{{ url_for( 'swap_address', address=value['from']) }}">
+                    {{ value["from"] }}
+                    </a>
+                  {% else %}
+                    {{ value["from"] }}
+                  {% endif %}
               </td>
               <td align="right">
-                  <a href= "{{ url_for( 'swap_address', address=value['to']) }}"> 
+                  <a href= "{{ url_for( 'swap_address', address=value['to']) }}">
                       {{ value["to"] }}
                   </a>
               </td>
               <td align="right"> {{ value["amount"] }} </td>
               <td align="center" > {{ value["message"] }} </td>
               <td align="center">
-                  <a href= "{{ url_for( 'swap_date', date=value['date']) }}"> 
+                  <a href= "{{ url_for( 'swap_date', date=value['date']) }}">
                       {{ value["date"] }}
                   </a>
               </td>
