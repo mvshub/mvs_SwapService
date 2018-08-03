@@ -36,7 +36,7 @@
         {
             "id": 2,
             "name": "ETH",
-            "contract_mapaddress":"0x9288de4ed1757caa58ff47981734823b30a38774 ",
+            "contract_mapaddress":"0x9288de4ed1757caa58ff47981734823b30a38774",
             "decimal": 18,
             "type": "rpcs.eth.Eth",
             "host":"10.10.10.175",
