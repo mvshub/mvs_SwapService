@@ -25,16 +25,24 @@
                     </a>
                 </td>
                 <td align="right"> {{ values[2] }} </td>
-                <td align="center"> 
+                <td align="center">
+                  {% if values[3] != 0 %}
                     <a href= "{{ url_for( 'swap_status', coin=values[0],token=values[1],date=date,status=1) }}">
                             {{ values[3] }}
                     </a>
+                  {% else %}
+                    {{ values[3] }}
+                  {% endif %}
                 </td>
-                <td align="center"> {{ values[4] }} </td>
-                <td align="center"> 
+                <td align="right"> {{ values[4] }} </td>
+                <td align="center">
+                  {% if values[5] != 0 %}
                     <a href= "{{ url_for( 'swap_status', coin=values[0],token=values[1],date=date,status=2) }}">
                             {{ values[5] }}
                     </a>
+                  {% else %}
+                    {{ values[5] }}
+                  {% endif %}
                 </td>
               </tr>
 
