@@ -25,13 +25,18 @@
                     "name":"ERC.SMT",
                     "enable":true,
                     "decimal": 4
+                },
+                {
+                    "name":"ERC.TAC",
+                    "enable":true,
+                    "decimal": 14
                 }
             ]
         },
         {
             "id": 2,
             "name": "ETH",
-            "contract_mapaddress":"0x0506e5ef752ea1129a7e6ed41df5e93131bee8a7",
+            "contract_mapaddress":"0x9288de4ed1757caa58ff47981734823b30a38774 ",
             "decimal": 18,
             "type": "rpcs.eth.Eth",
             "host":"10.10.10.175",
@@ -42,22 +47,29 @@
             "id":3,
             "name":"ETHToken",
             "type":"rpcs.eth_token.EthToken",
-            "contract_mapaddress":"0x0506e5ef752ea1129a7e6ed41df5e93131bee8a7",
+            "contract_mapaddress":"0x9288de4ed1757caa58ff47981734823b30a38774",
             "host":"10.10.10.175",
             "port":8545,
             "tokens": [
                 {
                     "name":"ABC",
-                    "contract_address":"0x7cf4d8fdec9244e774272aac648d33e051fd83f4",
+                    "contract_address":"0x0506e5ef752ea1129a7e6ed41df5e93131bee8a7",
                     "enable":true,
                     "decimal": 5,
                     "fee" : 0.05
                 },
                 {
                     "name":"SMT",
-                    "contract_address":"0x1f6726942499fb079c476f3c0962c1674594c743",
+                    "contract_address":"0x9faa766fcbcd3bdbab27681c7cca6e1a6016b7c5",
                     "enable":true,
                     "decimal": 4,
+                    "fee" : 0.05
+                },
+                {
+                    "name":"TAC",
+                    "contract_address":"0x7cf4d8fdec9244e774272aac648d33e051fd83f4",
+                    "enable":true,
+                    "decimal": 14,
                     "fee" : 0.05
                 }
             ]
