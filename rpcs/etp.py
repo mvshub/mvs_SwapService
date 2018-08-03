@@ -113,6 +113,39 @@ class Etp(Base):
             raise
         return tx_hash
 
+    def issue(self, account, passphrase, symbol):
+        tx_hash = None
+        try:
+            res = self.make_request(
+                'issue', [account, passphrase, symbol])
+            result = res['result']
+            if result:
+                tx_hash = result['hash']
+
+            Logger.get().info("issue symbol: {}, tx_hash: {}".format(
+                symbol, tx_hash))
+        except RpcException as e:
+            Logger.get().error("failed to issue symbol: {}, error: {}".format(
+                symbol, str(e)))
+            raise
+        return tx_hash
+
+    def createasset(self, account, passphrase, to_did, decimal, rate, symbol,amount):
+        try:
+            volume = self.to_etp_wei(symbol, amount, ceil=True)
+            res = self.make_request(
+                'createasset', [account, passphrase, '-i', to_did, 
+                '-n', decimal,'-r',rate,'-s', symbol, '-v', volume])
+            result = res['result']
+
+            Logger.get().info("createasset: to: {}, symbol: {}, amount: {}, volume: {}, deccimal: {}, rate: {}".
+            format(to_did, symbol, amount, volume, decimal, rate))
+        except RpcException as e:
+            Logger.get().error("failed to createasset {} to {}, volume: {}, error: {}".format(
+                symbol, to_did, volume, str(e)))
+            raise
+
+
     def send_asset(self, account, passphrase, to, symbol, amount):
         tx_hash = None
         try:
@@ -207,7 +240,17 @@ class Etp(Base):
         symbol = self.get_erc_symbol(token)
         supply = self.get_total_supply(symbol)
 
-        if supply < issue_coin.total_supply:
+        if supply == 0:
+            account = settings.get('account')
+            passphrase = settings.get('passphrase')
+            to_did = settings.get('did')
+            decimal = self.get_decimal(symbol)
+            amount = issue_coin.total_supply - decimal.Decimal(supply)
+            self.createasset(account, passphrase, to_did, decimal, -1, symbol, amount)
+            tx_hash = self.issue( account, passphrase, symbol)
+            
+            return Error.Success, tx_hash     
+        elif supply < issue_coin.total_supply:
             account = settings.get('account')
             passphrase = settings.get('passphrase')
             to_did = settings.get('did')
