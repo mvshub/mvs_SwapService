@@ -12,6 +12,7 @@ class Status(IntEnum):
     Swap_Issue = 2
     Swap_Send = 3
     Swap_Finish = 4
+    Swap_Ban = 10
 
     Tx_Unconfirm = 0
     Tx_Confirm = 1
@@ -29,6 +30,7 @@ StatusStr = {
     Status.Swap_Issue: 'Issue',
     Status.Swap_Send: 'Send',
     Status.Swap_Finish: 'Finish',
+    Status.Swap_Ban: 'Ban',
 }
 
 ConfirmStr = {
@@ -63,6 +65,7 @@ class Error(IntEnum):
     EXCEPTION_INVAILD_ADDRESS = 3
     EXCEPTION_COIN_NOT_EXIST = 4
     EXCEPTION_COIN_ISSUING = 5
+    EXCEPTION_COIN_AMOUNT_TOO_SMALL = 6
 
 
 class SwapException(Exception):
@@ -76,7 +79,8 @@ class SwapException(Exception):
         Error.EXCEPTION_GET_COINRPC: "failed to get rpc",
         Error.EXCEPTION_INVAILD_ADDRESS: "Invailed to_address",
         Error.EXCEPTION_COIN_NOT_EXIST: "Coin does not exist",
-        Error.EXCEPTION_COIN_ISSUING: "Coin is issuing,cannot issue again"
+        Error.EXCEPTION_COIN_ISSUING: "Coin is issuing,cannot issue again",
+        Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL: "Coin amount too small"
     }
 
     def get_error_str(self):

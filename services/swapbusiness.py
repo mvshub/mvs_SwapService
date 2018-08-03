@@ -16,7 +16,7 @@ import traceback
 from decimal import Decimal
 from functools import partial
 from sqlalchemy.sql import func
-
+from sqlalchemy import or_,and_,case
 
 class SwapBusiness(IBusiness):
 
@@ -92,10 +92,14 @@ class SwapBusiness(IBusiness):
 
             except SwapException as e:
                 if e.errcode != Error.EXCEPTION_COIN_ISSUING:
+                    if e.errcode == Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL:
+                        r.status = int(Status.Swap_Ban)
+
                     r.message = e.get_error_str()
                     Logger.get().error('process swap exception, coin:%s, token: %s, error:%s' % (
                         r.coin, r.token, r.message))
                     Logger.get().error('{}'.format(traceback.format_exc()))
+
 
             except Exception as e:
                 r.message = str(e)
@@ -236,8 +240,9 @@ class SwapBusiness(IBusiness):
 
     @timeit
     def process_unconfirm(self):
-        results = db.session.query(Result).filter(
-            Result.status != int(Status.Swap_Finish)).all()
+        results = db.session.query(Result).filter(and_(
+            Result.status != int(Status.Swap_Finish),
+            Result.status != int(Status.Swap_Ban))).all()
         self.commit_results(results)
         return True
 

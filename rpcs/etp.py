@@ -7,7 +7,7 @@ from utils.log.logger import Logger
 from utils.exception import RpcException, CriticalException
 import json
 import decimal
-from models.constants import Status, Error
+from models.constants import Status, Error, SwapException
 from models.coin import Coin
 
 
@@ -141,7 +141,7 @@ class Etp(Base):
                                 '-n', decimal, '-r', rate, '-s', symbol, '-v', volume])
 
             if 'result' not in res:
-                 raise
+                raise
 
             Logger.get().info("create_asset: to: {}, symbol: {}, amount: {}, volume: {}, deccimal: {}, rate: {}".
                               format(to_did, symbol, amount, volume, decimal, rate))
@@ -156,7 +156,7 @@ class Etp(Base):
                 'deletelocalasset', [account, passphrase, '-s', symbol])
 
             if 'result' not in res:
-                 raise
+                raise
 
             Logger.get().info("delete_asset:  symbol: {}".format(symbol))
         except RpcException as e:
@@ -230,8 +230,15 @@ class Etp(Base):
         return "ERC.{}".format(token)
 
     def before_swap(self, token, amount, issue_coin, settings):
+
+        
         symbol = self.get_erc_symbol(token)
         supply = self.get_total_supply(symbol)
+
+        volume = self.to_wei(symbol, amount, ceil=False)
+
+        if volume == 0:
+            raise SwapException(Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL)
 
         if supply < issue_coin.total_supply:
             account = settings.get('account')
