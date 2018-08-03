@@ -139,13 +139,29 @@ class Etp(Base):
             res = self.make_request(
                 'createasset', [account, passphrase, '-i', to_did,
                                 '-n', decimal, '-r', rate, '-s', symbol, '-v', volume])
-            result = res['result']
+
+            if 'result' not in res:
+                 raise
 
             Logger.get().info("create_asset: to: {}, symbol: {}, amount: {}, volume: {}, deccimal: {}, rate: {}".
                               format(to_did, symbol, amount, volume, decimal, rate))
         except RpcException as e:
             Logger.get().error("failed to create_asset {} to {}, volume: {}, error: {}".format(
                 symbol, to_did, volume, str(e)))
+            raise
+
+    def delete_asset(self, account, passphrase, symbol):
+        try:
+            res = self.make_request(
+                'deletelocalasset', [account, passphrase, '-s', symbol])
+
+            if 'result' not in res:
+                 raise
+
+            Logger.get().info("delete_asset:  symbol: {}".format(symbol))
+        except RpcException as e:
+            Logger.get().error("failed to delete_asset {}, error: {}".format(
+                symbol, str(e)))
             raise
 
     def send_asset(self, account, passphrase, to, symbol, amount):
@@ -225,13 +241,19 @@ class Etp(Base):
 
             if not self.is_asset_exist(symbol):
                 dec = self.get_decimal(symbol)
-                self.create_asset(account, passphrase, to_did,
-                                 dec, -1, symbol, issue_amount)
-                tx_hash = self.issue(account, passphrase, symbol)
+                try:
+                    self.create_asset(account, passphrase, to_did,
+                                    dec, -1, symbol, issue_amount)
+                    tx_hash = self.issue(account, passphrase, symbol)
+                except RpcException as e:
+                    self.delete_asset(account, passphrase, symbol)
+                    raise
+
                 return Error.Success, tx_hash
             else:
                 tx_hash = self.secondary_issue(
                     account, passphrase, to_did, symbol, issue_amount)
+                
                 return Error.Success, tx_hash
 
         return Error.Success, None
