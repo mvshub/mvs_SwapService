@@ -17,27 +17,27 @@
             "uri": "http://127.0.0.1:8820/rpc/v3",
             "tokens": [
                 {
-                    "name":"ERC.ABC",
+                    "name":"ABC",
                     "enable":true,
                     "decimal": 5
                 },
                 {
-                    "name":"ERC.SMT",
+                    "name":"SMT",
                     "enable":true,
                     "decimal": 4
                 },
                 {
-                    "name":"ERC.TAC",
+                    "name":"TAC",
                     "enable":true,
                     "decimal": 9
                 },
                 {
-                    "name":"ERC.ETH",
+                    "name":"ETH",
                     "enable":true,
                     "decimal": 9
                 },
                 {
-                    "name":"ERC.DEV",
+                    "name":"DEV",
                     "enable":true,
                     "decimal": 9
                 }

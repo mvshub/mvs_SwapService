@@ -8,8 +8,8 @@ from utils.exception import RpcException, CriticalException
 import json
 import decimal
 from models.constants import Status, Error, SwapException
-from models.coin import Coin
 from models import constants
+from models.coin import Coin
 
 
 class Etp(Base):
@@ -20,7 +20,7 @@ class Etp(Base):
         Base.__init__(self, settings)
         self.name = 'ETP'
         self.tokens = settings['tokens']
-        self.token_names = [x['name'] for x in self.tokens]
+        self.token_names = [self.get_erc_symbol(x['name']) for x in self.tokens]
         Logger.get().info("init type {}, tokens: {}".format(
             self.name, self.token_names))
 
@@ -74,11 +74,11 @@ class Etp(Base):
     def get_coins(self):
         coins = []
         for x in self.tokens:
-            supply = self.get_total_supply(x['name'])
+            supply = self.get_total_supply(self.get_erc_symbol(x['name']))
             if supply != 0:
                 coin = Coin()
                 coin.name = self.name
-                coin.token = x['name']
+                coin.token = self.get_erc_symbol(x['name'])
                 coin.total_supply = supply
                 coin.decimal = self.get_decimal(coin.token)
                 coins.append(coin)
@@ -229,7 +229,7 @@ class Etp(Base):
 
     def get_decimal(self, token):
         for i in self.tokens:
-            if i['name'] == token:
+            if self.get_erc_symbol(i['name']) == token:
                 return i['decimal']
         return 0
 
