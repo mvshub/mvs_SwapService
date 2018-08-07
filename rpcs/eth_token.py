@@ -4,6 +4,7 @@ from utils.log.logger import Logger
 from utils.exception import TransactionNotfoundException
 import binascii
 from models.coin import Coin
+from models import constants
 
 
 class EthToken(Eth):

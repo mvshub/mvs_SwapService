@@ -9,6 +9,7 @@ import json
 import decimal
 from models.constants import Status, Error, SwapException
 from models.coin import Coin
+from models import constants
 
 
 class Etp(Base):
