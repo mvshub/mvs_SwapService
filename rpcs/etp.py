@@ -138,7 +138,7 @@ class Etp(Base):
         try:
             volume = self.to_wei(symbol, amount, ceil=True)
             idx = symbol.find('.')
-            prefix = constants.SWAP_TOKEN_PREFIX if idx <= 0 else symbol[0:idx-1]
+            prefix = constants.SWAP_TOKEN_PREFIX if idx <= 0 else symbol[0:idx]
             name = symbol if idx == -1 else symbol[idx + 1:]
             des = '{} asset of {}'.format(prefix, name)
 
