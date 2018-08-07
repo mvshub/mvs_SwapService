@@ -84,6 +84,17 @@ class Etp(Base):
                 coins.append(coin)
         return coins
 
+    def get_account_asset(self, account, passphrase, token):
+        if token:
+            res = self.make_request(
+                'getaccountasset', [account, passphrase, token])
+            assets = res['result']
+            if len(assets) > 0:
+                total = sum([int(x['quantity']) for x in assets])
+                supply = self.from_wei(token, total)
+                return supply
+        return 0
+
     def get_total_supply(self, token=None):
         if token:
             res = self.make_request('getasset', [token])
@@ -237,20 +248,21 @@ class Etp(Base):
         return constants.SWAP_TOKEN_PREFIX + token
 
     def before_swap(self, token, amount, issue_coin, settings):
+        account = settings.get('account')
+        passphrase = settings.get('passphrase')
 
         symbol = self.get_erc_symbol(token)
-        supply = self.get_total_supply(symbol)
-
+        total_supply = self.get_total_supply(symbol)
+        supply = self.get_account_asset(account, passphrase, symbol)
         volume = self.to_wei(symbol, amount, ceil=False)
 
         if volume == 0:
             raise SwapException(Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL)
 
-        if supply < issue_coin.total_supply:
-            account = settings.get('account')
-            passphrase = settings.get('passphrase')
+        if supply < amount and total_supply < issue_coin.total_supply:
             to_did = settings.get('did')
-            issue_amount = issue_coin.total_supply - decimal.Decimal(supply)
+            issue_amount = issue_coin.total_supply - \
+                decimal.Decimal(total_supply)
 
             if not self.is_asset_exist(symbol):
                 dec = self.get_decimal(symbol)
