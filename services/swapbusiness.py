@@ -90,6 +90,9 @@ class SwapBusiness(IBusiness):
                 self.before_swap(rpc, r)
                 self.send_swap_tx(rpc, r)
 
+                r.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
+                r.time = int(time.strftime('%2H%2M%2S', time.localtime()))
+
             except SwapException as e:
                 if e.errcode != Error.EXCEPTION_COIN_ISSUING:
                     if e.errcode == Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL:
@@ -108,8 +111,6 @@ class SwapBusiness(IBusiness):
                 Logger.get().error('{}'.format(traceback.format_exc()))
 
             finally:
-                r.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
-                r.time = int(time.strftime('%2H%2M%2S', time.localtime()))
                 db.session.add(r)
                 db.session.commit()
 
@@ -151,6 +152,10 @@ class SwapBusiness(IBusiness):
                         db.session.commit()
                         r.message = "confirm issued tx success"
 
+                        r.date = int(time.strftime(
+                            '%4Y%2m%2d', time.localtime()))
+                        r.time = int(time.strftime(
+                            '%2H%2M%2S', time.localtime()))
                     elif r.status == int(Status.Swap_Send):
                         r.status = int(Status.Swap_Finish)
                         r.tx_height = tx['blockNumber']
@@ -257,8 +262,8 @@ class SwapBusiness(IBusiness):
         for swap in new_swaps:
             self.swap_maxid = swap.iden
 
-            r = db.session.query(Result).filter_by(
-                swap_id=swap.iden).first()
+            r = db.session.query(Result).filter(or_(
+                swap_id==swap.iden, tx_from==swap.tx_hash)).first()
             if r:
                 continue
 
