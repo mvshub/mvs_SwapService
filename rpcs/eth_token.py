@@ -117,8 +117,8 @@ class EthToken(Eth):
         return res, fee
 
     def transfer_asset(self, to, token, amount, settings):
-        if token.startswith('ERC.'):
-            token = token[4:]
+        if token.startswith(constants.SWAP_TOKEN_PREFIX):
+            token = token[len(constants.SWAP_TOKEN_PREFIX):]
 
         address = settings["scan_address"]
 

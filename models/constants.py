@@ -6,6 +6,7 @@ from enum import IntEnum
 
 FETCH_MAX_ROW = 1000
 
+SWAP_TOKEN_PREFIX = 'ERCTEST.'
 
 class Status(IntEnum):
     Swap_New = 1

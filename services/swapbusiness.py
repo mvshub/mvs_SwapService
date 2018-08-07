@@ -56,7 +56,7 @@ class SwapBusiness(IBusiness):
         swap_coin = None
         if result.coin in self.coin_swap_map:
             swap_coin = self.coin_swap_map[result.coin]
-            if swap_coin == 'ETH' and result.token != 'ERC.ETH':
+            if swap_coin == 'ETH' and result.token != (constants.SWAP_TOKEN_PREFIX + 'ETH'):
                 swap_coin = 'ETHToken'
         return swap_coin
 
