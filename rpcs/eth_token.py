@@ -4,6 +4,7 @@ from utils.log.logger import Logger
 from utils.exception import TransactionNotfoundException
 import binascii
 from models.coin import Coin
+from models.constants import SwapException
 from models import constants
 
 
@@ -134,7 +135,7 @@ class EthToken(Eth):
         for i in self.tokens:
             if i['name'] == name:
                 return int(i['decimal'])
-        return 0
+        raise SwapException(Error.EXCEPTION_CONFIG_ERROR_DECIMAL)
 
     def get_transaction(self, txid):
         res = self.make_request('eth_getTransactionByHash', [txid])

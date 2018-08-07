@@ -242,7 +242,7 @@ class Etp(Base):
         for i in self.tokens:
             if self.get_erc_symbol(i['name']) == token:
                 return i['decimal']
-        return 0
+        raise SwapException(Error.EXCEPTION_CONFIG_ERROR_DECIMAL)
 
     def get_erc_symbol(self, token):
         return constants.SWAP_TOKEN_PREFIX + token
