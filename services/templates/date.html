@@ -54,4 +54,15 @@
         </table>
 
     </body>
+    <script language="JavaScript"> 
+        function refresh() 
+        { 
+            var myDate = new Date();
+            var date = myDate.getYear()*10000+(myDate.getMonth()+1)*100+myDate.getDate();
+            var url = "http:127.0.0.1:8081/date/"+ date.toString();
+            window.location.ref = url;
+            window.location.reload();
+        } 
+        setTimeout('refresh()',5000); //指定1秒刷新一次 
+    </script> 
 </html>
