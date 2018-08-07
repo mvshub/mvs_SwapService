@@ -65,7 +65,7 @@ def main():
         print(send_eth_from_ethereum())
         print(send_token_from_ethereum())
         print('etp: ' + send_asset_from_mvs())
-        sleep(300)
+        time.sleep(300)
 
 if __name__ == '__main__':
     main()
