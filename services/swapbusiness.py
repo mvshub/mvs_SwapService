@@ -90,8 +90,6 @@ class SwapBusiness(IBusiness):
                 self.before_swap(rpc, r)
                 self.send_swap_tx(rpc, r)
 
-                r.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
-                r.time = int(time.strftime('%2H%2M%2S', time.localtime()))
 
             except SwapException as e:
                 if e.errcode != Error.EXCEPTION_COIN_ISSUING:
@@ -138,6 +136,12 @@ class SwapBusiness(IBusiness):
                     continue
 
                 tx_height = int(tx['blockNumber'])
+
+                if tx_height != r.tx_height or current_height != r.confirm_height:
+                    r.tx_height = tx_height
+                    r.confirm_height = current_height
+                    db.session.add(r)
+
                 if tx_height + minconf <= current_height:
                     r.confirm_status = int(Status.Tx_Confirm)
                     Logger.get().info(
@@ -197,6 +201,8 @@ class SwapBusiness(IBusiness):
                 result.confirm_status = int(Status.Tx_Unconfirm)
                 result.fee = int(fee * 10000)
                 db.message = "send tx success, wait for confirm"
+                result.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
+                result.time = int(time.strftime('%2H%2M%2S', time.localtime()))
                 db.session.add(result)
                 db.session.commit()
 
@@ -234,6 +240,10 @@ class SwapBusiness(IBusiness):
                 result.status = int(Status.Swap_Issue)
                 result.confirm_status = int(Status.Tx_Unconfirm)
 
+                result.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
+                result.time = int(time.strftime('%2H%2M%2S', time.localtime()))
+
+
                 issue_coin.status = int(Status.Token_Issue)
                 db.message = "send issue tx success, wait for confirm"
                 db.session.add(issue_coin)
@@ -263,7 +273,7 @@ class SwapBusiness(IBusiness):
             self.swap_maxid = swap.iden
 
             r = db.session.query(Result).filter(or_(
-                swap_id==swap.iden, tx_from==swap.tx_hash)).first()
+                Result.swap_id==swap.iden, Result.tx_from==swap.tx_hash)).first()
             if r:
                 continue
 

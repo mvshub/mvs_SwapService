@@ -19,6 +19,8 @@
         <td align="center" width="15%"> Transaction </td>
         <td align="center" width="5%"> Confirmed </td>
         <td align="center" width="5%"> Status </td>
+        <td align="center" width="5%"> Tx_Height </td>
+        <td align="center" width="5%"> Last_Confirm </td>
         <td align="center" width="10%"> Date </td>
         <td align="center" width="10%"> Time </td>
         <td align="center"> Message </td>
@@ -45,6 +47,8 @@
                   <td align="right"> {{ value.tx_hash }} </td>
                   <td align="center"> {{ value.confirm_status }} </td>
                   <td align="center"> {{ value.status }} </td>
+                  <td align="center"> {{ value.tx_height }} </td>
+                  <td align="center"> {{ value.confirm_height }} </td>
                   <td align="center">
                       <a href= "{{ url_for( 'swap_date', date=value.date) }}">
                           {{ value.date }}

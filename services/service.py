@@ -68,7 +68,7 @@ class MainService(IService):
             else:
                 results = db.session.query(Result).\
                     filter(and_(Result.date == date, Result.coin == coin, Result.token == token,
-                                Result.status != int(Status.Swap_Finish))).all()
+                                Result.status != int(Status.Swap_Finish))).ordey_by(Result.swap_id.desc()).all()
 
             records = []
             for r in results:
@@ -94,7 +94,7 @@ class MainService(IService):
         @self.app.route('/date/<date>')
         def swap_date(date):
             results = db.session.query(Result).filter_by(
-                date=date).all()
+                date=date).order_by(Result.swap_id.desc()).all()
             records = []
             for r in results:
                 record = {}
@@ -119,7 +119,7 @@ class MainService(IService):
         @self.app.route('/<token>')
         def swap_token(token):
             results = db.session.query(Result).filter_by(
-                token=token).all()
+                token=token).order_by(Result.swap_id.desc()).all()
 
             for result in results:
                 result.time = "%d:%d:%d" % (
@@ -170,7 +170,7 @@ class MainService(IService):
         @self.app.route('/address/<address>')
         def swap_address(address):
             results = db.session.query(Result).filter(
-                or_(Result.from_address == address, Result.to_address == address)).all()
+                or_(Result.from_address == address, Result.to_address == address)).order_by(Result.swap_id.desc()).all()
             records = []
             for r in results:
                 record = {}
