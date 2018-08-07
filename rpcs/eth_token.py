@@ -16,11 +16,11 @@ class EthToken(Eth):
         self.token_names = []
         self.contract_addresses = []
 
-        self.contract_mapaddress = settings['contract_mapaddress']
+        self.contract_mapaddress = settings['contract_mapaddress'].lower()
 
         for x in self.tokens:
             self.token_names.append(x['name'])
-            self.contract_addresses.append(x['contract_address'])
+            self.contract_addresses.append(x['contract_address'].lower())
 
         Logger.get().info("EthToken: contract_address: {}, contract_mapaddress".format(
             self.contract_addresses, self.contract_mapaddress))
@@ -35,7 +35,7 @@ class EthToken(Eth):
     def get_contractaddress(self, name):
         for x in self.tokens:
             if x['name'] == name:
-                return x['contract_address']
+                return x['contract_address'].lower()
         return None
 
     def get_fee(self, name):

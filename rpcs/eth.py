@@ -13,7 +13,7 @@ class Eth(Base):
     def __init__(self, settings):
         Base.__init__(self, settings)
         self.name = 'ETH' if settings.get('name') is None else settings['name']
-        self.contract_mapaddress = settings['contract_mapaddress']
+        self.contract_mapaddress = settings['contract_mapaddress'].lower()
 
         if 'decimal' in settings:
             self.decimal = settings['decimal']
