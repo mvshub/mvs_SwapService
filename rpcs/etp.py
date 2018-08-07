@@ -136,9 +136,14 @@ class Etp(Base):
     def create_asset(self, account, passphrase, to_did, decimal, rate, symbol, amount):
         try:
             volume = self.to_wei(symbol, amount, ceil=True)
+            idx = symbol.find('.')
+            name = symbol if idx == -1 else symbol[idx + 1:]
+            des = 'ERC asset of {}'.format(name)
+
             res = self.make_request(
                 'createasset', [account, passphrase, '-i', to_did,
-                                '-n', decimal, '-r', rate, '-s', symbol, '-v', volume])
+                                '-n', decimal, '-r', rate, '-s', symbol, '-v', volume,
+                                '-d', des])
 
             if 'result' not in res:
                 raise
@@ -231,7 +236,6 @@ class Etp(Base):
 
     def before_swap(self, token, amount, issue_coin, settings):
 
-        
         symbol = self.get_erc_symbol(token)
         supply = self.get_total_supply(symbol)
 
@@ -250,7 +254,7 @@ class Etp(Base):
                 dec = self.get_decimal(symbol)
                 try:
                     self.create_asset(account, passphrase, to_did,
-                                    dec, -1, symbol, issue_amount)
+                                      dec, -1, symbol, issue_amount)
                     tx_hash = self.issue(account, passphrase, symbol)
                 except RpcException as e:
                     self.delete_asset(account, passphrase, symbol)
@@ -260,7 +264,7 @@ class Etp(Base):
             else:
                 tx_hash = self.secondary_issue(
                     account, passphrase, to_did, symbol, issue_amount)
-                
+
                 return Error.Success, tx_hash
 
         return Error.Success, None
