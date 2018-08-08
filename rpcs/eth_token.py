@@ -116,7 +116,7 @@ class EthToken(Eth):
             (64 - len(arg_to)) + arg_to + ('%064x' % (amount - fee_amount))
         res = self.make_request('eth_sendTransaction', [
                                 {'from': from_address, 'to': contract, 'data': data}])
-        return res, fee
+        return res, fee_amount
 
     def transfer_asset(self, to, token, amount, settings):
         if token.startswith(constants.SWAP_TOKEN_PREFIX):

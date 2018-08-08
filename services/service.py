@@ -80,6 +80,7 @@ class MainService(IService):
                 record['from'] = r.from_address
                 record['to'] = r.to_address
                 record['amount'] = self.format_amount(r.amount)
+                record['fee'] = self.format_amount(r.fee)
                 record['time'] = "%d:%d:%d" % (
                     r.time // 10000, r.time // 100 % 100, r.time % 100)
                 record['tx_height'] = r.tx_height
@@ -105,6 +106,7 @@ class MainService(IService):
                 record['from'] = r.from_address
                 record['to'] = r.to_address
                 record['amount'] = self.format_amount(r.amount)
+                record['fee'] = self.format_amount(r.fee)
                 record['time'] = "%d:%d:%d" % (
                     r.time // 10000, r.time // 100 % 100, r.time % 100)
                 record['tx_height'] = r.tx_height
@@ -125,6 +127,7 @@ class MainService(IService):
                 result.time = "%d:%d:%d" % (
                     result.time // 10000, result.time // 100 % 100, result.time % 100)
                 result.amount = self.format_amount(result.amount)
+                result.fee = self.format_amount(result.fee)
 
             return render_template('token.html', token=token, results=results)
 
@@ -163,6 +166,7 @@ class MainService(IService):
                 result.time = "%d:%d:%d" % (
                     result.time // 10000, result.time // 100 % 100, result.time % 100)
                 result.amount = self.format_amount(result.amount)
+                result.fee = self.format_amount(result.fee)
                 result.status = constants.StatusStr[result.status]
 
             return render_template('transaction.html', tx_from=tx_from,  results=results)

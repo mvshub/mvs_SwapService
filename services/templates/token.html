@@ -14,7 +14,8 @@
             <td align="center" width="5%"> Token </td>
             <td align="center" width="25%"> From</td>
             <td align="center" width="25%"> To </td>
-            <td align="center" width="10%"> Amount </td>
+            <td align="center" width="7%"> Amount </td>
+            <td align="center" width="3%"> Fee </td>
             <td align="center" width="10%"> Height </td>
             <td align="center" width="10%"> Date </td>
             <td align="center" width="10%"> Time </td>
@@ -35,6 +36,7 @@
                     </a>
                 </td>
                 <td align="right"> {{ value.amount }} </td>
+                <td align="right"> {{ value.fee }} </td>
                 <td align="right"> {{ value.tx_height }} </td>
                 <td align="center">
                         <a href= "{{ url_for( 'swap_date', date=value.date) }}"> 

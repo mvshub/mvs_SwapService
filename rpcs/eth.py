@@ -103,7 +103,7 @@ class Eth(Base):
 
         res = self.make_request('eth_sendTransaction', [options])
         # return res, gas * self.settings['gasPrice']
-        return res, fee
+        return res, fee_amount
 
     def transfer_asset(self, to, token, amount, settings):
         address = settings["scan_address"]
