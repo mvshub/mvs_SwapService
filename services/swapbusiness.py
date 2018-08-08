@@ -269,7 +269,10 @@ class SwapBusiness(IBusiness):
 
         current_height = rpc.best_block_number()
         minRenew = self.min_renew_map[coin]
-        if current_height != 0 and result.tx_height + minRenew <= current_height:
+
+        if  result.tx_height == None or \
+            (current_height != 0 and result.tx_height + minRenew <= current_height):
+            
             tx_hash = result.tx_hash
             if result.tx_height == 0:
                 Logger.get().info('failed renew swap,last hash alread in memporypoo,\
@@ -277,7 +280,7 @@ class SwapBusiness(IBusiness):
                 (result.coin, result.token, tx_hash, result.tx_height, current_height))
                 return
 
-            result.status = Status.Swap_New
+            result.status = int(Status.Swap_New)
             result.confirm_status = None
             result.tx_hash = None
             result.tx_height = 0
