@@ -1,6 +1,7 @@
 import time
 import requests
 import json
+from models import constants
 
 def make_request(method, params=[]):
     data = {"jsonrpc": "2.0", "method": method, "params": params, "id": 83}
@@ -39,32 +40,39 @@ def send_eth_from_ethereum():
     return res
 
 def send_token_from_ethereum():
-    token = "ABC"
+    token = "XYZ"
     to_address = "2d23fdffe79c9b5769b399ccd0d8c2e46e1aea26"
 
     from_ = "0x0c1933b3fdaf77bc196e7853256959ab9b28e1ff"
 
     assert (unlock_account(from_, "passwd123456"))
 
-    contract = "0x0506e5ef752ea1129a7e6ed41df5e93131bee8a7"
+    contract = "0x7cf4d8fdec9244e774272aac648d33e051fd83f4"
 
 
-    data = '0xa9059cbb' + '0' * (64 - len(to_address)) + to_address + ('%064x' % 100000000000000)
+    data = '0xa9059cbb' + '0' * (64 - len(to_address)) + to_address + ('%064x' % 1234000000000000)
     res = make_request('eth_sendTransaction', [
         {'from': from_, 'to': contract, 'data': data}])
     return res
 
 from mvs_rpc import mvs_api as mvs_rpc
-def send_asset_from_mvs():
-    em, result = mvs_rpc.didsendasset('test1', 'test123456', 'crosschain', 'ERCTEST.XYZ', 10000, message="0x0c1933b3fdaf77bc196e7853256959ab9b28e1ff")
+def send_ethtoken_asset_from_mvs():
+    em, result = mvs_rpc.didsendasset('test2', 'test123456', 'crosschain', constants.SWAP_TOKEN_PREFIX + 'XYZ', 19870000, message="0x0c1933b3fdaf77bc196e7853256959ab9b28e1ff")
+    assert( em == None)
+    return result['transaction']['hash']
+
+def send_eth_asset_from_mvs():
+    em, result = mvs_rpc.didsendasset('test2', 'test123456', 'crosschain', constants.SWAP_TOKEN_PREFIX + 'ETH', 13570000, message="0x0c1933b3fdaf77bc196e7853256959ab9b28e1ff")
     assert( em == None)
     return result['transaction']['hash']
 
 def main():
     while True:
-        print(send_eth_from_ethereum())
-        print(send_token_from_ethereum())
-        print('etp: ' + send_asset_from_mvs())
+        print('eth->etp ' + send_eth_from_ethereum())
+        print('ethtoken->etp ' + send_token_from_ethereum())
+        print('etp->ethtoken: ' + send_ethtoken_asset_from_mvs())
+        print('etp->eth: ' + send_eth_asset_from_mvs())
+        print('sleep 300 seconds ...')
         time.sleep(300)
 
 if __name__ == '__main__':
