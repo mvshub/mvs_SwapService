@@ -68,12 +68,15 @@ def send_eth_asset_from_mvs():
 
 def main():
     while True:
-        print('eth->etp ' + send_eth_from_ethereum())
-        print('ethtoken->etp ' + send_token_from_ethereum())
-        print('etp->ethtoken: ' + send_ethtoken_asset_from_mvs())
-        print('etp->eth: ' + send_eth_asset_from_mvs())
-        print('sleep 300 seconds ...')
-        time.sleep(300)
+        try:
+            print('eth->etp ' + send_eth_from_ethereum())
+            print('ethtoken->etp ' + send_token_from_ethereum())
+            print('etp->ethtoken: ' + send_ethtoken_asset_from_mvs())
+            print('etp->eth: ' + send_eth_asset_from_mvs())
+            print('sleep 300 seconds ...')
+            time.sleep(300)
+        except Exception as e:
+            print('exception caught: {}'.format(e))
 
 if __name__ == '__main__':
     main()
