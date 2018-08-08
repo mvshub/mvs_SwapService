@@ -129,7 +129,8 @@ class EthToken(Eth):
                               % (address, settings['passphrase']))
             return None, 0
 
-        return self.transfer2(token, None, address, to, self.to_wei(token, amount))
+        tx_hash, fee = self.transfer2(token, None, address, to, self.to_wei(token, amount))
+        return tx_hash, self.from_wei(token, fee)
 
     def get_decimal(self, name):
         for i in self.tokens:

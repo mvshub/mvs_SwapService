@@ -112,7 +112,9 @@ class Eth(Base):
             #logging.info('Failed to unlock_account, address:%s, passphrase:%s' % (address, settings['passphrase']))
             return None, 0
 
-        return self.transfer(None, address, to, self.to_wei(token, amount))
+        tx_hash, fee = self.transfer(None, address, to, self.to_wei(token, amount))
+
+        return tx_hash, self.from_wei(token, fee)
 
     def best_block_number(self):
         res = self.make_request('eth_blockNumber')
