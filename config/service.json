@@ -17,27 +17,12 @@
             "uri": "http://127.0.0.1:8820/rpc/v3",
             "tokens": [
                 {
-                    "name":"ABC",
-                    "enable":true,
-                    "decimal": 5
-                },
-                {
-                    "name":"SMT",
-                    "enable":true,
-                    "decimal": 4
-                },
-                {
-                    "name":"TAC",
-                    "enable":true,
-                    "decimal": 9
-                },
-                {
                     "name":"ETH",
                     "enable":true,
                     "decimal": 9
                 },
                 {
-                    "name":"DEV",
+                    "name":"XYZ",
                     "enable":true,
                     "decimal": 9
                 }
@@ -46,7 +31,7 @@
         {
             "id": 2,
             "name": "ETH",
-            "contract_mapaddress":"0x9288de4ed1757caa58ff47981734823b30a38774",
+            "contract_mapaddress":"0x9fAa766fCBcD3BDBAb27681C7Cca6e1a6016B7c5",
             "decimal": 18,
             "type": "rpcs.eth.Eth",
             "host":"10.10.10.175",
@@ -57,36 +42,15 @@
             "id":3,
             "name":"ETHToken",
             "type":"rpcs.eth_token.EthToken",
-            "contract_mapaddress":"0x9288de4ed1757caa58ff47981734823b30a38774",
+            "contract_mapaddress":"0x9fAa766fCBcD3BDBAb27681C7Cca6e1a6016B7c5",
             "host":"10.10.10.175",
             "port":8545,
             "tokens": [
                 {
-                    "name":"ABC",
-                    "contract_address":"0x0506e5ef752ea1129a7e6ed41df5e93131bee8a7",
+                    "name":"XYZ",
+                    "contract_address":"0x7Cf4D8fDeC9244e774272aac648D33E051fD83f4",
                     "enable":true,
-                    "decimal": 5,
-                    "fee" : 0.04
-                },
-                {
-                    "name":"SMT",
-                    "contract_address":"0x9faa766fcbcd3bdbab27681c7cca6e1a6016b7c5",
-                    "enable":true,
-                    "decimal": 4,
-                    "fee" : 0.05
-                },
-                {
-                    "name":"TAC",
-                    "contract_address":"0x7cf4d8fdec9244e774272aac648d33e051fd83f4",
-                    "enable":true,
-                    "decimal": 14,
-                    "fee" : 0.06
-                },
-                {
-                    "name":"DEV",
-                    "contract_address":"0xc8c7655b14bad9fd12d7205f5041e6f57f9ebaf0",
-                    "enable":true,
-                    "decimal": 10,
+                    "decimal": 12,
                     "fee" : 0.06
                 }
             ]
