@@ -24,7 +24,7 @@ class Result(db.Model):
     time = db.Column(db.Integer, default=0)
     message = db.Column(db.Text)
 
-    fee = db.Column(db.Integer)  # unit: n * 1/10000
+    fee = db.Column(db.Numeric(64, 18))
 
     @classmethod
     def copy(cls, dep_):
