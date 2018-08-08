@@ -206,7 +206,7 @@ class SwapBusiness(IBusiness):
                 result.tx_height = current_height
                 result.status = int(Status.Swap_Send)
                 result.confirm_status = int(Status.Tx_Unconfirm)
-                result.fee = int(fee * 10000)
+                result.fee = fee
                 db.message = "send tx success, wait for confirm"
                 result.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
                 result.time = int(time.strftime('%2H%2M%2S', time.localtime()))
