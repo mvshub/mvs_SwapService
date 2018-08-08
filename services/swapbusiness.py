@@ -135,6 +135,7 @@ class SwapBusiness(IBusiness):
                 minconf = self.min_confirm_map[swap_coin]
                 tx = rpc.get_transaction(r.tx_hash)
                 if tx == None or tx['blockNumber'] == 0:
+                    r.tx_height = None if tx == None else 0
                     self.renew_swap(r, rpc, swap_coin)
                     continue
 
