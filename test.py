@@ -1,6 +1,7 @@
 import time
 import requests
 import json
+import random
 from models import constants
 
 def make_request(method, params=[]):
@@ -30,7 +31,7 @@ def send_eth_from_ethereum():
     #1. send eth to scan address
     options = {'from': "0x0c1933b3fdaf77bc196e7853256959ab9b28e1ff",
                  'to': "0x2d23fdffe79c9b5769b399ccd0d8c2e46e1aea26",
-              'value': hex(100000000000000000)}
+              'value': hex(12000000000000000 + int(random.random() * 100000000000000))}
     gas = estimate_gas(options)
     options['gas'] = hex(gas)
 
@@ -50,19 +51,19 @@ def send_token_from_ethereum():
     contract = "0x7cf4d8fdec9244e774272aac648d33e051fd83f4"
 
 
-    data = '0xa9059cbb' + '0' * (64 - len(to_address)) + to_address + ('%064x' % 1234000000000000)
+    data = '0xa9059cbb' + '0' * (64 - len(to_address)) + to_address + ('%064x' % (12340000000000 + int(random.random() * 1000000000)))
     res = make_request('eth_sendTransaction', [
         {'from': from_, 'to': contract, 'data': data}])
     return res
 
 from mvs_rpc import mvs_api as mvs_rpc
 def send_ethtoken_asset_from_mvs():
-    em, result = mvs_rpc.didsendasset('test2', 'test123456', 'crosschain', constants.SWAP_TOKEN_PREFIX + 'XYZ', 19870000, message="0x0c1933b3fdaf77bc196e7853256959ab9b28e1ff")
+    em, result = mvs_rpc.didsendasset('test2', 'test123456', 'crosschain', constants.SWAP_TOKEN_PREFIX + 'XYZ', 19800000 + int(random.random() * 10000), message="0x0c1933b3fdaf77bc196e7853256959ab9b28e1ff")
     assert( em == None)
     return result['transaction']['hash']
 
 def send_eth_asset_from_mvs():
-    em, result = mvs_rpc.didsendasset('test2', 'test123456', 'crosschain', constants.SWAP_TOKEN_PREFIX + 'ETH', 13570000, message="0x0c1933b3fdaf77bc196e7853256959ab9b28e1ff")
+    em, result = mvs_rpc.didsendasset('test2', 'test123456', 'crosschain', constants.SWAP_TOKEN_PREFIX + 'ETH', 13500000 + int(random.random() * 10000), message="0x0c1933b3fdaf77bc196e7853256959ab9b28e1ff")
     assert( em == None)
     return result['transaction']['hash']
 
