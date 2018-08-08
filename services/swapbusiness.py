@@ -288,7 +288,6 @@ class SwapBusiness(IBusiness):
             result.confirm_height = 0
             result.message = "renew swap"
             db.session.add(result)
-            db.session.commit()
             Logger.get().info('success renew swap, coin:%s, token:%s, last tx hash: %s, \
             last tx height: %d, cur height: %d,  ' % 
             (result.coin, result.token, tx_hash, result.tx_height, current_height))

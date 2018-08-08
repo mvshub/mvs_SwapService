@@ -81,7 +81,7 @@ class MainService(IService):
                 record['to'] = r.to_address
                 record['amount'] = self.format_amount(r.amount)
                 record['fee'] = self.format_amount(r.fee)
-                record['time'] = "%d:%d:%d" % (
+                record['time'] = "%02d:%02d:%02d" % (
                     r.time // 10000, r.time // 100 % 100, r.time % 100)
                 record['tx_height'] = r.tx_height
                 record['message'] = constants.ProcessStr(
@@ -107,7 +107,7 @@ class MainService(IService):
                 record['to'] = r.to_address
                 record['amount'] = self.format_amount(r.amount)
                 record['fee'] = self.format_amount(r.fee)
-                record['time'] = "%d:%d:%d" % (
+                record['time'] = "%02d:%02d:%02d" % (
                     r.time // 10000, r.time // 100 % 100, r.time % 100)
                 record['tx_height'] = r.tx_height
                 record['message'] = constants.ProcessStr(
@@ -124,7 +124,7 @@ class MainService(IService):
                 token=token).order_by(Result.swap_id.desc()).all()
 
             for result in results:
-                result.time = "%d:%d:%d" % (
+                result.time = "%02d:%02d:%02d" % (
                     result.time // 10000, result.time // 100 % 100, result.time % 100)
                 result.amount = self.format_amount(result.amount)
                 result.fee = self.format_amount(result.fee)
@@ -166,7 +166,7 @@ class MainService(IService):
             for result in results:
                 result.confirm_status = constants.ConfirmStr[
                     result.confirm_status]
-                result.time = "%d:%d:%d" % (
+                result.time = "%02d:%02d:%02d" % (
                     result.time // 10000, result.time // 100 % 100, result.time % 100)
                 result.amount = self.format_amount(result.amount)
                 result.fee = self.format_amount(result.fee)
@@ -190,7 +190,7 @@ class MainService(IService):
                 record['amount'] = self.format_amount(r.amount)
                 record['fee'] = self.format_amount(r.fee)
                 record['date'] = r.date
-                record['time'] = "%d:%d:%d" % (
+                record['time'] = "%02d:%02d:%02d" % (
                     r.time // 10000, r.time // 100 % 100, r.time % 100)
                 record['tx_height'] = r.tx_height
                 record['message'] = constants.ProcessStr(
