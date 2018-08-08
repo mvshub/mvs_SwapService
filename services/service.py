@@ -137,6 +137,8 @@ class MainService(IService):
                 [(Result.status == int(Status.Swap_Finish), 1)], else_=0)
             total_amount = case(
                 [(Result.status == int(Status.Swap_Finish), Result.amount)], else_=0)
+            total_fee = case(
+                [(Result.status == int(Status.Swap_Finish), Result.fee)], else_=0)
             pending = case(
                 [(Result.status != int(Status.Swap_Finish), 1)], else_=0)
             total_pending = case(
@@ -146,14 +148,15 @@ class MainService(IService):
                 Result.coin,
                 Result.token,
                 func.sum(total_amount),
+                func.sum(total_fee),
                 func.sum(finished),
                 func.sum(total_pending),
                 func.sum(pending)).\
                 group_by(Result.coin, Result.token, Result.date).\
                 having(Result.date == date).all()
 
-            results = [(x[0], x[1], self.format_amount(x[2]),
-                        x[3], self.format_amount(x[4]), x[5]) for x in results]
+            results = [(x[0], x[1], self.format_amount(x[2]), self.format_amount(x[3]),
+                        x[4], self.format_amount(x[5]), x[6]) for x in results]
             return render_template('report.html', date=date, reports=results)
 
         @self.app.route('/tx/<tx_from>')
@@ -185,6 +188,7 @@ class MainService(IService):
                 record['from'] = r.from_address
                 record['to'] = r.to_address
                 record['amount'] = self.format_amount(r.amount)
+                record['fee'] = self.format_amount(r.fee)
                 record['date'] = r.date
                 record['time'] = "%d:%d:%d" % (
                     r.time // 10000, r.time // 100 % 100, r.time % 100)
