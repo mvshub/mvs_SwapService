@@ -61,14 +61,14 @@ class MainService(IService):
 
             if status == 0:
                 results = db.session.query(Result).filter_by(
-                    date=date, coin=coin, token=token).all()
+                    date=date, coin=coin, token=token).order_by(Result.swap_id.desc()).all()
             elif status == 1:
                 results = db.session.query(Result).filter_by(
-                    date=date, coin=coin, token=token, status=int(Status.Swap_Finish)).all()
+                    date=date, coin=coin, token=token, status=int(Status.Swap_Finish)).order_by(Result.swap_id.desc()).all()
             else:
-                results = db.session.query(Result).\
-                    filter(and_(Result.date == date, Result.coin == coin, Result.token == token,
-                                Result.status != int(Status.Swap_Finish))).ordey_by(Result.swap_id.desc()).all()
+                results = db.session.query(Result).filter(and_(\
+                    Result.date == date, Result.coin == coin, Result.token == token,\
+                    Result.status != int(Status.Swap_Finish))).order_by(Result.swap_id.desc()).all()
 
             records = []
             for r in results:
