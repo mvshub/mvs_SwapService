@@ -24,6 +24,7 @@ class SwapBusiness(IBusiness):
         IBusiness.__init__(self, service=service_, rpc=None, setting=settings)
         self.rpcs = {}
         self.min_confirm_map = {}
+        self.min_renew_map ={}
         self.enabled_coins = []
         self.rpcmanager = rpcmanager_
 
@@ -31,6 +32,7 @@ class SwapBusiness(IBusiness):
             coin = s['coin']
             self.rpcs[coin] = self.rpcmanager.get_available_feed(s['rpc'])
             self.min_confirm_map[coin] = s['minconf']
+            self.min_renew_map[coin] = s['minrenew']
             if s['enable']:
                 self.enabled_coins.append(coin)
 
@@ -133,6 +135,7 @@ class SwapBusiness(IBusiness):
                 minconf = self.min_confirm_map[swap_coin]
                 tx = rpc.get_transaction(r.tx_hash)
                 if tx == None or tx['blockNumber'] == 0:
+                    self.renew_swap(r, rpc, swap_coin)
                     continue
 
                 tx_height = int(tx['blockNumber'])
@@ -176,6 +179,7 @@ class SwapBusiness(IBusiness):
                     db.session.add(r)
 
             except Exception as e:
+                self.renew_swap(r, rpc, swap_coin)
                 Logger.get().error('failed to get tx: %s, error: %s' % (r.tx_hash, e))
                 Logger.get().error('{}'.format(traceback.format_exc()))
 
@@ -193,10 +197,12 @@ class SwapBusiness(IBusiness):
                 (result.status == Status.Swap_Issue and result.confirm_status == Status.Tx_Confirm):
             swap_coin = self.get_swap_coin(result)
             swap_settings = self.get_rpc_settings(swap_coin)
+            current_height = rpc.best_block_number()
             tx, fee = rpc.transfer_asset(
                 result.to_address, result.token, result.amount, swap_settings)
             if tx:
                 result.tx_hash = tx
+                result.tx_height = current_height
                 result.status = int(Status.Swap_Send)
                 result.confirm_status = int(Status.Tx_Unconfirm)
                 result.fee = int(fee * 10000)
@@ -217,9 +223,10 @@ class SwapBusiness(IBusiness):
             if not swap_rpc.is_to_address_valid(result.to_address):
                 raise SwapException(Error.EXCEPTION_INVAILD_ADDRESS)
 
+            current_height = swap_rpc.best_block_number()
+
             swap_coin = self.get_swap_coin(result)
             swap_settings = self.get_rpc_settings(swap_coin)
-            total_supply = 0
             issue_coin = db.session.query(Coin).filter_by(
                 name=result.coin, token=result.token).order_by(Coin.iden.desc()).first()
 
@@ -237,6 +244,7 @@ class SwapBusiness(IBusiness):
                 result.token, result.amount, issue_coin, swap_settings)
             if err == Error.Success and tx is not None:
                 result.tx_hash = tx
+                result.tx_height = current_height
                 result.status = int(Status.Swap_Issue)
                 result.confirm_status = int(Status.Tx_Unconfirm)
 
@@ -252,6 +260,35 @@ class SwapBusiness(IBusiness):
                                   (result.token, result.tx_hash))
 
         return err
+
+    @timeit
+    def renew_swap(self, result, rpc, coin):
+        if coin not in self.min_renew_map:
+            return
+
+        current_height = rpc.best_block_number()
+        minRenew = self.min_renew_map[coin]
+        if current_height != 0 and result.tx_height + minRenew <= current_height:
+            tx_hash = result.tx_hash
+            if result.tx_height == 0:
+                Logger.get().info('failed renew swap,last hash alread in memporypoo,\
+                coin:%s, token:%s, last tx hash: %s , last tx height: %d, cur height: %d' % 
+                (result.coin, result.token, tx_hash, result.tx_height, current_height))
+                return
+
+            result.status = Status.Swap_New
+            result.confirm_status = None
+            result.tx_hash = None
+            result.tx_height = 0
+            result.confirm_height = 0
+            result.message = "renew swap"
+            db.session.add(result)
+            db.session.commit()
+            Logger.get().info('success renew swap, coin:%s, token:%s, last tx hash: %s, \
+            last tx height: %d, cur height: %d,  ' % 
+            (result.coin, result.token, tx_hash, result.tx_height, current_height))
+
+
 
     @timeit
     def process_unconfirm(self):
