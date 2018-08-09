@@ -134,11 +134,12 @@ class SwapBusiness(IBusiness):
                 current_height = rpc.best_block_number()
                 minconf = self.min_confirm_map[swap_coin]
                 tx = rpc.get_transaction(r.tx_hash)
-                if tx != None and tx['blockNumber'] == 0:
+                
+                if tx == None:
+                    if swap_coin == 'ETP':
+                        self.renew_swap(r, rpc, swap_coin)
                     continue
-
-                if tx == None and swap_coin == 'ETP':
-                    self.renew_swap(r, rpc, swap_coin)
+                elif tx['blockNumber'] == 0:
                     continue
 
                 tx_height = int(tx['blockNumber'])
