@@ -20,7 +20,8 @@ class Etp(Base):
         Base.__init__(self, settings)
         self.name = 'ETP'
         self.tokens = settings['tokens']
-        self.token_names = [self.get_erc_symbol(x['name']) for x in self.tokens]
+        self.token_names = [self.get_erc_symbol(
+            x['name']) for x in self.tokens]
         Logger.get().info("init type {}, tokens: {}".format(
             self.name, self.token_names))
 
@@ -260,26 +261,30 @@ class Etp(Base):
             raise SwapException(Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL)
 
         if supply < amount and total_supply < issue_coin.total_supply:
-            to_did = settings.get('did')
             issue_amount = issue_coin.total_supply - \
                 decimal.Decimal(total_supply)
+            if issue_amount + supply < amount:
+                raise SwapException(Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH))
 
+            to_did=settings.get('did')
             if not self.is_asset_exist(symbol):
-                dec = self.get_decimal(symbol)
+                dec=self.get_decimal(symbol)
                 try:
                     self.create_asset(account, passphrase, to_did,
                                       dec, -1, symbol, issue_amount)
-                    tx_hash = self.issue(account, passphrase, symbol)
+                    tx_hash=self.issue(account, passphrase, symbol)
                 except RpcException as e:
                     self.delete_asset(account, passphrase, symbol)
                     raise
 
                 return Error.Success, tx_hash
             else:
-                tx_hash = self.secondary_issue(
+                tx_hash=self.secondary_issue(
                     account, passphrase, to_did, symbol, issue_amount)
 
                 return Error.Success, tx_hash
+        else:
+            raise SwapException(Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH)
 
         return Error.Success, None
 

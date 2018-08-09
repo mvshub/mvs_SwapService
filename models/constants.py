@@ -45,7 +45,7 @@ def ProcessStr(status, confirm):
     if status == Status.Swap_New:
         str = "Scan transaction, waitting for process"
     elif status == Status.Swap_Issue:
-        str = "Secondary issue Asset, waitting for confirm" 
+        str = "Secondary issue Asset, waitting for confirm"
         if confirm == Status.Tx_Confirm:
             str = "Confirm tx success"
     elif status == Status.Swap_Send:
@@ -73,6 +73,7 @@ class Error(IntEnum):
     EXCEPTION_COIN_ISSUING = 5
     EXCEPTION_COIN_AMOUNT_TOO_SMALL = 6
     EXCEPTION_CONFIG_ERROR_DECIMAL = 7
+    EXCEPTION_COIN_AMOUNT_NO_ENOUGH = 8
 
 
 class SwapException(Exception):
@@ -88,6 +89,7 @@ class SwapException(Exception):
         Error.EXCEPTION_COIN_NOT_EXIST: "Coin does not exist",
         Error.EXCEPTION_COIN_ISSUING: "Coin is issuing,cannot issue again",
         Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL: "Coin amount too small",
+        Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH: "Coin amount no enough",
         Error.EXCEPTION_CONFIG_ERROR_DECIMAL: "Config error of decimal number, must be specified"
     }
 
