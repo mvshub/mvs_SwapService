@@ -264,7 +264,7 @@ class Etp(Base):
             issue_amount = issue_coin.total_supply - \
                 decimal.Decimal(total_supply)
             if issue_amount + supply < amount:
-                raise SwapException(Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH))
+                raise SwapException(Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH)
 
             to_did=settings.get('did')
             if not self.is_asset_exist(symbol):
