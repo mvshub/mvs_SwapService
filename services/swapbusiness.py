@@ -297,9 +297,12 @@ class SwapBusiness(IBusiness):
 
     @timeit
     def process_unconfirm(self):
+        # only process the latest two weeks unconfirmed operations
+        begin_date_to_process = int(time.strftime('%4Y%2m%2d', time.localtime(time.time() - 14*24*60*60)))
         results = db.session.query(Result).filter(and_(
             Result.status != int(Status.Swap_Finish),
-            Result.status != int(Status.Swap_Ban))).all()
+            Result.status != int(Status.Swap_Ban),
+            Result.date >= begin_date_to_process)).all()
         self.commit_results(results)
         return True
 
