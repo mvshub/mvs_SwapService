@@ -283,8 +283,6 @@ class Etp(Base):
                     account, passphrase, to_did, symbol, issue_amount)
 
                 return Error.Success, tx_hash
-        else:
-            raise SwapException(Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH)
 
         return Error.Success, None
 
