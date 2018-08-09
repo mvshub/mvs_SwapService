@@ -62,8 +62,12 @@ class Etp(Base):
         return False
 
     def get_did(self, did):
-        res = self.make_request('getdid', [did])
-        return res['result']
+        try:
+            res = self.make_request('getdid', [did])
+            return res['result']
+        except Exception as e:
+            pass
+
 
     def is_address_valid(self, address):
         if address is None or address == '':

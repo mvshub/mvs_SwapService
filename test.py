@@ -83,6 +83,7 @@ def send_eth_asset_from_mvs():
 def main():
     while True:
         try:
+            print(time.ctime())
             print('eth->etp ' + send_eth_from_ethereum())
             print('ethtoken->etp ' + send_token_from_ethereum())
             print('etp->ethtoken: ' + send_ethtoken_asset_from_mvs())
