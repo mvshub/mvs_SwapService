@@ -29,9 +29,12 @@ def estimate_gas(options):
 
 def send_eth_from_ethereum():
     #1. send eth to scan address
+    one_token = 10 ** 18
+    amount = random.randrange(one_token*10, one_token*20)
+    print('send_eth_from_ethereum: {}'.format(amount))
     options = {'from': "0x0c1933b3fdaf77bc196e7853256959ab9b28e1ff",
                  'to': "0x2d23fdffe79c9b5769b399ccd0d8c2e46e1aea26",
-              'value': hex(12000000000000000 + int(random.random() * 100000000000000))}
+              'value': hex(amount)}
     gas = estimate_gas(options)
     options['gas'] = hex(gas)
 
@@ -50,20 +53,30 @@ def send_token_from_ethereum():
 
     contract = "0x7cf4d8fdec9244e774272aac648d33e051fd83f4"
 
-
-    data = '0xa9059cbb' + '0' * (64 - len(to_address)) + to_address + ('%064x' % (12340000000000 + int(random.random() * 1000000000)))
+    one_token = 10 ** 12
+    amount = random.randrange(one_token*10, one_token*20)
+    print('send_token_from_ethereum: {}'.format(amount))
+    data = '0xa9059cbb' + '0' * (64 - len(to_address)) + to_address + ('%064x' % amount)
     res = make_request('eth_sendTransaction', [
         {'from': from_, 'to': contract, 'data': data}])
     return res
 
 from mvs_rpc import mvs_api as mvs_rpc
 def send_ethtoken_asset_from_mvs():
-    em, result = mvs_rpc.didsendasset('test2', 'test123456', 'crosschain', constants.SWAP_TOKEN_PREFIX + 'XYZ', 19800000 + int(random.random() * 10000), message="0x0c1933b3fdaf77bc196e7853256959ab9b28e1ff")
+    one_token = 10 ** 9
+    amount = random.randrange(one_token*10, one_token*20)
+    print('send_ethtoken_asset_from_mvs: {}'.format(amount))
+    em, result = mvs_rpc.didsendasset('test2', 'test123456', 'crosschain', constants.SWAP_TOKEN_PREFIX + 'XYZ',\
+            amount, message="0x0c1933b3fdaf77bc196e7853256959ab9b28e1ff")
     assert( em == None)
     return result['transaction']['hash']
 
 def send_eth_asset_from_mvs():
-    em, result = mvs_rpc.didsendasset('test2', 'test123456', 'crosschain', constants.SWAP_TOKEN_PREFIX + 'ETH', 13500000 + int(random.random() * 10000), message="0x0c1933b3fdaf77bc196e7853256959ab9b28e1ff")
+    one_token = 10 ** 9
+    amount = random.randrange(one_token*10, one_token*20)
+    print('send_eth_asset_from_mvs: {}'.format(amount))
+    em, result = mvs_rpc.didsendasset('test2', 'test123456', 'crosschain', constants.SWAP_TOKEN_PREFIX + 'ETH',\
+            amount, message="0x0c1933b3fdaf77bc196e7853256959ab9b28e1ff")
     assert( em == None)
     return result['transaction']['hash']
 
