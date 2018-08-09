@@ -136,7 +136,7 @@ class EthToken(Eth):
         for i in self.tokens:
             if i['name'] == name:
                 return int(i['decimal'])
-        raise SwapException(Error.EXCEPTION_CONFIG_ERROR_DECIMAL)
+        raise SwapException(Error.EXCEPTION_CONFIG_ERROR_DECIMAL, 'coin=ethtoken,token=%s'%(name))
 
     def get_transaction(self, txid):
         res = self.make_request('eth_getTransactionByHash', [txid])

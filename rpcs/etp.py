@@ -243,7 +243,7 @@ class Etp(Base):
         for i in self.tokens:
             if self.get_erc_symbol(i['name']) == token:
                 return i['decimal']
-        raise SwapException(Error.EXCEPTION_CONFIG_ERROR_DECIMAL)
+        raise SwapException(Error.EXCEPTION_CONFIG_ERROR_DECIMAL, 'coin=etp,token=%s'%(token))
 
     def get_erc_symbol(self, token):
         return constants.SWAP_TOKEN_PREFIX + token
@@ -264,7 +264,8 @@ class Etp(Base):
             issue_amount = issue_coin.total_supply - \
                 decimal.Decimal(total_supply)
             if issue_amount < decimal.Decimal(amount - supply):
-                raise SwapException(Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH)
+                raise SwapException(Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH,\
+                'amount=%f, available=%f' % (amount, supply))
 
             to_did = settings.get('did')
             if not self.is_asset_exist(symbol):

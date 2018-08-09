@@ -78,8 +78,9 @@ class Error(IntEnum):
 
 class SwapException(Exception):
 
-    def __init__(self, errcode_):
+    def __init__(self, errcode_, errstr_ = None):
         self.errcode = errcode_
+        self.errstr = errstr_
 
     errmsg = {
         Error.Success: "",
@@ -94,7 +95,11 @@ class SwapException(Exception):
     }
 
     def get_error_str(self):
+        strAll = ""
         if self.errcode in self.errmsg:
-            return self.errmsg[self.errcode]
+            strAll = self.errmsg[self.errcode]
 
-        return ""
+        if self.errstr != None:
+            strAll = strAll + ':' + self.errstr
+
+        return strAll

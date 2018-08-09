@@ -82,7 +82,7 @@ class SwapBusiness(IBusiness):
                     b = db.session.query(Binder).filter_by(
                         binder=r.from_address).order_by(Binder.iden.desc()).all()
                     if not b or len(b) == 0:
-                        raise SwapException(Error.EXCEPTION_GET_BINDER)
+                        raise SwapException(Error.EXCEPTION_GET_BINDER, 'from_address=%s' % (r.from_address))
                     r.to_address = b[0].to
 
                 rpc = self.get_swap_rpc(r)
@@ -225,7 +225,7 @@ class SwapBusiness(IBusiness):
         err = Error.Success
         if not result.tx_hash or result.status == int(Status.Swap_New):
             if not swap_rpc.is_to_address_valid(result.to_address):
-                raise SwapException(Error.EXCEPTION_INVAILD_ADDRESS)
+                raise SwapException(Error.EXCEPTION_INVAILD_ADDRESS, 'address=%s'%(result.to_address))
 
             current_height = swap_rpc.best_block_number()
 
