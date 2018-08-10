@@ -203,7 +203,7 @@ class MainService(IService):
                 func.sum(total_pending),
                 func.sum(pending)). \
                 filter(and_(Result.date <= date2, Result.date >= date1)). \
-                group_by(Result.coin, Result.token, Result.date).all()
+                group_by(Result.coin, Result.token).all()
 
             results = [(x[0], x[1], self.format_amount(x[2]), self.format_amount(x[3]),
                         x[4], self.format_amount(x[5]), x[6]) for x in results]
