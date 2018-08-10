@@ -181,6 +181,34 @@ class MainService(IService):
                         x[4], self.format_amount(x[5]), x[6]) for x in results]
             return render_template('report.html', date=date, reports=results)
 
+        @self.app.route('/report/<date1>/<date2>')
+        def swap_report2(date1, date2):
+            finished = case(
+                [(Result.status == int(Status.Swap_Finish), 1)], else_=0)
+            total_amount = case(
+                [(Result.status == int(Status.Swap_Finish), Result.amount)], else_=0)
+            total_fee = case(
+                [(Result.status == int(Status.Swap_Finish), Result.fee)], else_=0)
+            pending = case(
+                [(Result.status != int(Status.Swap_Finish), 1)], else_=0)
+            total_pending = case(
+                [(Result.status != int(Status.Swap_Finish), Result.amount)], else_=0)
+
+            results = db.session.query(
+                Result.coin,
+                Result.token,
+                func.sum(total_amount),
+                func.sum(total_fee),
+                func.sum(finished),
+                func.sum(total_pending),
+                func.sum(pending)). \
+                filter(and_(Result.date <= date2, Result.date >= date1)). \
+                group_by(Result.coin, Result.token, Result.date).all()
+
+            results = [(x[0], x[1], self.format_amount(x[2]), self.format_amount(x[3]),
+                        x[4], self.format_amount(x[5]), x[6]) for x in results]
+            return render_template('report.html', date="%s -- %s" % (date1, date2), reports=results)
+
         @self.app.route('/tx/<tx_from>')
         def swap_raw(tx_from):
             results = db.session.query(Result).filter_by(tx_from=tx_from).all()
