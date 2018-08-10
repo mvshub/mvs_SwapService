@@ -182,10 +182,10 @@ class MainService(IService):
                 having(Result.date == date).all()
 
             results = [(x[0], x[1],
-                        x[2], self.format_amount(x[3]),
-                        x[4], self.format_amount(x[5]),
-                        x[6], self.format_amount(x[7]),
-                        self.format_amount(x[8])) for x in results]
+                        x[2], self.format_rough_amount(x[3]),
+                        x[4], self.format_rough_amount(x[5]),
+                        x[6], self.format_rough_amount(x[7]),
+                        self.format_rough_amount(x[8])) for x in results]
             return render_template('reportperday.html', date=date, reports=results)
 
         @self.app.route('/report/<date1>/<date2>')
@@ -212,8 +212,10 @@ class MainService(IService):
                 filter(and_(Result.date <= date2, Result.date >= date1)). \
                 group_by(Result.coin, Result.token).all()
 
-            results = [(x[0], x[1], self.format_amount(x[2]), self.format_amount(x[3]),
-                        x[4], self.format_amount(x[5]), x[6]) for x in results]
+            results = [(x[0], x[1],
+                        self.format_rough_amount(x[2]),
+                        self.format_rough_amount(x[3]),
+                        x[4], self.format_rough_amount(x[5]), x[6]) for x in results]
             return render_template('report.html', date="%s -- %s" % (date1, date2), reports=results)
 
         @self.app.route('/tx/<tx_from>')
@@ -281,7 +283,23 @@ class MainService(IService):
             self.swap.stop()
 
     def format_amount(self, amount):
+        if not amount:
+            return '0'
+
         amount_str = str(amount)
+        if amount_str.find('.') != -1:
+            amount_str = amount_str.rstrip('0')
+            if amount_str.endswith('.'):
+                amount_str = amount_str[0:len(amount_str) - 1]
+        if amount_str == '0E-18':
+            amount_str = '0'
+        return amount_str
+
+    def format_rough_amount(self, amount):
+        if not amount:
+            return '0'
+
+        amount_str = '{:0.4f}'.format(float(amount))
         if amount_str.find('.') != -1:
             amount_str = amount_str.rstrip('0')
             if amount_str.endswith('.'):

@@ -16,7 +16,8 @@ import traceback
 from decimal import Decimal
 from functools import partial
 from sqlalchemy.sql import func
-from sqlalchemy import or_,and_,case
+from sqlalchemy import or_, and_, case
+
 
 class SwapBusiness(IBusiness):
 
@@ -24,7 +25,7 @@ class SwapBusiness(IBusiness):
         IBusiness.__init__(self, service=service_, rpc=None, setting=settings)
         self.rpcs = {}
         self.min_confirm_map = {}
-        self.min_renew_map ={}
+        self.min_renew_map = {}
         self.enabled_coins = []
         self.rpcmanager = rpcmanager_
 
@@ -82,7 +83,8 @@ class SwapBusiness(IBusiness):
                     b = db.session.query(Binder).filter_by(
                         binder=r.from_address).order_by(Binder.iden.desc()).all()
                     if not b or len(b) == 0:
-                        raise SwapException(Error.EXCEPTION_GET_BINDER, 'from_address=%s' % (r.from_address))
+                        raise SwapException(
+                            Error.EXCEPTION_GET_BINDER, 'from_address=%s' % (r.from_address))
                     r.to_address = b[0].to
 
                 rpc = self.get_swap_rpc(r)
@@ -92,17 +94,16 @@ class SwapBusiness(IBusiness):
                 self.before_swap(rpc, r)
                 self.send_swap_tx(rpc, r)
 
-
             except SwapException as e:
                 if e.errcode != Error.EXCEPTION_COIN_ISSUING:
                     if e.errcode == Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL or \
-                            e.errcode == Error.EXCEPTION_CONFIG_ERROR_DECIMAL :
+                            e.errcode == Error.EXCEPTION_CONFIG_ERROR_DECIMAL:
                         r.status = int(Status.Swap_Ban)
 
                     r.message = e.get_error_str()
                     Logger.get().error('process swap exception, coin:%s, token: %s, error:%s' % (
                         r.coin, r.token, r.message))
-                    Logger.get().error('{}'.format(traceback.format_exc()))               
+                    Logger.get().error('{}'.format(traceback.format_exc()))
 
             except Exception as e:
                 r.message = str(e)
@@ -140,8 +141,8 @@ class SwapBusiness(IBusiness):
                 tx_height_new = r.tx_height
                 if tx == None:
                     if tx_height_new != 0 and tx_height_new + minRenew < current_height:
-                        self.renew_swap(r, tx_height_new, current_height, minRenew)
-
+                        self.renew_swap(r, tx_height_new,
+                                        current_height, minRenew)
 
                 if tx == None or tx['blockNumber'] == 0:
                     continue
@@ -228,7 +229,8 @@ class SwapBusiness(IBusiness):
         err = Error.Success
         if not result.tx_hash or result.status == int(Status.Swap_New):
             if not swap_rpc.is_to_address_valid(result.to_address):
-                raise SwapException(Error.EXCEPTION_INVAILD_ADDRESS, 'address=%s'%(result.to_address))
+                raise SwapException(
+                    Error.EXCEPTION_INVAILD_ADDRESS, 'address=%s' % (result.to_address))
 
             current_height = swap_rpc.best_block_number()
 
@@ -258,7 +260,6 @@ class SwapBusiness(IBusiness):
                 result.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
                 result.time = int(time.strftime('%2H%2M%2S', time.localtime()))
 
-
                 issue_coin.status = int(Status.Token_Issue)
                 db.message = "send issue tx success, wait for confirm"
                 db.session.add(issue_coin)
@@ -280,13 +281,13 @@ class SwapBusiness(IBusiness):
         db.session.add(result)
         Logger.get().info('success renew swap, coin:%s, token:%s, last tx hash: %s, \
         last tx height: %d, cur height: %d,  ' %
-        (result.coin, result.token, tx_hash, result.tx_height, current_height))
-
+                          (result.coin, result.token, tx_hash, result.tx_height, current_height))
 
     @timeit
     def process_unconfirm(self):
         # only process the latest two weeks unconfirmed operations
-        begin_date_to_process = int(time.strftime('%4Y%2m%2d', time.localtime(time.time() - 14*24*60*60)))
+        begin_date_to_process = int(time.strftime(
+            '%4Y%2m%2d', time.localtime(time.time() - 14 * 24 * 60 * 60)))
         results = db.session.query(Result).filter(and_(
             Result.status != int(Status.Swap_Finish),
             Result.status != int(Status.Swap_Ban),
@@ -306,7 +307,7 @@ class SwapBusiness(IBusiness):
             self.swap_maxid = swap.iden
 
             r = db.session.query(Result).filter(or_(
-                Result.swap_id==swap.iden, Result.tx_from==swap.tx_hash)).first()
+                Result.swap_id == swap.iden, Result.tx_from == swap.tx_hash)).first()
             if r:
                 continue
 
