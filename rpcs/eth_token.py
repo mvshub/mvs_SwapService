@@ -1,7 +1,7 @@
 from rpcs.eth import Eth
 import decimal
 from utils.log.logger import Logger
-from utils.exception import TransactionNotfoundException
+from utils.exception import TransactionNotfoundException, RpcErrorException
 import binascii
 from models.coin import Coin
 from models.constants import SwapException

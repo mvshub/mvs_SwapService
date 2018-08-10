@@ -1,7 +1,7 @@
 from rpcs.base import Base
 import requests
 from utils.log.logger import Logger
-from utils.exception import RpcException, CriticalException
+from utils.exception import RpcException, CriticalException, RpcErrorException
 import json
 import decimal
 import binascii
