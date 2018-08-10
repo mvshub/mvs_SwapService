@@ -155,7 +155,7 @@ class MainService(IService):
             return render_template('token.html', token=token, results=results)
 
         @self.app.route('/report/<date>')
-        def swap_report(date):
+        def report_per_day(date):
             num_finished = case(
                 [(Result.status == int(Status.Swap_Finish), 1)], else_=0)
             total_finished = case(
@@ -189,7 +189,7 @@ class MainService(IService):
             return render_template('reportperday.html', date=date, reports=results)
 
         @self.app.route('/report/<date1>/<date2>')
-        def swap_report2(date1, date2):
+        def report_between(date1, date2):
             finished = case(
                 [(Result.status == int(Status.Swap_Finish), 1)], else_=0)
             total_amount = case(

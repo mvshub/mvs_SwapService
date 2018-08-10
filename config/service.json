@@ -6,8 +6,6 @@
     "mysql_user":"root",
     "mysql_passwd":"123456",
     "mysql_db":"wallet",
-    "privkey_path":"~/keys/private.pem",
-    "pubkey_path":"~/keys/public.pem",
     "rpcs":[
         {
             "id": 1,

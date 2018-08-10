@@ -268,7 +268,7 @@ class SwapBusiness(IBusiness):
         return err
 
     @timeit
-    def renew_swap(self, result, tx_height_new, current_height, minRenew):    
+    def renew_swap(self, result, tx_height_new, current_height, minRenew):
         tx_hash = result.tx_hash
         result.status = int(Status.Swap_New)
         result.confirm_status = None
@@ -278,7 +278,7 @@ class SwapBusiness(IBusiness):
         result.message = "renew swap"
         db.session.add(result)
         Logger.get().info('success renew swap, coin:%s, token:%s, last tx hash: %s, \
-        last tx height: %d, cur height: %d,  ' % 
+        last tx height: %d, cur height: %d,  ' %
         (result.coin, result.token, tx_hash, result.tx_height, current_height))
 
 
