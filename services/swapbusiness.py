@@ -95,8 +95,8 @@ class SwapBusiness(IBusiness):
 
             except SwapException as e:
                 if e.errcode != Error.EXCEPTION_COIN_ISSUING:
-                    if e.errcode == Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL or \ 
-                    e.errcode == Error.EXCEPTION_CONFIG_ERROR_DECIMAL :
+                    if e.errcode == Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL or \
+                            e.errcode == Error.EXCEPTION_CONFIG_ERROR_DECIMAL :
                         r.status = int(Status.Swap_Ban)
 
                     r.message = e.get_error_str()
@@ -117,7 +117,7 @@ class SwapBusiness(IBusiness):
     @timeit
     def process_confirm(self):
         results = db.session.query(Result).filter(and_(
-            Result.confirm_status == int(Status.Tx_Unconfirm)
+            Result.confirm_status == int(Status.Tx_Unconfirm),
             Result.status != int(Status.Swap_Ban))).all()
         if not results:
             return True
