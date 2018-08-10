@@ -50,13 +50,35 @@ class MainService(IService):
 
         @self.app.route('/')
         def root():
-            return response.make_response(response.ERR_SUCCESS, 'SwapService')
+            results = db.session.query(Result).order_by(Result.swap_id.desc()).limit(1000).all()
+            records = []
+            for r in results:
+                record = {}
+                record['swap_id'] = r.swap_id
+                record['coin'] = r.coin
+                record['token'] = r.token
+                record['tx_from'] = r.tx_from
+                record['from'] = r.from_address
+                record['to'] = r.to_address
+                record['amount'] = self.format_amount(r.amount)
+                record['fee'] = self.format_amount(r.fee)
+                record['date'] = r.date
+                record['time'] = "%02d:%02d:%02d" % (
+                    r.time // 10000, r.time // 100 % 100, r.time % 100)
+                record['tx_height'] = r.tx_height
+                record['message'] = constants.ProcessStr(
+                    r.status, r.confirm_status)
+                record['finish'] = 0 if r.status == int(
+                    Status.Swap_Finish) else 1
+                records.append(record)
+
+            return render_template('index.html', results=records)
 
         @self.app.errorhandler(404)
         def not_found(error):
             return response.make_response(response.ERR_SERVER_ERROR, '404: SwapService page not found')
 
-        @self.app.route('/<coin>/<token>/<date>/<int:status>')
+        @self.app.route('/status/<coin>/<token>/<date>/<int:status>')
         def swap_status(coin, token, date, status=0):
 
             if status == 0:

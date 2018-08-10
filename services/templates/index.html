@@ -4,11 +4,9 @@
     <head>
       <meta charset="UTF-8">
       <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-      <title>{{ date }}</title>
     </head>
 
     <body>
-
         <table>
             <td align="center" width="5%"> Swap ID </td>
             <td align="center" width="5%"> Coin </td>
@@ -18,6 +16,7 @@
             <td align="center" width="7%"> Amount </td>
             <td align="center" width="3%"> Fee </td>
             <td align="center" width="20%"> Message </td>
+            <td align="center" width="5%"> Date </td>
             <td align="center" width="5%"> Time </td>
             <td align="center" width="5%"> Detail</td>
 
@@ -45,6 +44,11 @@
                 <td align="center" style="{{ 'background-color:#fffffb;' if value['finish']==0 else 'background-color:#F08080;' }}"  >
                      {{ value["message"] }} 
                 </td>
+                <td align="center">
+                    <a href= "{{ url_for( 'swap_date', date=value['date']) }}"> 
+                        {{ value['date'] }}
+                    </a>
+                </td>
                 <td align="center"> {{ value["time"] }} </td>
                 <td align="center">
                     <a href= "{{ url_for( 'swap_raw' , tx_from=value['tx_from'] ) }}">
@@ -56,4 +60,11 @@
         </table>
 
     </body>
+    <script language="JavaScript"> 
+        function refresh() 
+        { 
+            window.location.reload();
+        } 
+        setTimeout('refresh()',5000); //指定5秒刷新一次 
+    </script> 
 </html>
