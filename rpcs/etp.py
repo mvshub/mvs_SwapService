@@ -250,6 +250,12 @@ class Etp(Base):
                 return i['decimal']
         raise SwapException(Error.EXCEPTION_CONFIG_ERROR_DECIMAL, 'coin=etp,token=%s'%(token))
 
+    def get_fee(self, name):
+        for x in self.tokens:
+            if x['name'] == name:
+                return x['fee']
+        return 0
+
     def get_erc_symbol(self, token):
         return constants.SWAP_TOKEN_PREFIX + token
 
@@ -293,7 +299,9 @@ class Etp(Base):
         return Error.Success, None
 
     def transfer_asset(self, to, token, amount, settings):
+        fee = fee = self.get_fee(token)
+        fee_amount = int(fee * int(amount))
         symbol = self.get_erc_symbol(token)
         account = settings.get('account')
         passphrase = settings.get('passphrase')
-        return self.send_asset(account, passphrase, to, symbol, amount), 0
+        return self.send_asset(account, passphrase, to, symbol, amount- fee_amount), fee_amount

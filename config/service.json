@@ -17,11 +17,13 @@
                 {
                     "name":"ETH",
                     "enable":true,
+                    "fee": 0.01,
                     "decimal": 9
                 },
                 {
                     "name":"XYZ",
                     "enable":true,
+                    "fee": 0.01,
                     "decimal": 9
                 }
             ]
