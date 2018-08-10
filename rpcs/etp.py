@@ -187,12 +187,14 @@ class Etp(Base):
                 symbol, str(e)))
             raise
 
-    def send_asset(self, account, passphrase, to, symbol, amount):
+    def send_asset(self, account, passphrase, to, symbol, amount, fee):
         tx_hash = None
+
         try:
             volume = self.to_wei(symbol, amount)
+            fee_volume = int(volume * fee)
             res = self.make_request(
-                'didsendasset', [account, passphrase, to, symbol, volume])
+                'didsendasset', [account, passphrase, to, symbol, volume - fee_volume])
             result = res['result']
             if result:
                 tx_hash = result['hash']
@@ -204,7 +206,7 @@ class Etp(Base):
             Logger.get().error("failed to send asset to {}, symbol: {}, volume: {}, error: {}".format(
                 to, symbol, volume, str(e)))
             raise
-        return tx_hash
+        return tx_hash, self.from_wei(symbol, fee_volume)
 
     def is_invalid_to_address(self, address):
         return address is None or len(address) < 42 or not self.is_hex(address[2:])
@@ -299,9 +301,8 @@ class Etp(Base):
         return Error.Success, None
 
     def transfer_asset(self, to, token, amount, settings):
-        fee = fee = self.get_fee(token)
-        fee_amount = int(fee * int(amount))
+        fee = self.get_fee(token)
         symbol = self.get_erc_symbol(token)
         account = settings.get('account')
         passphrase = settings.get('passphrase')
-        return self.send_asset(account, passphrase, to, symbol, amount- fee_amount), fee_amount
+        return self.send_asset(account, passphrase, to, symbol, amount, fee)
