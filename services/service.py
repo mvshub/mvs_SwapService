@@ -50,7 +50,8 @@ class MainService(IService):
 
         @self.app.route('/')
         def root():
-            results = db.session.query(Result).order_by(Result.swap_id.desc()).limit(1000).all()
+            results = db.session.query(Result).order_by(
+                Result.swap_id.desc()).limit(1000).all()
             records = []
             for r in results:
                 record = {}
@@ -88,8 +89,8 @@ class MainService(IService):
                 results = db.session.query(Result).filter_by(
                     date=date, coin=coin, token=token, status=int(Status.Swap_Finish)).order_by(Result.swap_id.desc()).all()
             else:
-                results = db.session.query(Result).filter(and_(\
-                    Result.date == date, Result.coin == coin, Result.token == token,\
+                results = db.session.query(Result).filter(and_(
+                    Result.date == date, Result.coin == coin, Result.token == token,
                     Result.status != int(Status.Swap_Finish))).order_by(Result.swap_id.desc()).all()
 
             records = []
@@ -155,31 +156,37 @@ class MainService(IService):
 
         @self.app.route('/report/<date>')
         def swap_report(date):
-            finished = case(
+            num_finished = case(
                 [(Result.status == int(Status.Swap_Finish), 1)], else_=0)
-            total_amount = case(
+            total_finished = case(
                 [(Result.status == int(Status.Swap_Finish), Result.amount)], else_=0)
-            total_fee = case(
-                [(Result.status == int(Status.Swap_Finish), Result.fee)], else_=0)
-            pending = case(
+            num_pending = case(
                 [(Result.status != int(Status.Swap_Finish), 1)], else_=0)
             total_pending = case(
                 [(Result.status != int(Status.Swap_Finish), Result.amount)], else_=0)
+            num_total = case([(Result.date == date, 1)], else_=0)
+            total = case([(Result.date == date, Result.amount)], else_=0)
+            total_fee = case([(Result.date == date, Result.fee)], else_=0)
 
             results = db.session.query(
                 Result.coin,
                 Result.token,
-                func.sum(total_amount),
-                func.sum(total_fee),
-                func.sum(finished),
+                func.sum(num_finished),
+                func.sum(total_finished),
+                func.sum(num_pending),
                 func.sum(total_pending),
-                func.sum(pending)).\
+                func.sum(num_total),
+                func.sum(total),
+                func.sum(total_fee)).\
                 group_by(Result.coin, Result.token, Result.date).\
                 having(Result.date == date).all()
 
-            results = [(x[0], x[1], self.format_amount(x[2]), self.format_amount(x[3]),
-                        x[4], self.format_amount(x[5]), x[6]) for x in results]
-            return render_template('report.html', date=date, reports=results)
+            results = [(x[0], x[1],
+                        x[2], self.format_amount(x[3]),
+                        x[4], self.format_amount(x[5]),
+                        x[6], self.format_amount(x[7]),
+                        self.format_amount(x[8])) for x in results]
+            return render_template('reportperday.html', date=date, reports=results)
 
         @self.app.route('/report/<date1>/<date2>')
         def swap_report2(date1, date2):

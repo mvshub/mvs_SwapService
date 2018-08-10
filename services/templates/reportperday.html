@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+
+    <head>
+      <meta charset="UTF-8">
+      <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+      <title>{{ 'Report {}'.format(date) }}</title>
+    </head>
+
+   <body>
+
+        <table>
+            <td align="center" width="10%"> From Coin </td>
+            <td align="center" width="10%"> From Token </td>
+            <td align="center" width="10%"> Finished Times </td>
+            <td align="center" width="10%"> Finished Amount </td>
+            <td align="center" width="10%"> Pending Times </td>
+            <td align="center" width="10%"> Pending Amount </td>
+            <td align="center" width="10%"> Total Times </td>
+            <td align="center" width="10%"> Total Amount </td>
+            <td align="center" width="10%"> Total Fee </td>
+            <td align="center" width="10%"> Date </td>
+
+            {% for value in reports %}
+            <tr>
+                <td align="center"> {{ value[0] }} </td>
+                <td align="center">
+                    <a href= "{{ url_for( 'swap_token', token=value[1]) }}">
+                        {{ value[1] }}
+                    </a>
+                </td>
+
+                <td align="center">
+                  {% if value[2] != 0 %}
+                    <a href= "{{ url_for( 'swap_status', coin=value[0],token=value[1],date=date,status=1) }}">
+                            {{ value[2] }}
+                    </a>
+                  {% else %}
+                    {{ value[2] }}
+                  {% endif %}
+                </td>
+                <td align="right"> {{ value[3] }} </td>
+
+                <td align="center">
+                  {% if value[4] != 0 %}
+                    <a href= "{{ url_for( 'swap_status', coin=value[0],token=value[1],date=date,status=2) }}">
+                            {{ value[4] }}
+                    </a>
+                  {% else %}
+                    {{ value[4] }}
+                  {% endif %}
+                </td>
+                <td align="right"> {{ value[5] }} </td>
+
+                <td align="center"> {{ value[6] }} </td>
+                <td align="right"> {{ value[7] }} </td>
+                <td align="right"> {{ value[8] }} </td>
+
+                <td align="center">
+                        <a href= "{{ url_for( 'swap_date', date=date) }}">
+                            {{ date }}
+                        </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+   </body>
+</html>
