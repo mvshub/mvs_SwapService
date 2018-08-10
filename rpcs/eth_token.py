@@ -139,23 +139,27 @@ class EthToken(Eth):
         raise SwapException(Error.EXCEPTION_CONFIG_ERROR_DECIMAL, 'coin=ethtoken,token=%s'%(name))
 
     def get_transaction(self, txid):
-        res = self.make_request('eth_getTransactionByHash', [txid])
-        if not res:
+        try:
+            res = self.make_request('eth_getTransactionByHash', [txid])
+            if not res or not res['blockNumber']:
+                return
+
+            res['blockNumber'] = int(res['blockNumber'], 16)
+            input_ = res['input']
+            if len(input_) != 138:
+                return
+
+            value = int('0x' + input_[74:], 16)
+            to_addr = '0x' + input_[34:74]
+            res['to'] = to_addr
+            res['value'] = value
+            receipt = self.make_request('eth_getTransactionReceipt', [txid])
+            if not (receipt and receipt['logs']):
+                return 
+
             return res
 
-        if not res['blockNumber']:
-            return
-
-        res['blockNumber'] = int(res['blockNumber'], 16)
-        input_ = res['input']
-        if len(input_) != 138:
-            return
-
-        value = int('0x' + input_[74:], 16)
-        to_addr = '0x' + input_[34:74]
-        res['to'] = to_addr
-        res['value'] = value
-        receipt = self.make_request('eth_getTransactionReceipt', [txid])
-        if not (receipt and receipt['logs']):
-            return
-        return res
+        except RpcErrorException as e:
+            Logger.get().error('failed to get tx:%s, %s' % (txid, str(e)))
+        except Exception as e:
+            raise

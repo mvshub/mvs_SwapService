@@ -45,7 +45,7 @@ class Etp(Base):
         try:
             js = json.loads(res.text)
             if isinstance(js, dict) and js.get('error') is not None:
-                raise RpcException(js['error'])
+                raise RpcErrorException(js['error'])
             return js
         except ValueError as e:
             pass
@@ -222,10 +222,11 @@ class Etp(Base):
             result = res['result']
             if result:
                 result['blockNumber'] = result['height']
+            return result
+        except RpcErrorException as e:
+            Logger.get().error('failed to get tx:%s, %s' % (txid, str(e)))
         except RpcException as e:
-            Logger.get().error("failed to get transaction: {}".format(str(e)))
             raise
-        return result
 
     def new_address(self, account, passphrase):
         res = self.make_request('getnewaddress', [account, passphrase])

@@ -37,7 +37,7 @@ class Eth(Base):
             raise RpcException(
                 'bad response content, failed to parse,%s' % res.text)
         if js.get('error') is not None:
-            raise RpcException('%s' % js['error']['message'])
+            raise RpcErrorException('%s' % js['error']['message'])
         return js['result']
 
     def get_coins(self):
@@ -66,13 +66,18 @@ class Eth(Base):
         return self.from_wei(token_name, wei=js['value']) 
 
     def get_transaction(self, txid):
-        res = self.make_request('eth_getTransactionByHash', [txid])
-        if not res:
+        try:
+            res = self.make_request('eth_getTransactionByHash', [txid])
+            if not res:
+                return res
+            res['blockNumber'] = int(res['blockNumber'], 16) if res[
+                'blockNumber'] else 0
+            res['to'] = '' if res.get('to') is None else res['to']
             return res
-        res['blockNumber'] = int(res['blockNumber'], 16) if res[
-            'blockNumber'] else 0
-        res['to'] = '' if res.get('to') is None else res['to']
-        return res
+        except RpcErrorException as e:
+            Logger.get().error('failed to get tx:%s, %s' % (txid, str(e)))
+        except Exception as e:
+            raise
 
     def unlock_account(self, address, passphrase, unlock_time=10):
         res = self.make_request('personal_unlockAccount', [

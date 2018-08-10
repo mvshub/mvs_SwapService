@@ -133,13 +133,16 @@ class SwapBusiness(IBusiness):
             try:
                 current_height = rpc.best_block_number()
                 minconf = self.min_confirm_map[swap_coin]
+                minRenew = self.min_renew_map[swap_coin]
                 tx = rpc.get_transaction(r.tx_hash)
-                
+
+                tx_height_new = r.tx_height
                 if tx == None:
-                    if swap_coin == 'ETP':
-                        self.renew_swap(r, rpc, swap_coin)
-                    continue
-                elif tx['blockNumber'] == 0:
+                    if tx_height_new != 0 and tx_height_new + minRenew < current_height:
+                        self.renew_swap(r, tx_height_new, current_height, minRenew)
+
+
+                if tx == None or tx['blockNumber'] == 0:
                     continue
 
                 tx_height = int(tx['blockNumber'])
@@ -183,8 +186,7 @@ class SwapBusiness(IBusiness):
                     db.session.add(r)
 
             except Exception as e:
-                self.renew_swap(r, rpc, swap_coin)
-                Logger.get().error('failed to get tx: %s, error: %s' % (r.tx_hash, e))
+                Logger.get().error('failed to get tx: %s, error: %s' % (r.tx_hash, str(e)))
                 Logger.get().error('{}'.format(traceback.format_exc()))
 
         db.session.commit()
@@ -266,33 +268,18 @@ class SwapBusiness(IBusiness):
         return err
 
     @timeit
-    def renew_swap(self, result, rpc, coin):
-        if coin not in self.min_renew_map:
-            return
-
-        current_height = rpc.best_block_number()
-        minRenew = self.min_renew_map[coin]
-
-        if  current_height != 0 and result.tx_height + minRenew <= current_height:
-            
-            tx_hash = result.tx_hash
-            if result.tx_height == 0:
-                Logger.get().info('failed renew swap,last hash alread in memporypoo,\
-                coin:%s, token:%s, last tx hash: %s , last tx height: %d, cur height: %d' % 
-                (result.coin, result.token, tx_hash, result.tx_height, current_height))
-                return
-
-            result.status = int(Status.Swap_New)
-            result.confirm_status = None
-            result.tx_hash = None
-            result.tx_height = 0
-            result.confirm_height = 0
-            result.message = "renew swap"
-            db.session.add(result)
-            Logger.get().info('success renew swap, coin:%s, token:%s, last tx hash: %s, \
-            last tx height: %d, cur height: %d,  ' % 
-            (result.coin, result.token, tx_hash, result.tx_height, current_height))
-
+    def renew_swap(self, result, tx_height_new, current_height, minRenew):    
+        tx_hash = result.tx_hash
+        result.status = int(Status.Swap_New)
+        result.confirm_status = None
+        result.tx_hash = None
+        result.tx_height = 0
+        result.confirm_height = 0
+        result.message = "renew swap"
+        db.session.add(result)
+        Logger.get().info('success renew swap, coin:%s, token:%s, last tx hash: %s, \
+        last tx height: %d, cur height: %d,  ' % 
+        (result.coin, result.token, tx_hash, result.tx_height, current_height))
 
 
     @timeit
@@ -333,6 +320,8 @@ class SwapBusiness(IBusiness):
             result.coin = swap.coin
             result.token = swap.token
             result.tx_from = swap.tx_hash
+            result.tx_height = 0
+            result.confirm_height = 0
             result.confirm_status = int(Status.Tx_Unconfirm)
             result.status = int(Status.Swap_New)
             result.date = int(time.strftime('%4Y%2m%2d', time.localtime()))

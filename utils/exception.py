@@ -1,6 +1,8 @@
 class RpcException(Exception):
     pass
 
+class   (Exception):
+    pass
 
 class CriticalException(Exception):
     pass
