@@ -8,15 +8,22 @@
     </head>
 
    <body>
-
+        <form action="/report_query" method="post">
+            <div class="form-group">
+                <input type="text" name="date_from" placeholder="date_from, eg: 20180801">
+                --
+                <input type="text" name="date_to" placeholder="date_to, can be omit">
+                <input type="submit" value="Submit">
+            </div>
+        </form>
       <table>
         <td align="center" width="10%"> Coin </td>
         <td align="center" width="10%"> Token </td>
-        <td align="center" width="14%"> Processed Amount</td>
-        <td align="center" width="6%"> Processed Fee</td>
-        <td align="center" width="20%"> Processed Num </td>
+        <td align="center" width="20%"> Processed Amount</td>
+        <td align="center" width="10%"> Processed Fee</td>
+        <td align="center" width="15%"> Processed Num </td>
         <td align="center" width="20%"> Pending Amount</td>
-        <td align="center" width="20%"> Pending Num</td>
+        <td align="center" width="15%"> Pending Num</td>
           {% for values in reports %}
               <tr>
                 <td align="right"> {{ values[0] }} </td>
