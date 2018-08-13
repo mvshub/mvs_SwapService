@@ -50,7 +50,7 @@ function loadData() {
                 "<td align='right'>" + arr[j]['amount'] + "</td>" + 
                 "<td align='right'>" + arr[j]['fee'] + "</td>" +       
                 "<td align='center' >"+
-                "<div> <span>" + procstr + "<span>"+ "<progress value='"+ Math.ceil(45.0) + "' max='100'>" + "</progress>" + 
+                "<div> <span>" + procstr + "<span>"+ "<progress value='"+ Math.ceil(proc) + "' max='100'>" + "</progress>" + 
                 "</td>" +
                 "<td align='center' style='" + msgstyle(arr[j]['finish']) + "'>" + arr[j]['message'] + "</td>"+
                 "<td align='right'>" +
