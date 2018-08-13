@@ -276,9 +276,9 @@ class MainService(IService):
 
         @self.app.route('/tx/<tx_from>')
         def swap_raw(tx_from):
-            results = db.session.query(Result).filter_by(tx_from=tx_from).all()
+            result = db.session.query(Result).filter_by(tx_from=tx_from).first()
 
-            for result in results:
+            if result != None:
                 result.confirm_status = constants.ConfirmStr[
                     result.confirm_status]
                 result.time = "%02d:%02d:%02d" % (
@@ -286,8 +286,10 @@ class MainService(IService):
                 result.amount = self.format_amount(result.amount)
                 result.fee = self.format_amount(result.fee)
                 result.status = constants.StatusStr[result.status]
+                return render_template('transaction.html', tx_from=tx_from,  result=result)
+            else:
+                return response.make_response(response.ERR_INVALID_TRANSACTION)
 
-            return render_template('transaction.html', tx_from=tx_from,  results=results)
 
         @self.app.route('/address/<address>')
         def swap_address(address):
