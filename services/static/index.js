@@ -42,7 +42,10 @@ function loadData() {
                 "<a href= '/address/" + arr[j]['to'] + "'>" + arr[j]['to'] + "</a>" + 
                 "</td>" +
                 "<td align='right'>" + arr[j]['amount'] + "</td>" + 
-                "<td align='right'>" + arr[j]['fee'] + "</td>" + 
+                "<td align='right'>" + arr[j]['fee'] + "</td>" +       
+                "<td align='center' >"+
+                "<div> <span>" + proc.toFixed(2) + "%<span>"+ "<progress value='"+ Math.floor(proc) + "' max='100'>" + "</progress>" + 
+                "</td>" +
                 "<td align='center' style='" + msgstyle(arr[j]['finish']) + "'>" + arr[j]['message'] + "</td>"+
                 "<td align='right'>" +
                 "<a href= '/date/" + arr[j]['date'] + "'>" +  arr[j]['date'] + "</a>" + 
@@ -50,9 +53,6 @@ function loadData() {
                 "<td align='center'>" + arr[j]['time'] + "</td>" + 
                 "<td align='center'>" +
                 "<a href= '/tx/" + arr[j]['tx_from'] + "'>" + "More" + "</a>" + 
-                "</td>" +
-                "<td align='center' >"+
-                "<div> <span>" + proc.toFixed(2) + "%<span>"+ "<progress value='"+ Math.floor(proc) + "' max='100'>" + "</progress>" + 
                 "</td>" +
                 "</tr>";
             } 
