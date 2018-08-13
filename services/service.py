@@ -21,7 +21,7 @@ from wtforms.validators import DataRequired, Required, Length, Email, Regexp, Eq
 from sqlalchemy.sql import func
 from sqlalchemy import or_, and_, case
 import json
-
+import re
 
 class MainService(IService):
 
@@ -78,6 +78,58 @@ class MainService(IService):
                 records.append(record)
 
             return json.dumps(records)
+
+        @self.app.route('/query', methods=['GET','POST'])
+        def query():
+            #import pdb; pdb.set_trace()
+            from wtforms import StringField, SubmitField
+            from wtforms.validators import Required
+            class MockCreate(FlaskForm):
+                submit = SubmitField("Submit")
+                condition = StringField("condition", [Required()])
+            form = MockCreate()
+            condition = form['condition'].data
+            #print (condition)
+
+            def isBase58(addr):
+                pattern = '^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{34}$'
+                m = re.match(pattern, addr)
+                return m != None
+
+            def isBase16(addr):
+                pattern = '^(0x)?([0-9a-f]+)$'
+                m = re.match(pattern, addr.lower())
+                if not m:
+                    return False
+                return len(m.groups()[1]) == 40
+            if isBase58(condition) or isBase16(condition):
+                return redirect(url_for('swap_address', address=condition))
+
+            def isDate(date):
+                pattern = '^\d{8}$'
+                m = re.match(pattern, date)
+                if not m:
+                    return False
+                year = date[:4]
+                month = date[4:6]
+                day = date[6:]
+                return '2018' <= year <= '2030' and '01' <= month <= '12' and '01' <= day <= '31'
+
+            if isDate(condition):
+                return redirect(url_for('swap_date', date=condition))
+
+            def isMvsTxHash(txhash):
+                pattern = '^[0-9a-f]{64}$'
+                m = re.match(pattern, txhash)
+                return m != None
+
+            def isEthTxHash(txhash):
+                pattern = '^0x[0-9a-f]{64}$'
+                m = re.match(pattern, txhash)
+                return m != None
+
+            if isMvsTxHash(condition) or isEthTxHash(condition):
+                return redirect(url_for('swap_raw', tx_from=condition))
 
         @self.app.errorhandler(404)
         def not_found(error):
