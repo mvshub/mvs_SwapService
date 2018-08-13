@@ -20,14 +20,14 @@ function loadData() {
             var str='';    
             for(j = 0; j < arr.length; j++) {
                 var minconf = arr[j]['minconf'];
-                var cur = 0, tx = 0; 
+                var cur = 0, tx = 0, proc =0; 
                 if (arr[j]['tx_height'] != null )
                     tx = arr[j]['tx_height'];
 
                 if (arr[j]['confirm_height'] != null)
                     cur = arr[j]['confirm_height'];
 
-                var proc =  cur *100 / (tx+minconf);
+                proc =  cur *100.0 / (tx+minconf);
 
                 str += "<tr>" +
                 "<td align='center'>" + arr[j]['swap_id'] + "</td>" + 
@@ -52,7 +52,7 @@ function loadData() {
                 "<a href= '/tx/" + arr[j]['tx_from'] + "'>" + "More" + "</a>" + 
                 "</td>" +
                 "<td align='center' >"+
-                "<div> <span>" + proc + "%<span>"+ "<progress value='"+ proc + "' max='100'>" + "</progress>" + 
+                "<div> <span>" + proc.toFixed(2) + "%<span>"+ "<progress value='"+ Math.floor(proc) + "' max='100'>" + "</progress>" + 
                 "</td>" +
                 "</tr>";
             } 
