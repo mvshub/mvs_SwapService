@@ -26,14 +26,13 @@ function loadData() {
 
                 if (arr[j]['confirm_height'] != null)
                     cur = arr[j]['confirm_height'];
-
-                var procstr = Math.min(cur-tx, minconf)  + "/" + minconf;
-                if (tx == 0 ||  cur == 0)
-                    procstr = "0/" + minconf;
                 
-                 
-                proc =  cur *100.0 / (tx+minconf);
-                
+                var procstr= "0/" + minconf;
+                if(cur >= tx){
+                    proc = (cur - tx)*100.0 / (minconf);
+                    procstr = Math.min(cur-tx, minconf) + "/" + minconf;
+                }
+            
 
                 str += "<tr>" +
                 "<td align='center'>" + arr[j]['swap_id'] + "</td>" + 
