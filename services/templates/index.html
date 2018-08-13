@@ -14,7 +14,9 @@
                 <input type="submit" value="Submit">
             </div>
         </form>
-
+        <a href= "{{ url_for( 'report_per_day', date='today') }}">
+            Latest Report
+        </a>
         <table>
             <thead>
                 <td align="center" width="5%"> Swap ID </td>
