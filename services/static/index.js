@@ -19,6 +19,16 @@ function loadData() {
             var arr = JSON.parse(data);
             var str='';    
             for(j = 0; j < arr.length; j++) {
+                var minconf = arr[j]['minconf'];
+                var cur = 0, tx = 0; 
+                if (arr[j]['tx_height'] != null )
+                    tx = arr[j]['tx_height'];
+
+                if (arr[j]['confirm_height'] != null)
+                    cur = arr[j]['confirm_height'];
+
+                var proc =  cur *100 / (tx+minconf);
+
                 str += "<tr>" +
                 "<td align='center'>" + arr[j]['swap_id'] + "</td>" + 
                 "<td align='right'>" + arr[j]['coin'] + "</td>" + 
@@ -33,7 +43,7 @@ function loadData() {
                 "</td>" +
                 "<td align='right'>" + arr[j]['amount'] + "</td>" + 
                 "<td align='right'>" + arr[j]['fee'] + "</td>" + 
-                "<td align='center' style='" + msgstyle(arr[j]['finish']) + "'>" + arr[j]['message'] + "</td>" + 
+                "<td align='center' style='" + msgstyle(arr[j]['finish']) + "'>" + arr[j]['message'] + "</td>"+
                 "<td align='right'>" +
                 "<a href= '/date/" + arr[j]['date'] + "'>" +  arr[j]['date'] + "</a>" + 
                 "</td>" +
@@ -41,9 +51,19 @@ function loadData() {
                 "<td align='center'>" +
                 "<a href= '/tx/" + arr[j]['tx_from'] + "'>" + "More" + "</a>" + 
                 "</td>" +
+                "<td align='center' >"+
+                "<div> <span>" + proc + "%<span>"+ "<progress value='"+ proc + "' max='100'>" + "</progress>" + 
+                "</td>" +
                 "</tr>";
             } 
             $("#result").append(str);
         }
     });
+}
+
+
+
+function up() {
+    document.getElementById('progress').value = 50;
+    document.getElementById('progressNumber').style.width = 50 + "%";   
 }

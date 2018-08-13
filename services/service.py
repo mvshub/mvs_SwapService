@@ -109,6 +109,19 @@ class MainService(IService):
             results = db.session.query(Result).order_by(
             Result.swap_id.desc()).limit(1000).all()
             records = []
+            def getMinconf(coin, token):
+                if coin == 'ETH' or coin == 'ETHToken':
+                    coin = 'ETP'
+                elif coin == 'ETP' and token == (constants.SWAP_TOKEN_PREFIX+'ETH'):                 
+                    coin = 'ETH'
+                else:
+                    coin = 'ETHToken'
+
+                for c in self.settings['scans']['services']:
+                    if c['coin'] == coin:
+                        return c['minconf']
+                return 0
+                
             for r in results:
                 record = {}
                 record['swap_id'] = r.swap_id
@@ -123,10 +136,12 @@ class MainService(IService):
                 record['time'] = "%02d:%02d:%02d" % (
                     r.time // 10000, r.time // 100 % 100, r.time % 100)
                 record['tx_height'] = r.tx_height
+                record['confirm_height'] = r.confirm_height
                 record['message'] = constants.ProcessStr(
                     r.status, r.confirm_status)
                 record['finish'] = 0 if r.status == int(
                     Status.Swap_Finish) else 1
+                record['minconf'] = getMinconf(r.coin, r.token)
                 records.append(record)
 
             return json.dumps(records)
