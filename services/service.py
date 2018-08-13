@@ -50,8 +50,12 @@ class MainService(IService):
 
         @self.app.route('/')
         def root():
+            return render_template('index.html')
+
+        @self.app.route('/getResult')
+        def getResult():
             results = db.session.query(Result).order_by(
-                Result.swap_id.desc()).limit(1000).all()
+            Result.swap_id.desc()).limit(1000).all()
             records = []
             for r in results:
                 record = {}
@@ -73,7 +77,7 @@ class MainService(IService):
                     Status.Swap_Finish) else 1
                 records.append(record)
 
-            return render_template('index.html', results=records)
+            return json.dumps(records)
 
         @self.app.errorhandler(404)
         def not_found(error):
