@@ -197,7 +197,7 @@ class MainService(IService):
 
             return render_template('date.html', date=date, results=records)
 
-        @self.app.route('/<token>')
+        @self.app.route('/token/<token>')
         def swap_token(token):
             results = db.session.query(Result).filter_by(
                 token=token).order_by(Result.swap_id.desc()).all()
