@@ -27,8 +27,13 @@ function loadData() {
                 if (arr[j]['confirm_height'] != null)
                     cur = arr[j]['confirm_height'];
 
-                proc =  cur *100.0 / (tx+minconf);
                 var procstr = Math.min(cur-tx, minconf)  + "/" + minconf;
+                if (tx == 0 ||  cur == 0)
+                    procstr = "0/" + minconf;
+                
+                 
+                proc =  cur *100.0 / (tx+minconf);
+                
 
                 str += "<tr>" +
                 "<td align='center'>" + arr[j]['swap_id'] + "</td>" + 
@@ -45,7 +50,7 @@ function loadData() {
                 "<td align='right'>" + arr[j]['amount'] + "</td>" + 
                 "<td align='right'>" + arr[j]['fee'] + "</td>" +       
                 "<td align='center' >"+
-                "<div> <span>" + procstr + "<span>"+ "<progress value='"+ Math.ceil(proc) + "' max='100'>" + "</progress>" + 
+                "<div> <span>" + procstr + "<span>"+ "<progress value='"+ Math.ceil(45.0) + "' max='100'>" + "</progress>" + 
                 "</td>" +
                 "<td align='center' style='" + msgstyle(arr[j]['finish']) + "'>" + arr[j]['message'] + "</td>"+
                 "<td align='right'>" +

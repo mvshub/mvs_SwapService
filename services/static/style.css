@@ -17,22 +17,13 @@ table tr:hover {
 }
 
 
-progress
-{
-   color:orange; /*兼容IE10的已完成进度背景*/
-   border:none;
-   background:#d7d7d7;/*这个属性也可当作Chrome的已完成进度背景，只不过被下面的::progress-bar覆盖了*/      
-   
+progress {
+  width: 160px;
+  border: 1px solid #0064B4;  
+  background-color:#e6e6e6;
+  color: #0064B4; /*IE10*/
 }
 
-progress::-webkit-progress-bar
-
-{
-   background:#d7d7d7;
-}
-
-progress::-webkit-progress-value,
-progress::-moz-progress-bar
-{
-     background:orange;
-}
+progress::-moz-progress-bar { background: #0064B4; }
+progress::-webkit-progress-bar { background: #e6e6e6; }
+progress::-webkit-progress-value  { background: #0064B4; }
