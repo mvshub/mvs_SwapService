@@ -28,7 +28,7 @@ function loadData() {
                     cur = arr[j]['confirm_height'];
 
                 proc =  cur *100.0 / (tx+minconf);
-                var procstr = (cur-tx) + "/" + minconf;
+                var procstr = Math.min(cur-tx, minconf)  + "/" + minconf;
 
                 str += "<tr>" +
                 "<td align='center'>" + arr[j]['swap_id'] + "</td>" + 
