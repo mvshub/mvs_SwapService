@@ -353,7 +353,6 @@ class SwapBusiness(IBusiness):
         return False
 
     def start(self):
-        return
         self.post(self.process_max_swap_id)
         self.post(self.process_unconfirm)
         self.post(self.process_swap)
