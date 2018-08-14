@@ -8,14 +8,14 @@
     </head>
 
    <body>
-        <form action="/report_query" method="post">
-            <div class="form-group">
-                <input type="text" name="date_from" placeholder="date_from, eg: 20180801">
-                --
-                <input type="text" name="date_to" placeholder="date_to, can be omit">
-                <input type="submit" value="Submit">
-            </div>
-        </form>
+      <div class="date">
+          <form action="/report_query" method="post">
+              <input type="text" name="date_from" placeholder="date_from, eg: 20180801" />
+              --
+              <input type="text" name="date_to" placeholder="date_to, can be omit" />
+              <button type="submit" value="Submit" >Search</button>
+          </form>
+      </div>
       <table>
         <td align="center" width="10%"> Coin </td>
         <td align="center" width="10%"> Token </td>
