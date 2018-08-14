@@ -51,7 +51,7 @@ def send_token_from_ethereum():
 
     assert (unlock_account(from_, "passwd123456"))
 
-    contract = "0x7cf4d8fdec9244e774272aac648d33e051fd83f4"
+    contract = "0x9faa766fcbcd3bdbab27681c7cca6e1a6016b7c5"
 
     one_token = 10 ** 12
     amount = random.randrange(one_token*10, one_token*20)
