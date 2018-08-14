@@ -21,7 +21,7 @@ from wtforms.validators import DataRequired, Required, Length, Email, Regexp, Eq
 from sqlalchemy.sql import func
 from sqlalchemy import or_, and_, case
 import json
-import re, time
+import re
 
 class MainService(IService):
 
@@ -54,10 +54,13 @@ class MainService(IService):
 
         @self.app.route('/query', methods=['GET','POST'])
         def query():
-            class FormCondition(FlaskForm):
+            # import pdb; pdb.set_trace()
+            from wtforms import StringField, SubmitField
+            from wtforms.validators import Required
+            class MockCreate(FlaskForm):
                 submit = SubmitField("Submit")
                 condition = StringField("condition", [Required()])
-            form = FormCondition()
+            form = MockCreate()
             condition = form['condition'].data
             #print (condition)
 
@@ -100,6 +103,8 @@ class MainService(IService):
 
             if isMvsTxHash(condition) or isEthTxHash(condition):
                 return redirect(url_for('swap_raw', tx_from=condition))
+
+            return redirect(url_for('swap_address', address=condition))
 
         @self.app.route('/getResult')
         def getResult():
@@ -224,10 +229,6 @@ class MainService(IService):
 
         @self.app.route('/report/<date>')
         def report_per_day(date):
-            if date=='today':
-                date=time.strftime('%4Y%2m%2d', time.localtime())
-
-
             num_finished = case(
                 [(Result.status == int(Status.Swap_Finish), 1)], else_=0)
             total_finished = case(
@@ -289,20 +290,6 @@ class MainService(IService):
                         self.format_rough_amount(x[3]),
                         x[4], self.format_rough_amount(x[5]), x[6]) for x in results]
             return render_template('report.html', date="%s -- %s" % (date1, date2), reports=results)
-
-        @self.app.route('/report_query', methods=['GET','POST'])
-        def report_query():
-            class FormQuery(FlaskForm):
-                submit = SubmitField("Submit")
-                date_from = StringField("date_from", [Required()])
-                date_to = StringField("date_to")
-            form = FormQuery()
-            date_from = form['date_from'].data
-            date_to = form['date_to'].data
-            if date_to:
-                return redirect(url_for('report_between', date1=date_from, date2=date_to))
-            else:
-                return redirect(url_for('report_per_day', date=date_from))
 
         @self.app.route('/tx/<tx_from>')
         def swap_raw(tx_from):

@@ -7,16 +7,18 @@
       <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
     </head>
 
+
     <body>
-        <form action="/query" method="post">
-            <div class="form-group">
-                <input type="text" name="condition" placeholder="Enter Address/Date/Tx Hash">
-                <input type="submit" value="Submit">
+
+        <div class="topnav">
+            <div class="search-container">
+                <form action="/query" method="post">
+                    <input type="text" name="condition" placeholder="Address/Date/Tx Hash" name="search">
+                    <button type="submit">Search</button>
+                </form>
             </div>
-        </form>
-        <a href= "{{ url_for( 'report_per_day', date='today') }}">
-            Latest Report
-        </a>
+            <a href="/report/today">Report</a>
+        </div>
         <table>
             <thead>
                 <td align="center" width="5%"> Swap ID </td>
