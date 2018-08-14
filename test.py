@@ -84,12 +84,12 @@ def main():
     while True:
         try:
             print(time.ctime())
-            print('eth->etp ' + send_eth_from_ethereum())
-            print('ethtoken->etp ' + send_token_from_ethereum())
-            print('etp->ethtoken: ' + send_ethtoken_asset_from_mvs())
+            print('eth->etp: ' + send_eth_from_ethereum())
             print('etp->eth: ' + send_eth_asset_from_mvs())
-            print('sleep 300 seconds ...')
-            time.sleep(300)
+            print('ethtoken->etp: ' + send_token_from_ethereum())
+            print('etp->ethtoken: ' + send_ethtoken_asset_from_mvs())
+            print('sleep 200 seconds ...')
+            time.sleep(200)
         except Exception as e:
             print('exception caught: {}'.format(e))
 
