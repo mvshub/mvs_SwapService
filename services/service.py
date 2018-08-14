@@ -61,45 +61,30 @@ class MainService(IService):
             condition = form['condition'].data
             #print (condition)
 
-            def isBase58(addr):
-                pattern = '^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{34}$'
-                m = re.match(pattern, addr)
-                return m != None
+            if condition.isdigit():
+                result = db.session.query(Result).filter_by(swap_id=condition).limit(1).first()
+                if result:
+                    return redirect(url_for('swap_raw', tx_from=result.tx_from))
 
-            def isBase16(addr):
-                pattern = '^(0x)?([0-9a-f]+)$'
-                m = re.match(pattern, addr.lower())
-                if not m:
-                    return False
-                return len(m.groups()[1]) == 40
-            if isBase58(condition) or isBase16(condition):
+                result = db.session.query(Result).filter_by(date=condition).limit(1).first()
+                if result:
+                    return redirect(url_for('swap_date', date=condition))
+
+            result = db.session.query(Result).filter(
+                or_(Result.from_address==str(condition),
+                Result.to_address==str(condition))).limit(1).first()
+            if result:
                 return redirect(url_for('swap_address', address=condition))
 
-            def isDate(date):
-                pattern = '^\d{8}$'
-                m = re.match(pattern, date)
-                if not m:
-                    return False
-                year = date[:4]
-                month = date[4:6]
-                day = date[6:]
-                return '2018' <= year <= '2030' and '01' <= month <= '12' and '01' <= day <= '31'
-
-            if isDate(condition):
-                return redirect(url_for('swap_date', date=condition))
-
-            def isMvsTxHash(txhash):
-                pattern = '^[0-9a-f]{64}$'
-                m = re.match(pattern, txhash)
-                return m != None
-
-            def isEthTxHash(txhash):
-                pattern = '^0x[0-9a-f]{64}$'
-                m = re.match(pattern, txhash)
-                return m != None
-
-            if isMvsTxHash(condition) or isEthTxHash(condition):
+            result = db.session.query(Result).filter_by(tx_from=str(condition)).limit(1).first()   
+            if result:
                 return redirect(url_for('swap_raw', tx_from=condition))
+
+            result = db.session.query(Result).filter_by(token=str(condition)).limit(1).first()   
+            if result:
+                return redirect(url_for('swap_token', token=condition))
+
+            return response.make_response(response.ERR_BAD_PARAMETER)
 
         @self.app.route('/getResult')
         def getResult():
@@ -350,11 +335,11 @@ class MainService(IService):
 
         # start swap service
         self.setup_db()
-        self.rpcmanager.start()
+        # self.rpcmanager.start()
 
-        self.swap = SwapService(
-            self.app, self.rpcmanager, self.settings['scans'])
-        self.swap.start()
+        # self.swap = SwapService(
+        #     self.app, self.rpcmanager, self.settings['scans'])
+        # self.swap.start()
 
         # start wsgi server
         self.http = WSGIServer(
