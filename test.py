@@ -81,17 +81,34 @@ def send_eth_asset_from_mvs():
     return result['transaction']['hash']
 
 def main():
+    count = 0
     while True:
+        count += 1
+        print('------------ count {} --------------------'.format(count))
+        print(time.ctime())
+
         try:
-            print(time.ctime())
             print('eth->etp: ' + send_eth_from_ethereum())
-            print('etp->eth: ' + send_eth_asset_from_mvs())
-            print('ethtoken->etp: ' + send_token_from_ethereum())
-            print('etp->ethtoken: ' + send_ethtoken_asset_from_mvs())
-            print('sleep 200 seconds ...')
-            time.sleep(200)
         except Exception as e:
             print('exception caught: {}'.format(e))
+
+        try:
+            print('ethtoken->etp: ' + send_token_from_ethereum())
+        except Exception as e:
+            print('exception caught: {}'.format(e))
+
+        try:
+            print('etp->ethtoken: ' + send_ethtoken_asset_from_mvs())
+        except Exception as e:
+            print('exception caught: {}'.format(e))
+
+        try:
+            print('etp->ethtoken: ' + send_ethtoken_asset_from_mvs())
+        except Exception as e:
+            print('exception caught: {}'.format(e))
+
+        print('sleep 200 seconds ...')
+        time.sleep(200)
 
 if __name__ == '__main__':
     main()

@@ -335,11 +335,11 @@ class MainService(IService):
 
         # start swap service
         self.setup_db()
-        # self.rpcmanager.start()
+        self.rpcmanager.start()
 
-        # self.swap = SwapService(
-        #     self.app, self.rpcmanager, self.settings['scans'])
-        # self.swap.start()
+        self.swap = SwapService(
+            self.app, self.rpcmanager, self.settings['scans'])
+        self.swap.start()
 
         # start wsgi server
         self.http = WSGIServer(
