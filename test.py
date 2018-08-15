@@ -82,7 +82,10 @@ def send_eth_asset_from_mvs():
 
 def main():
     funcs = [('eth->etp', send_eth_from_ethereum), ('etp->eth', send_eth_asset_from_mvs), ('ethtoken->etp', send_token_from_ethereum), ('etp->ethtoken', send_ethtoken_asset_from_mvs)]
+    loop_count = 0
     while True:
+        loop_count += 1
+        print('------------------ loop {} --------------------'.format(loop_count))
         print(time.ctime())
         for desc, func in funcs:
             for i in range(3):
