@@ -20,7 +20,7 @@
         <td align="center" width="10%"> Coin </td>
         <td align="center" width="10%"> Token </td>
         <td align="center" width="20%"> Processed Amount</td>
-        <td align="center" width="10%"> Processed Fee</td>
+        <!-- <td align="center" width="10%"> Processed Fee</td> -->
         <td align="center" width="15%"> Processed Num </td>
         <td align="center" width="20%"> Pending Amount</td>
         <td align="center" width="15%"> Pending Num</td>
@@ -33,7 +33,7 @@
                     </a>
                 </td>
                 <td align="right"> {{ values[2] }} </td>
-                <td align="right"> {{ values[3] }} </td>
+                <!-- <td align="right"> {{ values[3] }} </td> -->
                 <td align="center">
                   {% if values[4] != 0 %}
                     <a href= "{{ url_for( 'swap_status', coin=values[0],token=values[1],date=date,status=1) }}">

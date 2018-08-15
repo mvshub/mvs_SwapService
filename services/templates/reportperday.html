@@ -25,7 +25,7 @@
             <td align="center" width="10%"> Pending Amount </td>
             <td align="center" width="10%"> Total Times </td>
             <td align="center" width="10%"> Total Amount </td>
-            <td align="center" width="10%"> Total Fee </td>
+            <!-- <td align="center" width="10%"> Total Fee </td> -->
             <td align="center" width="10%"> Date </td>
 
             {% for value in reports %}
@@ -61,7 +61,7 @@
 
                 <td align="center"> {{ value[6] }} </td>
                 <td align="right"> {{ value[7] }} </td>
-                <td align="right"> {{ value[8] }} </td>
+                <!-- <td align="right"> {{ value[8] }} </td> -->
 
                 <td align="center">
                         <a href= "{{ url_for( 'swap_date', date=date) }}">

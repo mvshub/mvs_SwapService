@@ -47,7 +47,7 @@ function loadData() {
                 "<a href= '/address/" + arr[j]['to'] + "'>" + arr[j]['to'] + "</a>" + 
                 "</td>" +
                 "<td align='right'>" + arr[j]['amount'] + "</td>" + 
-                "<td align='right'>" + arr[j]['fee'] + "</td>" +       
+                // "<td align='right'>" + arr[j]['fee'] + "</td>" +       
                 "<td align='center' >"+
                 "<div> <span>" + procstr + "<span>"+ "<progress value='"+ Math.ceil(proc) + "' max='100'>" + "</progress>" + 
                 "</td>" +
