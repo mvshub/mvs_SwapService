@@ -81,34 +81,19 @@ def send_eth_asset_from_mvs():
     return result['transaction']['hash']
 
 def main():
-    count = 0
+    funcs = [('eth->etp', send_eth_from_ethereum), ('etp->eth', send_eth_asset_from_mvs), ('ethtoken->etp', send_token_from_ethereum), ('etp->ethtoken', send_ethtoken_asset_from_mvs)]
     while True:
-        count += 1
-        print('------------ count {} --------------------'.format(count))
         print(time.ctime())
-
-        try:
-            print('eth->etp: ' + send_eth_from_ethereum())
-        except Exception as e:
-            print('exception caught: {}'.format(e))
-
-        try:
-            print('ethtoken->etp: ' + send_token_from_ethereum())
-        except Exception as e:
-            print('exception caught: {}'.format(e))
-
-        try:
-            print('etp->ethtoken: ' + send_ethtoken_asset_from_mvs())
-        except Exception as e:
-            print('exception caught: {}'.format(e))
-
-        try:
-            print('etp->ethtoken: ' + send_ethtoken_asset_from_mvs())
-        except Exception as e:
-            print('exception caught: {}'.format(e))
-
+        for desc, func in funcs:
+            for i in range(3):
+                try:
+                    print("%s: %s" % (desc, func() ))
+                    break
+                except Exception as e:
+                    print('exception caught[%d]: %s' % (i, str(e)))
         print('sleep 200 seconds ...')
         time.sleep(200)
+
 
 if __name__ == '__main__':
     main()
