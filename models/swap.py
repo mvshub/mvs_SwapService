@@ -10,6 +10,7 @@ class Swap(db.Model):
     from_address = db.Column(db.String(128))
     to_address = db.Column(db.String(128))
     amount = db.Column(db.Numeric(64, 18), nullable=False)
+    fee = db.Column(db.Numeric(64, 18), nullable=False)
     tx_hash = db.Column(db.String(256))
     tx_index = db.Column(db.Integer)
     output_index = db.Column(db.Integer)
@@ -30,6 +31,7 @@ class Swap(db.Model):
         dep.from_address = dep_.from_address
         dep.to_address = dep_.to_address
         dep.amount = dep_.amount
+        dep.fee = dep_.fee
         dep.tx_hash = dep_.tx_hash
         dep.tx_index = dep_.tx_index
         dep.output_index = dep_.output_index

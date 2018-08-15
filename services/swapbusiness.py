@@ -319,6 +319,7 @@ class SwapBusiness(IBusiness):
             result.from_address = swap.from_address
             result.to_address = swap.to_address
             result.amount = Decimal(swap.amount)
+            result.from_fee = Decimal(swap.fee)
             result.coin = swap.coin
             result.token = swap.token
             result.tx_from = swap.tx_hash

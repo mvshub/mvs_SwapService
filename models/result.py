@@ -25,6 +25,7 @@ class Result(db.Model):
     message = db.Column(db.Text)
 
     fee = db.Column(db.Numeric(64, 18))
+    from_fee = db.Column(db.Numeric(64, 18))
 
     @classmethod
     def copy(cls, dep_):
@@ -44,6 +45,7 @@ class Result(db.Model):
         dep.time = dep_.time
         dep.message = dep_.message
         dep.fee = dep_.fee
+        dep.from_fee = dep_.from_fee
 
         return dep
 

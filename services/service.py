@@ -113,7 +113,7 @@ class MainService(IService):
                 record['from'] = r.from_address
                 record['to'] = r.to_address
                 record['amount'] = self.format_amount(r.amount)
-                record['fee'] = self.format_amount(r.fee)
+                record['fee'] = self.format_amount(r.from_fee)
                 record['date'] = r.date
                 record['time'] = "%02d:%02d:%02d" % (
                     r.time // 10000, r.time // 100 % 100, r.time % 100)
@@ -156,7 +156,7 @@ class MainService(IService):
                 record['from'] = r.from_address
                 record['to'] = r.to_address
                 record['amount'] = self.format_amount(r.amount)
-                record['fee'] = self.format_amount(r.fee)
+                record['fee'] = self.format_amount(r.from_fee)
                 record['time'] = "%02d:%02d:%02d" % (
                     r.time // 10000, r.time // 100 % 100, r.time % 100)
                 record['tx_height'] = r.tx_height
@@ -182,7 +182,7 @@ class MainService(IService):
                 record['from'] = r.from_address
                 record['to'] = r.to_address
                 record['amount'] = self.format_amount(r.amount)
-                record['fee'] = self.format_amount(r.fee)
+                record['fee'] = self.format_amount(r.from_fee)
                 record['time'] = "%02d:%02d:%02d" % (
                     r.time // 10000, r.time // 100 % 100, r.time % 100)
                 record['tx_height'] = r.tx_height
@@ -203,7 +203,7 @@ class MainService(IService):
                 result.time = "%02d:%02d:%02d" % (
                     result.time // 10000, result.time // 100 % 100, result.time % 100)
                 result.amount = self.format_amount(result.amount)
-                result.fee = self.format_amount(result.fee)
+                result.fee = self.format_amount(result.from_fee)
 
             return render_template('token.html', token=token, results=results)
 
@@ -223,7 +223,7 @@ class MainService(IService):
                 [(Result.status != int(Status.Swap_Finish), Result.amount)], else_=0)
             num_total = case([(Result.date == date, 1)], else_=0)
             total = case([(Result.date == date, Result.amount)], else_=0)
-            total_fee = case([(Result.date == date, Result.fee)], else_=0)
+            total_fee = case([(Result.date == date, Result.from_fee)], else_=0)
 
             results = db.session.query(
                 Result.coin,
@@ -252,7 +252,7 @@ class MainService(IService):
             total_amount = case(
                 [(Result.status == int(Status.Swap_Finish), Result.amount)], else_=0)
             total_fee = case(
-                [(Result.status == int(Status.Swap_Finish), Result.fee)], else_=0)
+                [(Result.status == int(Status.Swap_Finish), Result.from_fee)], else_=0)
             pending = case(
                 [(Result.status != int(Status.Swap_Finish), 1)], else_=0)
             total_pending = case(
@@ -299,7 +299,7 @@ class MainService(IService):
                 result.time = "%02d:%02d:%02d" % (
                     result.time // 10000, result.time // 100 % 100, result.time % 100)
                 result.amount = self.format_amount(result.amount)
-                result.fee = self.format_amount(result.fee)
+                result.fee = self.format_amount(result.from_fee)
                 result.status = constants.StatusStr[result.status]
                 return render_template('transaction.html', tx_from=tx_from,  result=result)
             else:
@@ -320,7 +320,7 @@ class MainService(IService):
                 record['from'] = r.from_address
                 record['to'] = r.to_address
                 record['amount'] = self.format_amount(r.amount)
-                record['fee'] = self.format_amount(r.fee)
+                record['fee'] = self.format_amount(r.from_fee)
                 record['date'] = r.date
                 record['time'] = "%02d:%02d:%02d" % (
                     r.time // 10000, r.time // 100 % 100, r.time % 100)
