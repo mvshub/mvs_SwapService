@@ -97,9 +97,9 @@ class Eth(Base):
         return int(res, 16)
 
     def transfer(self, passphrase, from_, to_, amount):
-        fee = self.settings['fee']
+        #fee = self.settings['fee']
 
-        fee_amount = int(fee * int(amount))
+        fee_amount = 0 #int(fee * int(amount))
 
         options = {'from': from_, 'to': to_,
                    'value': hex(int(amount) - fee_amount)}

@@ -103,14 +103,14 @@ class EthToken(Eth):
         if contract is None:
             return None, 0
 
-        fee = self.get_fee(name)
+        #fee = self.get_fee(name)
 
         if to_address.startswith('0x'):
             arg_to = to_address[2:]
         else:
             arg_to = to_address
 
-        fee_amount = int(fee * amount)
+        fee_amount = 0#int(fee * amount)
 
         data = '0xa9059cbb' + '0' * \
             (64 - len(arg_to)) + arg_to + ('%064x' % (amount - fee_amount))

@@ -17,13 +17,13 @@
                 {
                     "name":"ETH",
                     "enable":true,
-                    "fee": 0.01,
+                    //"fee": 0.01,
                     "decimal": 9
                 },
                 {
                     "name":"XYZ",
                     "enable":true,
-                    "fee": 0.01,
+                    //"fee": 0.01,
                     "decimal": 9
                 }
             ]
@@ -36,7 +36,7 @@
             "type": "rpcs.eth.Eth",
             "host":"10.10.10.175",
             "port":8545,
-            "fee" : 0.03
+            //"fee" : 0.03
         },
         {
             "id":3,
@@ -51,7 +51,7 @@
                     "contract_address":"0x9fAa766fCBcD3BDBAb27681C7Cca6e1a6016B7c5",
                     "enable":true,
                     "decimal": 12,
-                    "fee" : 0.06
+                    //"fee" : 0.06
                 }
             ]
         }

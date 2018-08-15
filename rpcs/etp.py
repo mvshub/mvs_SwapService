@@ -192,7 +192,7 @@ class Etp(Base):
 
         try:
             volume = self.to_wei(symbol, amount)
-            fee_volume = int(volume * fee)
+            fee_volume = 0#int(volume * fee)
             res = self.make_request(
                 'didsendasset', [account, passphrase, to, symbol, volume - fee_volume])
             result = res['result']
@@ -301,8 +301,8 @@ class Etp(Base):
         return Error.Success, None
 
     def transfer_asset(self, to, token, amount, settings):
-        fee = self.get_fee(token)
+        #fee = self.get_fee(token)
         symbol = self.get_erc_symbol(token)
         account = settings.get('account')
         passphrase = settings.get('passphrase')
-        return self.send_asset(account, passphrase, to, symbol, amount, fee)
+        return self.send_asset(account, passphrase, to, symbol, amount, 0)
