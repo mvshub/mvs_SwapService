@@ -7,91 +7,88 @@
     </head>
 
    <body>
-      <table border>
+      <table>
         <tr>
-            <td align="center" width="35%">Parameter</td>
-            <td align="center" width="65%">Value</td>
+            <td align="center" >Parameter</td>
+            <td align="center" >Value</td>
         </tr>
 
         <tr>
-            <td align="center" > Swap ID </td>
-            <td align="center" > {{ result.swap_id }} </td>
+            <td align="left" > Swap ID </td>
+            <td align="left" > {{ result.swap_id }} </td>
         </tr>
         <tr>
-            <td align="center" > Coin </td>
-            <td align="center" > {{ result.coin }} </td>
+            <td align="left" > Coin </td>
+            <td align="left" > {{ result.coin }} </td>
         </tr>
         <tr>
-            <td align="center" > Token </td>
-            <td align="center">
+            <td align="left" > Token </td>
+            <td align="left">
                 <a href= "{{ url_for( 'swap_token', token= result.token) }}">
                     {{ result.token }}
                 </a>
             </td>
         </tr>
         <tr>
-            <td align="center" > From </td>
-            <td align="center" >
+            <td align="left" > From </td>
+            <td align="left" >
                 <a href= "{{ url_for( 'swap_address', address=result.from_address) }}">
                     {{ result.from_address }}
                 </a>
             </td>
         </tr>
         <tr>
-            <td align="center" > To </td>
-            <td align="center" > 
+            <td align="left" > To </td>
+            <td align="left" >
                 <a href= "{{ url_for( 'swap_address', address=result.to_address) }}">
                         {{ result.to_address }}
-                </a> 
+                </a>
             </td>
         </tr>
         <tr>
-            <td align="center" > Amount </td>
-            <td align="center" > {{ result.amount }} </td>
+            <td align="left" > Amount </td>
+            <td align="left" > {{ result.amount }} </td>
         </tr>
         <!-- <tr>
             <td align="center" > Fee </td>
             <td align="center" > {{ result.fee }} </td>
         </tr> -->
         <tr>
-                <td align="center" > From Transaction </td>
-                <td align="center" > {{ result.tx_from }} </td>
+                <td align="left" > From Transaction </td>
+                <td align="left" > {{ result.tx_from }} </td>
         </tr>
         <tr>
-            <td align="center" > Transaction </td>
-            <td align="center" > {{ result.tx_hash }} </td>
+            <td align="left" > Transaction </td>
+            <td align="left" > {{ result.tx_hash if result.tx_hash else '' }} </td>
         </tr>
         <tr>
-            <td align="center" > Confirmed </td>
-            <td align="center" > {{ result.confirm_status }} </td>
+            <td align="left" > Confirmed </td>
+            <td align="left" > {{ result.confirm_status }} </td>
         </tr>
         <tr>
-            <td align="center" > Status </td>
-            <td align="center" > {{ result.status }} </td>
+            <td align="left" > Status </td>
+            <td align="left" > {{ result.status }} </td>
         </tr>
         <tr>
-            <td align="center" > Tx_Height </td>
-            <td align="center" > {{ result.tx_height }} </td>
+            <td align="left" > Tx Height </td>
+            <td align="left" > {{ result.tx_height }} </td>
         </tr>
         <tr>
-            <td align="center" > Last_Confirm </td>
-            <td align="center" > {{ result.confirm_height }} </td>
+            <td align="left" > Last Confirm </td>
+            <td align="left" > {{ result.confirm_height }} </td>
         </tr>
         <tr>
-            <td align="center" > Date </td>
-            <td align="center" >
+            <td align="left" > Time </td>
+            <td align="left" >
                 <a href= "{{ url_for( 'swap_date', date=result.date) }}">
                     {{ result.date }}
-                </a> 
+                </a>
+                {{ result.time }}
             </td>
         </tr>
         <tr>
-            <td align="center" > Time </td>
-            <td align="center" > {{ result.time }} </td>
-        </tr>
-        <tr>
-            <td align="center" > Message </td>
-            <td align="center" > {{ result.message }} </td>
+            <td align="left" > Message </td>
+            <td align="left" > {{ result.message if result.message else '' }} </td>
         </tr>
     </table>
 
