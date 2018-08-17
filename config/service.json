@@ -20,7 +20,7 @@
                     "decimal": 9
                 },
                 {
-                    "name":"XYZ",
+                    "name":"EDU",
                     "enable":true,
                     "decimal": 9
                 }
@@ -29,7 +29,7 @@
         {
             "id": 2,
             "name": "ETH",
-            "contract_mapaddress":"0x0506E5eF752eA1129A7e6ED41DF5E93131beE8A7",
+            "contract_mapaddress":"0xa52b0a032139e6303b86cfeb0bb9ae780a610354",
             "decimal": 18,
             "type": "rpcs.eth.Eth",
             "host":"10.10.10.175",
@@ -39,15 +39,15 @@
             "id":3,
             "name":"ETHToken",
             "type":"rpcs.eth_token.EthToken",
-            "contract_mapaddress":"0x0506E5eF752eA1129A7e6ED41DF5E93131beE8A7",
+            "contract_mapaddress":"0xa52b0a032139e6303b86cfeb0bb9ae780a610354",
             "host":"10.10.10.175",
             "port":8545,
             "tokens": [
                 {
-                    "name":"XYZ",
-                    "contract_address":"0x9fAa766fCBcD3BDBAb27681C7Cca6e1a6016B7c5",
+                    "name":"EDU",
+                    "contract_address":"0xf263292e14d9d8ecd55b58dad1f1df825a874b7c",
                     "enable":true,
-                    "decimal": 12
+                    "decimal": 18
                 }
             ]
         }
@@ -74,7 +74,7 @@
                 "minconf":15,
                 "minrenew":20,
                 "retry_interval":300,
-                "scan_address":"0x2d23fdffe79c9b5769b399ccd0d8c2e46e1aea26",
+                "scan_address":"0x7863669296c272ddc4b0bba3badb071087b8ca6c",
                 "passphrase":"xiao123456",
                 "enable":true
             },
@@ -84,7 +84,7 @@
                 "minconf":13,
                 "minrenew":20,
                 "retry_interval":300,
-                "scan_address":"0x2d23fdffe79c9b5769b399ccd0d8c2e46e1aea26",
+                "scan_address":"0x7863669296c272ddc4b0bba3badb071087b8ca6c",
                 "passphrase":"xiao123456",
                 "enable":true
             }

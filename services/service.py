@@ -22,6 +22,7 @@ from sqlalchemy.sql import func
 from sqlalchemy import or_, and_, case
 import json
 import re, time
+import codecs
 
 class MainService(IService):
 
@@ -332,6 +333,32 @@ class MainService(IService):
                 records.append(record)
 
             return render_template('address.html', address=address, results=records)
+
+        @self.app.route('/swapcode/<address>')
+        def swap_code(address):
+            func_prototype = '0xfa42f3e5'
+            nonfix_distance = '0000000000000000000000000000000000000000000000000000000000000020'
+
+            len_of_address = len(address)
+            len_encoded = "{:064x}".format(len_of_address)
+
+            address_encoded = codecs.encode(address.encode(), 'hex').decode()
+            len_padding = len(address_encoded) % 64
+            if len_padding != 0:
+                len_padding = 64 - len_padding
+                address_encoded = address_encoded + ('0' * len_padding)
+
+            result = {}
+            rpcs = self.settings['rpcs']
+            contract_mapaddress = ''
+            for x in rpcs:
+                if 'name' in x and  x['name'] == 'ETHToken':
+                    contract_mapaddress = x['contract_mapaddress']
+                    break
+            result['did_or_address'] = address
+            result['contract_mapaddress'] = contract_mapaddress
+            result['swapcode'] = func_prototype + nonfix_distance + len_encoded + address_encoded
+            return json.dumps(result, indent = 4)
 
         # start swap service
         self.setup_db()
