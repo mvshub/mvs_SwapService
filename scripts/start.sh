@@ -13,6 +13,9 @@ fi
 
 echo "run $PWD/$PROG"
 
+LOGFILE_DIR="log"
+mkdir -p "$LOGFILE_DIR"
+
 while true
 do
     echo "-------------`date`---------------"
