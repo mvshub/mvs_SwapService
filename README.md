@@ -48,6 +48,10 @@ Run:
 ```bash
 python3 main.py
 ```
+or, use watcher script (it will watch and restart the service if it's stopped)
+```
+nohup ./scripts/start_swap_service.py >/dev/null 2>&1 &
+```
 
 #### ETH
 1. install & start
