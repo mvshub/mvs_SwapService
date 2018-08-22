@@ -37,8 +37,10 @@ def main():
             if fail_count == 1 or fail_count == 2:
                 subject = "MVS Swap Service Restart Warning ({})".format(fail_count)
                 body = "swap service stopped ({}) and try restart at {}".format(fail_count, time.ctime())
-                ms = mailsend.MailSending()
-                ms.send_mail("swap-service@watchdog.host", subject, body)
+                print("{}\n{}".format(subject, body))
+                # NOTICE: call send_mail after config and testing
+                #ms = mailsend.MailSending()
+                #ms.send_mail("swap-service@watchdog.host", subject, body)
 
             fail_count += 1
         else:
