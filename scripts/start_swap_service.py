@@ -2,7 +2,7 @@
 
 import os
 import time
-import mailsend
+from tools import mailsend
 
 def main():
     script_dir = os.path.split(os.path.realpath(__file__))[0]
