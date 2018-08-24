@@ -24,10 +24,9 @@ class EthToken(Eth):
             self.token_names.append(x['name'])
             self.contract_addresses.append(x['contract_address'].lower())
 
-        Logger.get().info("EthToken: contract_address: {}, contract_mapaddress".format(
-            self.contract_addresses, self.contract_mapaddress))
-
     def start(self):
+        Logger.get().info("EthToken: name:{}, contract_address: {}, contract_mapaddress: {}".format(
+            self.name, self.contract_addresses, self.contract_mapaddress))
         Eth.start(self)
         return True
 

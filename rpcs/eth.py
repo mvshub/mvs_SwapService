@@ -15,10 +15,9 @@ class Eth(Base):
         self.name = 'ETH' if settings.get('name') is None else settings['name']
         self.contract_mapaddress = settings['contract_mapaddress'].lower()
 
-        if 'decimal' in settings:
-            self.decimal = settings['decimal']
-
     def start(self):
+        Logger.get().info("{}: contract_mapaddress: {}".format(
+            self.name, self.contract_mapaddress))
         self.best_block_number()
         return True
 
@@ -64,6 +63,15 @@ class Eth(Base):
             return 0
 
         return self.from_wei(token_name, wei=js['value']) 
+
+    def get_balance(self, address):
+        try:
+            res = self.make_request("eth_getBalance", [address, 'latest'])
+            return int(res, 16) * (1e-18)
+        except RpcErrorException as e:
+            Logger.get().error('failed to get ETH balance on address: %s, %s' % (address, str(e)))
+        except Exception as e:
+            raise
 
     def get_transaction(self, txid):
         try:

@@ -22,10 +22,9 @@ class Etp(Base):
         self.tokens = settings['tokens']
         self.token_names = [self.get_erc_symbol(
             x['name']) for x in self.tokens]
-        Logger.get().info("init type {}, tokens: {}".format(
-            self.name, self.token_names))
 
     def start(self):
+        Logger.get().info("{}: tokens: {}".format(self.name, self.token_names))
         self.best_block_number()
         return True
 
@@ -109,6 +108,15 @@ class Etp(Base):
                 supply = self.from_wei(token, total)
                 return supply
         return 0
+
+    def get_balance(self, address):
+        try:
+            res = self.make_request('getaddressetp', [address])
+            return res['result']['unspent'] * (1e-8)
+        except RpcErrorException as e:
+            Logger.get().error('failed to get ETP balance on address: %s, %s' % (address, str(e)))
+        except Exception as e:
+            raise
 
     def is_asset_exist(self, token):
         res = self.make_request('getasset', [token])

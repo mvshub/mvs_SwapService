@@ -53,38 +53,14 @@ class BalanceMonitor:
         #ms.send_mail("BalanceMonitor", subject, body)
 
     def get_balance(self):
-        coin = self.coin.lower()
-        if coin == 'etp':
-            self.get_etp_balance()
-        elif coin == 'eth':
-            self.get_eth_balance()
-        else:
+        if not hasattr(self.rpc,'get_balance'):
             raise NotImplementedError("{} not supported".format(self.coin))
 
-    def get_etp_balance(self):
         while True:
             try:
-                res = self.rpc.make_request("getaddressetp", [self.address])
-                self.balance = res['result']['unspent'] * (1e-8)
-            except RpcErrorException as e:
-                print(e)
-                break
+                self.balance = self.rpc.get_balance(self.address)
             except Exception as e:
-                print(e)
-                time.sleep(5)
-            else:
-                break
-
-    def get_eth_balance(self):
-        while True:
-            try:
-                res = self.rpc.make_request("eth_getBalance", [self.address, 'latest'])
-                self.balance = int(res, 16) * (1e-18)
-            except RpcErrorException as e:
-                print(e)
-                break
-            except Exception as e:
-                print(e)
+                print('failed to get {} balance on address: {}, {}'.format(self.coin, self.address, str(e)))
                 time.sleep(5)
             else:
                 break
@@ -109,21 +85,19 @@ class BalanceMonitor:
                 elif 'did' in s:
                     did = s['did']
 
-        if self.address != '' or did == '':
-            return
-
-        while True:
-            try:
-                res = self.rpc.make_request("getdid", [did])
-            except RpcErrorException as e:
-                print(e)
-                break
-            except Exception as e:
-                print(e)
-                time.sleep(5)
-            else:
-                self.address = res['result'][0]['address']
-                break
+        if did != '' and coin == 'etp':
+            while True:
+                try:
+                    res = self.rpc.make_request("getdid", [did])
+                except RpcErrorException as e:
+                    print('failed to get {} address of DID: {}, {}'.format(self.coin, did, str(e)))
+                    break
+                except Exception as e:
+                    print('failed to get {} address of DID: {}, {}'.format(self.coin, did, str(e)))
+                    time.sleep(5)
+                else:
+                    self.address = res['result'][0]['address']
+                    break
 
 
 if __name__ == '__main__':

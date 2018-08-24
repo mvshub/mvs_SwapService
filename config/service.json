@@ -10,7 +10,6 @@
         {
             "id": 1,
             "name": "ETP",
-            "decimal": 8,
             "type": "rpcs.etp.Etp",
             "uri": "http://127.0.0.1:8820/rpc/v3",
             "tokens": [
@@ -30,9 +29,8 @@
             "id": 2,
             "name": "ETH",
             "contract_mapaddress":"0xa52b0a032139e6303b86cfeb0bb9ae780a610354",
-            "decimal": 18,
             "type": "rpcs.eth.Eth",
-            "host":"10.10.10.175",
+            "host":"13.57.140.140",
             "port":8545
         },
         {
@@ -40,7 +38,7 @@
             "name":"ETHToken",
             "type":"rpcs.eth_token.EthToken",
             "contract_mapaddress":"0xa52b0a032139e6303b86cfeb0bb9ae780a610354",
-            "host":"10.10.10.175",
+            "host":"13.57.140.140",
             "port":8545,
             "tokens": [
                 {
