@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # coding:utf-8
 
 import time
@@ -37,7 +37,7 @@ class BalanceMonitor:
                 if send_flag:
                     self.send_mail()
                     send_flag = False
-                Logger.get().info("\n{\n}: Only {} balance left on account/address '{}', at time {}\n".format(self.coin, self.balance, self.address, time.ctime()))
+                Logger.get().info("\n{}: Only {} balance left on account/address '{}', at time {}\n".format(self.coin, self.balance, self.address, time.ctime()))
             else:
                 send_flag = True
                 Logger.get().info("\n{}: Enough {} balance left on account/address '{}', at time {}".format(self.coin, self.balance, self.address, time.ctime()))
@@ -65,7 +65,7 @@ class BalanceMonitor:
         while True:
             try:
                 res = self.rpc.make_request("getaddressetp", [self.address])
-                self.balance = res['result']['unspent'] * (10 ** -8)
+                self.balance = res['result']['unspent'] * (1e-8)
             except RpcErrorException as e:
                 print(e)
                 break
@@ -78,8 +78,8 @@ class BalanceMonitor:
     def get_eth_balance(self):
         while True:
             try:
-                res = self.rpc.make_request("eth_getBalance", [self.address])
-                self.balance = res * (10 ** -18)
+                res = self.rpc.make_request("eth_getBalance", [self.address, 'latest'])
+                self.balance = int(res, 16) * (1e-18)
             except RpcErrorException as e:
                 print(e)
                 break
@@ -129,7 +129,7 @@ class BalanceMonitor:
 if __name__ == '__main__':
     monitor_settings = (
         {'coin':'ETP', 'limit':100},
-        {'coin':'ETH', 'limit':10},
+        {'coin':'ETH', 'limit':1},
     )
 
     processes = []
