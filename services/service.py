@@ -3,6 +3,7 @@ from services.swap import SwapService
 from rpcs.rpcmanager import RpcManager
 from models import db
 from models.result import Result
+from models.binder import Binder
 from models import constants
 from models.constants import Status, Error, SwapException
 from utils import response
@@ -312,6 +313,7 @@ class MainService(IService):
             results = db.session.query(Result).filter(
                 or_(Result.from_address == address, Result.to_address == address)).order_by(Result.swap_id.desc()).all()
             records = []
+            binders = []
             for r in results:
                 record = {}
                 record['swap_id'] = r.swap_id
@@ -332,7 +334,15 @@ class MainService(IService):
                     Status.Swap_Finish) else 1
                 records.append(record)
 
-            return render_template('address.html', address=address, results=records)
+            results = db.session.query(Binder).filter_by(binder=address).order_by(Binder.iden.desc()).all()
+            for r in results:
+                bind = {}
+                bind['from'] = r.binder
+                bind['to'] = r.to
+                bind['height'] = r.block_height
+                binders.append(bind)
+
+            return render_template('address.html', address=address, results=records, binders = binders)
 
         @self.app.route('/swapcode/<address>')
         def swap_code(address):
