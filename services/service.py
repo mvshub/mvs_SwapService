@@ -370,6 +370,50 @@ class MainService(IService):
             result['swapcode'] = func_prototype + nonfix_distance + len_encoded + address_encoded
             return json.dumps(result, indent = 4)
 
+        @self.app.route('/ban/<date>')
+        def swap_ban(date):
+            return render_template('ban.html', date=date)
+
+        @self.app.route('/getBan/<date>')
+        def getBan(date):
+            results = db.session.query(Result).filter(and_(
+                    Result.date == int(date),
+                    Result.status == int(Status.Swap_Ban))).order_by(Result.swap_id.desc()).all()                
+
+            records = []
+            for r in results:
+                record = {}
+                record['swap_id'] = r.swap_id
+                record['coin'] = r.coin
+                record['token'] = r.token
+                record['tx_from'] = r.tx_from
+                record['from'] = r.from_address
+                record['to'] = r.to_address
+                record['amount'] = self.format_amount(r.amount)
+                record['fee'] = self.format_amount(r.from_fee)
+                record['time'] = "%02d:%02d:%02d" % (
+                    r.time // 10000, r.time // 100 % 100, r.time % 100)
+                record['message'] = r.message
+                records.append(record)
+
+            return json.dumps(records)
+        @self.app.route('/retry', methods  = ['POST'])
+        def swap_retry():
+            swap_id = request.form.get('swap_id')
+            result = db.session.query(Result).filter_by(swap_id = swap_id).first()
+            if result:
+                result.status = int(Status.Swap_New)
+                result.message = "Retry swap"
+                result.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
+                result.time = int(time.strftime('%2H%2M%2S', time.localtime()))
+                db.session.add(result)
+                db.session.commit()
+                return response.make_response(response.ERR_SUCCESS,
+                "retry success,swap_id: %d, coin: %s , token: %s, from: %s, to: %s, amount: %f" % (
+                    result.swap_id, result.coin, result.token, result.from_address, result.to_address, result.amount))
+
+            return response.make_response(response.ERR_INVALID_SWAPID)
+
         # start swap service
         self.setup_db()
         self.rpcmanager.start()

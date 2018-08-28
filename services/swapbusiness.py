@@ -7,6 +7,7 @@ from models.binder import Binder
 from models.coin import Coin
 from models.result import Result
 from models.constants import Status, Error, SwapException
+from utils.exception import RpcException, CriticalException, RpcErrorException
 from utils import response
 from utils.log.logger import Logger
 from utils.timeit import timeit
@@ -206,22 +207,31 @@ class SwapBusiness(IBusiness):
             swap_coin = self.get_swap_coin(result)
             swap_settings = self.get_rpc_settings(swap_coin)
             current_height = rpc.best_block_number()
-            tx, fee = rpc.transfer_asset(
-                result.to_address, result.token, result.amount, swap_settings)
-            if tx:
-                result.tx_hash = tx
-                result.tx_height = current_height
-                result.status = int(Status.Swap_Send)
-                result.confirm_status = int(Status.Tx_Unconfirm)
-                result.fee = fee
-                db.message = "send tx success, wait for confirm"
+            try:
+                tx, fee = rpc.transfer_asset(
+                    result.to_address, result.token, result.amount, swap_settings)
+                if tx:
+                    result.tx_hash = tx
+                    result.tx_height = current_height
+                    result.status = int(Status.Swap_Send)
+                    result.confirm_status = int(Status.Tx_Unconfirm)
+                    result.fee = fee
+                    db.message = "send tx success, wait for confirm"
+                    result.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
+                    result.time = int(time.strftime('%2H%2M%2S', time.localtime()))
+                    db.session.add(result)
+                    db.session.commit()
+
+                    Logger.get().info('success send asset: token: {}, amount: {}, to: {}, tx_hash: {}'.format(
+                        result.token, result.amount, result.to_address, result.tx_hash))
+            except RpcException as e:
+                result.status = int(Status.Swap_Ban)
+                result.message = str(e)
                 result.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
                 result.time = int(time.strftime('%2H%2M%2S', time.localtime()))
-                db.session.add(result)
-                db.session.commit()
-
-                Logger.get().info('success send asset: token: {}, amount: {}, to: {}, tx_hash: {}'.format(
-                    result.token, result.amount, result.to_address, result.tx_hash))
+                Logger.get().info('send asset failed , forbid swap again : swap_id: {}, token: {}, amount: {}, to: {}, tx_hash: {}'.format(
+                result.swap_id, result.token, result.amount, result.to_address, result.tx_hash))
+                raise
 
         return Error.Success
 

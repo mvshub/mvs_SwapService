@@ -12,7 +12,6 @@ function loadData() {
         type: 'GET', 
         data: '',
         error:function (data) {
-            alert('请求失败');
         },
         success:function (data) {
             $("#result").html("");
@@ -66,7 +65,67 @@ function loadData() {
     });
 }
 
+function loadBan(){
+    var date = $('#dateid').attr('d');
+    $.ajax({
+        url: '/getBan/'+date, 
+        type: 'GET', 
+        data: '',
+        error:function (data) {
+        },
+        success:function (data) {
+            $("#result").html("");
+            var arr = JSON.parse(data);
+            var str='';    
+            for(j = 0; j < arr.length; j++) {
+                str += "<tr>" +
+                "<td align='center'>" + arr[j]['swap_id'] + "</td>" + 
+                "<td align='right'>" + arr[j]['coin'] + "</td>" + 
+                "<td align='right'>" +
+                "<a href= '/token/" + arr[j]['token'] + "'>" +  arr[j]['token'] + "</a>" + 
+                "</td>" +
+                "<td align='right'>" +
+                "<a href= '/address/" + arr[j]['from'] + "'>" + arr[j]['from'] + "</a>" + 
+                "</td>" +
+                "<td align='right'>" +
+                "<a href= '/address/" + arr[j]['to'] + "'>" + arr[j]['to'] + "</a>" + 
+                "</td>" +
+                "<td align='right'>" + arr[j]['amount'] + "</td>" + 
+                "<td align='center'>" + arr[j]['message'] + "</td>"+
+                "<td align='center'>" + arr[j]['time'] + "</td>" + 
+                "<td align='center'>" + 
+                "<a href='javascript:void(0);' onclick='javascript:retry_swap(" +
+                arr[j]['swap_id']  + ");return false;'>" + 'Retry' + "</a>" +
+                "</td>" + 
+                "</tr>";
+            } 
+            $("#result").append(str);
+        }
+    });
+}
 
+function retry_swap(swap_id)
+{
+    var d = {'swap_id':swap_id}
+    $.ajax({
+        url: '/retry', 
+        type: 'POST', 
+        data: d,
+        error:function (data) {
+            alert('post retry request failed')
+        },
+        success:function (data) {
+            var arr = JSON.parse(data);
+            if (arr['code'] != 0){
+                alert('retry failed:' + arr['result'])
+            }
+            else{
+                alert('retry success:' + arr['result'])
+            }
+
+        }
+    });
+}
 
 function up() {
     document.getElementById('progress').value = 50;
