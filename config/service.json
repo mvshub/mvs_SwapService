@@ -47,7 +47,6 @@
                 "coin":"ETP",
                 "minconf":12,
                 "minrenew":20,
-                "retry_interval":300,
                 "account":"test1",
                 "passphrase":"test123456",
                 "did":"crosschain",
@@ -58,7 +57,6 @@
                 "coin":"ETHToken",
                 "minconf":13,
                 "minrenew":20,
-                "retry_interval":300,
                 "scan_address":"0x7863669296c272ddc4b0bba3badb071087b8ca6c",
                 "passphrase":"xiao123456",
                 "enable":true
