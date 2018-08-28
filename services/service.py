@@ -210,8 +210,9 @@ class MainService(IService):
             return render_template('token.html', token=token, results=results)
 
         @self.app.route('/report/<date>')
-        def report_per_day(date):
-            if date=='today':
+        @self.app.route('/report')
+        def report_per_day(date=None):
+            if not date:
                 date=time.strftime('%4Y%2m%2d', time.localtime())
 
 
@@ -371,7 +372,10 @@ class MainService(IService):
             return json.dumps(result, indent = 4)
 
         @self.app.route('/ban/<date>')
-        def swap_ban(date):
+        @self.app.route('/ban')
+        def swap_ban(date=None):
+            if not date :
+                date = time.strftime('%4Y%2m%2d', time.localtime())
             return render_template('ban.html', date=date)
 
         @self.app.route('/getBan/<date>')
