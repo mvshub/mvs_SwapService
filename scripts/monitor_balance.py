@@ -71,7 +71,7 @@ class BalanceMonitor:
             if 'name' in s and s['name'].lower() == coin:
                 if coin == 'etp':
                     self.rpc = etp.Etp(s)
-                elif coin == 'eth':
+                elif coin == 'eth' or coin == 'ethtoken':
                     self.rpc = eth.Eth(s)
 
         if self.rpc == None:
@@ -102,8 +102,8 @@ class BalanceMonitor:
 
 if __name__ == '__main__':
     monitor_settings = (
-        {'coin':'ETP', 'limit':100},
-        {'coin':'ETH', 'limit':1},
+        {'coin':'ETP', 'limit':1},
+        {'coin':'ETHToken', 'limit':1},
     )
 
     processes = []
