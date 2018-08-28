@@ -97,6 +97,9 @@ function loadBan(){
                 "<a href='javascript:void(0);' onclick='javascript:retry_swap(" +
                 arr[j]['swap_id']  + ");return false;'>" + 'Retry' + "</a>" +
                 "</td>" + 
+                "<td align='center'>" + 
+                "<a href='" + arr[j]['scan']  + "' target='_blank'>" + 'Scan' + "</a>" +
+                "</td>" + 
                 "</tr>";
             } 
             $("#result").append(str);

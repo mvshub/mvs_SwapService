@@ -140,10 +140,10 @@ class SwapBusiness(IBusiness):
                 tx = rpc.get_transaction(r.tx_hash)
 
                 tx_height_new = r.tx_height
-                if tx == None:
-                    if tx_height_new != 0 and tx_height_new + minRenew < current_height:
-                        self.renew_swap(r, tx_height_new,
-                                        current_height, minRenew)
+                # if tx == None:
+                #     if tx_height_new != 0 and tx_height_new + minRenew < current_height:
+                #         self.renew_swap(r, tx_height_new,
+                #                         current_height, minRenew)
 
                 if tx == None or tx['blockNumber'] == 0:
                     continue

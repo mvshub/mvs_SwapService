@@ -394,6 +394,16 @@ class MainService(IService):
                 record['time'] = "%02d:%02d:%02d" % (
                     r.time // 10000, r.time // 100 % 100, r.time % 100)
                 record['message'] = r.message
+
+                if r.coin == 'ETH' or r.coin == 'ETHToken':
+                    if len(r.to_address) == 34:
+                        record['scan'] = 'https://explorer.mvs.org/adr/'+r.to_address
+                    else:
+                        record['scan'] = 'https://explorer.mvs.org/avatar/' + r.to_address
+                elif r.coin == 'ETP':
+                    record['scan'] = 'https://etherscan.io/address/'+r.to_address
+
+                
                 records.append(record)
 
             return json.dumps(records)
