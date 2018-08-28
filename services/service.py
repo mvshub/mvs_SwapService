@@ -78,11 +78,11 @@ class MainService(IService):
             if result:
                 return redirect(url_for('swap_address', address=condition))
 
-            result = db.session.query(Result).filter_by(tx_from=str(condition)).limit(1).first()   
+            result = db.session.query(Result).filter_by(tx_from=str(condition)).limit(1).first()
             if result:
                 return redirect(url_for('swap_raw', tx_from=condition))
 
-            result = db.session.query(Result).filter_by(token=str(condition)).limit(1).first()   
+            result = db.session.query(Result).filter_by(token=str(condition)).limit(1).first()
             if result:
                 return redirect(url_for('swap_token', token=condition))
 
@@ -96,7 +96,7 @@ class MainService(IService):
             def getMinconf(coin, token):
                 if coin == 'ETH' or coin == 'ETHToken':
                     coin = 'ETP'
-                elif coin == 'ETP' and token == (constants.SWAP_TOKEN_PREFIX+'ETH'):                 
+                elif coin == 'ETP' and token == (constants.SWAP_TOKEN_PREFIX+'ETH'):
                     coin = 'ETH'
                 else:
                     coin = 'ETHToken'
@@ -105,7 +105,7 @@ class MainService(IService):
                     if c['coin'] == coin:
                         return c['minconf']
                 return 0
-                
+
             for r in results:
                 record = {}
                 record['swap_id'] = r.swap_id
@@ -378,7 +378,7 @@ class MainService(IService):
         def getBan(date):
             results = db.session.query(Result).filter(and_(
                     Result.date == int(date),
-                    Result.status == int(Status.Swap_Ban))).order_by(Result.swap_id.desc()).all()                
+                    Result.status == int(Status.Swap_Ban))).order_by(Result.swap_id.desc()).all()
 
             records = []
             for r in results:
@@ -403,7 +403,7 @@ class MainService(IService):
                 elif r.coin == 'ETP':
                     record['scan'] = 'https://etherscan.io/address/'+r.to_address
 
-                
+
                 records.append(record)
 
             return json.dumps(records)
@@ -451,23 +451,31 @@ class MainService(IService):
             return '0'
 
         amount_str = str(amount)
-        if amount_str.find('.') != -1:
-            amount_str = amount_str.rstrip('0')
-            if amount_str.endswith('.'):
-                amount_str = amount_str[0:len(amount_str) - 1]
-        if amount_str == '0E-18':
-            amount_str = '0'
-        return amount_str
+        return self.format_amount_str(amount_str)
 
     def format_rough_amount(self, amount):
         if not amount:
             return '0'
 
         amount_str = '{:0.4f}'.format(float(amount))
-        if amount_str.find('.') != -1:
-            amount_str = amount_str.rstrip('0')
-            if amount_str.endswith('.'):
-                amount_str = amount_str[0:len(amount_str) - 1]
+        return self.format_amount_str(amount_str)
+
+    def format_amount_str(self, amount_str):
+        dot_index = amount_str.find('.')
+        if dot_index != -1:
+            e_index = amount_str.find('E-', dot_index)
+            if e_index == -1:
+                amount_str = amount_str.rstrip('0')
+                if amount_str.endswith('.'):
+                    amount_str = amount_str[0:len(amount_str) - 1]
+            else:
+                prefix = amount_str[:e_index]
+                postfix = amount_str[e_index:]
+                prefix = prefix.rstrip('0')
+                if prefix.endswith('.'):
+                    prefix = prefix[0:len(prefix) - 1]
+                amount_str = prefix + postfix
+
         if amount_str == '0E-18':
             amount_str = '0'
         return amount_str
