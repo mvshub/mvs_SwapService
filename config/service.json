@@ -23,8 +23,7 @@
 
     ],
     "scans":{
-        "mails":[],
-        "interval":0.1,
+        "interval":3,
         "services":[
             {
                 "rpc":1,

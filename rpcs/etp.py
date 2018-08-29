@@ -38,7 +38,7 @@ class Etp(Base):
             'method': method,
             "params": params}
         res = requests.post(
-            self.settings['uri'], json.dumps(req_body), timeout=5)
+            self.settings['uri'], json.dumps(req_body), timeout=constants.DEFAULT_REQUEST_TIMEOUT)
         if res.status_code != 200:
             raise RpcException('bad request code,%s' % res.status_code)
         try:

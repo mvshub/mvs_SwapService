@@ -6,7 +6,9 @@ from models import constants
 
 def make_request(method, params=[]):
     data = {"jsonrpc": "2.0", "method": method, "params": params, "id": 83}
-    res = requests.post('http://10.10.10.175:8545', json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=5)
+    res = requests.post('http://10.10.10.175:8545', json.dumps(data),
+            headers={'Content-Type': 'application/json'},
+            timeout=constants.DEFAULT_REQUEST_TIMEOUT)
     if res.status_code != 200:
         raise Exception('bad request code,%s' % res.status_code)
     try:
