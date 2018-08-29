@@ -4,7 +4,7 @@ from utils.log.logger import Logger
 from utils.exception import TransactionNotfoundException, RpcErrorException
 import binascii
 from models.coin import Coin
-from models.constants import SwapException
+from models.constants import SwapException, Error
 from models import constants
 
 
@@ -118,6 +118,12 @@ class EthToken(Eth):
         return res, fee_amount
 
     def transfer_asset(self, to, token, amount, settings):
+        if token.startswith(constants.SWAP_TOKEN_PREFIX):
+            token = token[len(constants.SWAP_TOKEN_PREFIX):]
+        else:
+            raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST,
+                                '{} not start with {}'.format(token, constants.SWAP_TOKEN_PREFIX))
+
         address = settings["scan_address"]
 
         if not self.unlock_account(address, settings['passphrase']):
