@@ -11,30 +11,14 @@
             "id": 1,
             "name": "ETP",
             "type": "rpcs.etp.Etp",
-            "uri": "http://127.0.0.1:8820/rpc/v3",
-            "tokens": [
-                {
-                    "name":"EDU",
-                    "enable":true,
-                    "decimal": 9
-                }
-            ]
+            "uri": "http://127.0.0.1:8820/rpc/v3"
         },
         {
             "id":2,
             "name":"ETHToken",
             "type":"rpcs.eth_token.EthToken",
             "contract_mapaddress":"0xa52b0a032139e6303b86cfeb0bb9ae780a610354",
-            "host":"13.57.140.140",
-            "port":8545,
-            "tokens": [
-                {
-                    "name":"EDU",
-                    "contract_address":"0xf263292e14d9d8ecd55b58dad1f1df825a874b7c",
-                    "enable":true,
-                    "decimal": 18
-                }
-            ]
+            "uri": "http://13.57.140.140:8545"
         }
 
     ],
@@ -62,5 +46,13 @@
                 "enable":true
             }
         ]
-    }
+    },
+    "tokens": [
+        {
+            "name":"EDU",
+            "contract_address":"0xf263292e14d9d8ecd55b58dad1f1df825a874b7c",
+            "enable":true,
+            "decimal": 18
+        }
+    ]
 }

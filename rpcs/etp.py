@@ -16,10 +16,10 @@ class Etp(Base):
     rpc_version = "2.0"
     rpc_id = 0
 
-    def __init__(self, settings):
+    def __init__(self, settings, tokens):
         Base.__init__(self, settings)
         self.name = 'ETP'
-        self.tokens = settings['tokens']
+        self.tokens = tokens
         self.token_names = [self.get_erc_symbol(
             x['name']) for x in self.tokens]
 
@@ -257,8 +257,9 @@ class Etp(Base):
     def get_decimal(self, token):
         for i in self.tokens:
             if self.get_erc_symbol(i['name']) == token:
-                return i['decimal']
-        raise SwapException(Error.EXCEPTION_CONFIG_ERROR_DECIMAL, 'coin=etp,token=%s'%(token))
+                return min(i['decimal'], constants.MAX_SWAP_ASSET_DECIMAL)
+        raise SwapException(Error.EXCEPTION_CONFIG_ERROR_DECIMAL,
+                            'coin={},token={}'.format(self.name, token))
 
     def get_fee(self, name):
         for x in self.tokens:

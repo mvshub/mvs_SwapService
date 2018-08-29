@@ -8,6 +8,8 @@ FETCH_MAX_ROW = 1000
 
 SWAP_TOKEN_PREFIX = 'ERCT2.'
 
+MAX_SWAP_ASSET_DECIMAL = 8
+
 class Status(IntEnum):
     Swap_New = 1
     Swap_Issue = 2
