@@ -371,8 +371,8 @@ class SwapBusiness(IBusiness):
         self.post(self.process_swap)
         self.post(self.process_confirm)
 
-    def get_current_date():
+    def get_current_date(self):
         return int(time.strftime('%4Y%2m%2d', time.localtime()))
 
-    def get_current_time():
+    def get_current_time(self):
         return int(time.strftime('%2H%2M%2S', time.localtime()))
