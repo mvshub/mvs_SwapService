@@ -125,8 +125,7 @@ class MainService(IService):
                 record['amount'] = self.format_amount(r.amount)
                 record['fee'] = self.format_amount(r.from_fee)
                 record['date'] = r.date
-                record['time'] = "%02d:%02d:%02d" % (
-                    r.time // 10000, r.time // 100 % 100, r.time % 100)
+                record['time'] = self.format_time(r.time)
                 record['tx_height'] = r.tx_height
                 record['confirm_height'] = r.confirm_height
                 record['message'] = constants.ProcessStr(
@@ -170,8 +169,7 @@ class MainService(IService):
                 record['to'] = r.to_address
                 record['amount'] = self.format_amount(r.amount)
                 record['fee'] = self.format_amount(r.from_fee)
-                record['time'] = "%02d:%02d:%02d" % (
-                    r.time // 10000, r.time // 100 % 100, r.time % 100)
+                record['time'] = self.format_time(r.time)
                 record['tx_height'] = r.tx_height
                 record['message'] = constants.ProcessStr(
                     r.status, r.confirm_status)
@@ -196,8 +194,7 @@ class MainService(IService):
                 record['to'] = r.to_address
                 record['amount'] = self.format_amount(r.amount)
                 record['fee'] = self.format_amount(r.from_fee)
-                record['time'] = "%02d:%02d:%02d" % (
-                    r.time // 10000, r.time // 100 % 100, r.time % 100)
+                record['time'] = self.format_time(r.time)
                 record['tx_height'] = r.tx_height
                 record['message'] = constants.ProcessStr(
                     r.status, r.confirm_status)
@@ -213,8 +210,7 @@ class MainService(IService):
                 token=token).order_by(Result.swap_id.desc()).all()
 
             for result in results:
-                result.time = "%02d:%02d:%02d" % (
-                    result.time // 10000, result.time // 100 % 100, result.time % 100)
+                result.time = self.format_time(result.time)
                 result.amount = self.format_amount(result.amount)
                 result.fee = self.format_amount(result.from_fee)
 
@@ -310,8 +306,7 @@ class MainService(IService):
             if result != None:
                 result.confirm_status = constants.ConfirmStr[
                     result.confirm_status]
-                result.time = "%02d:%02d:%02d" % (
-                    result.time // 10000, result.time // 100 % 100, result.time % 100)
+                result.time = self.format_time(result.time)
                 result.amount = self.format_amount(result.amount)
                 result.fee = self.format_amount(result.from_fee)
                 result.status = constants.StatusStr[result.status]
@@ -337,8 +332,7 @@ class MainService(IService):
                 record['amount'] = self.format_amount(r.amount)
                 record['fee'] = self.format_amount(r.from_fee)
                 record['date'] = r.date
-                record['time'] = "%02d:%02d:%02d" % (
-                    r.time // 10000, r.time // 100 % 100, r.time % 100)
+                record['time'] = self.format_time(r.time)
                 record['tx_height'] = r.tx_height
                 record['message'] = constants.ProcessStr(
                     r.status, r.confirm_status)
@@ -408,8 +402,7 @@ class MainService(IService):
                 record['to'] = r.to_address
                 record['amount'] = self.format_amount(r.amount)
                 record['fee'] = self.format_amount(r.from_fee)
-                record['time'] = "%02d:%02d:%02d" % (
-                    r.time // 10000, r.time // 100 % 100, r.time % 100)
+                record['time'] = self.format_time(r.time)
                 record['message'] = r.message
 
                 if r.coin == 'ETH' or r.coin == 'ETHToken':
@@ -502,3 +495,7 @@ class MainService(IService):
         if amount_str == '0E-18':
             amount_str = '0'
         return amount_str
+
+    def format_time(self, time):
+        return "%02d:%02d:%02d" % (
+            time // 10000, time // 100 % 100, time % 100)
