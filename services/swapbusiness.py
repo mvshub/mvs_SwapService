@@ -44,6 +44,13 @@ class SwapBusiness(IBusiness):
             'ETP': 'ETHToken'
         }
 
+        self.ban_code = (
+            Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL,
+            Error.EXCEPTION_CONFIG_ERROR_DECIMAL,
+            Error.EXCEPTION_COIN_NOT_EXIST,
+            Error.EXCEPTION_INVAILD_ADDRESS
+        )
+
     @timeit
     def get_max_swap_id(self):
         sub = db.session.query(db.func.max(
@@ -97,8 +104,7 @@ class SwapBusiness(IBusiness):
 
             except SwapException as e:
                 if e.errcode != Error.EXCEPTION_COIN_ISSUING:
-                    if e.errcode == Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL or \
-                            e.errcode == Error.EXCEPTION_CONFIG_ERROR_DECIMAL:
+                    if e.errcode in  self.ban_code:
                         r.status = int(Status.Swap_Ban)
 
                     r.message = e.get_error_str()
