@@ -18,6 +18,9 @@ class Etp(Base):
 
     def __init__(self, settings, tokens):
         Base.__init__(self, settings)
+
+        self.erc20_tokens = json.loads(open('config/erc20_tokens.json').read())
+
         self.name = 'ETP'
         self.tokens = tokens
         self.token_names = [self.get_erc_symbol(
@@ -157,18 +160,13 @@ class Etp(Base):
             raise
         return tx_hash
 
-    def create_asset(self, account, passphrase, to_did, decimal, rate, symbol, amount):
+    def create_asset(self, account, passphrase, to_did, decimal, rate, symbol, amount, description):
         try:
             volume = self.to_wei(symbol, amount, ceil=True)
-            idx = symbol.find('.')
-            prefix = constants.SWAP_TOKEN_PREFIX if idx <= 0 else symbol[0:idx]
-            name = symbol if idx == -1 else symbol[idx + 1:]
-            des = '{} asset of {}'.format(prefix, name)
-
             res = self.make_request(
                 'createasset', [account, passphrase, '-i', to_did,
                                 '-n', decimal, '-r', rate, '-s', symbol, '-v', volume,
-                                '-d', des])
+                                '-d', description])
 
             if 'result' not in res:
                 raise
@@ -267,6 +265,8 @@ class Etp(Base):
         return 0
 
     def get_erc_symbol(self, token):
+        if token in self.erc20_tokens:
+            return self.erc20_tokens[token]
         return constants.SWAP_TOKEN_PREFIX + token
 
     def before_swap(self, token, amount, issue_coin, settings):
@@ -291,9 +291,11 @@ class Etp(Base):
             to_did = settings.get('did')
             if not self.is_asset_exist(symbol):
                 dec = self.get_decimal(symbol)
+                description = "Crosschain asset of ERC20 token {}".format(
+                    token)
                 try:
                     self.create_asset(account, passphrase, to_did,
-                                      dec, -1, symbol, issue_amount)
+                                      dec, -1, symbol, issue_amount, description)
                     tx_hash = self.issue(account, passphrase, symbol)
                 except RpcException as e:
                     self.delete_asset(account, passphrase, symbol)

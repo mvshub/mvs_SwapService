@@ -12,6 +12,7 @@ SWAP_TOKEN_PREFIX = 'ERC20.'
 
 MAX_SWAP_ASSET_DECIMAL = 8
 
+
 class Status(IntEnum):
     Swap_New = 1
     Swap_Issue = 2
@@ -82,7 +83,7 @@ class Error(IntEnum):
 
 class SwapException(Exception):
 
-    def __init__(self, errcode_, errstr_ = None):
+    def __init__(self, errcode_, errstr_=None):
         self.errcode = errcode_
         self.errstr = errstr_
 

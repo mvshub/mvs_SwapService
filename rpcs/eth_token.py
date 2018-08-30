@@ -1,4 +1,5 @@
 from rpcs.eth import Eth
+import json
 import decimal
 from utils.log.logger import Logger
 from utils.exception import TransactionNotfoundException, RpcErrorException
@@ -13,6 +14,8 @@ class EthToken(Eth):
     def __init__(self, settings, tokens):
         Eth.__init__(self, settings)
         self.name = settings['name']
+
+        self.erc20_tokens = json.loads(open('config/erc20_tokens.json').read())
 
         self.tokens = tokens
         self.token_names = []
@@ -53,7 +56,7 @@ class EthToken(Eth):
                 coin = Coin()
                 coin.name = self.name
                 coin.token = x['name']
-                coin.total_supply =  supply
+                coin.total_supply = supply
                 coin.decimal = self.get_decimal(coin.token)
                 coins.append(coin)
         return coins
@@ -109,7 +112,7 @@ class EthToken(Eth):
         else:
             arg_to = to_address
 
-        fee_amount = 0#int(fee * amount)
+        fee_amount = 0  # int(fee * amount)
 
         data = '0xa9059cbb' + '0' * \
             (64 - len(arg_to)) + arg_to + ('%064x' % (amount - fee_amount))
@@ -117,13 +120,24 @@ class EthToken(Eth):
                                 {'from': from_address, 'to': contract, 'data': data}])
         return res, fee_amount
 
-    def transfer_asset(self, to, token, amount, settings):
-        if token.startswith(constants.SWAP_TOKEN_PREFIX):
-            token = token[len(constants.SWAP_TOKEN_PREFIX):]
+    def get_eth_token(self, symbol):
+        token = None
+        if symbol.startswith(constants.SWAP_TOKEN_PREFIX):
+            token = symbol[len(constants.SWAP_TOKEN_PREFIX):]
         else:
-            raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST,
-                                '{} not start with {}'.format(token, constants.SWAP_TOKEN_PREFIX))
+            for (k, v) in self.erc20_tokens.items():
+                if v == symbol:
+                    token = k
+                    break
 
+        if not token:
+            raise SwapException(
+                Error.EXCEPTION_COIN_NOT_EXIST,
+                '{} not start with {} or not configed.'.format(symbol, constants.SWAP_TOKEN_PREFIX))
+        return token
+
+    def transfer_asset(self, to, symbol, amount, settings):
+        token = self.get_eth_token(symbol)
         address = settings["scan_address"]
 
         if not self.unlock_account(address, settings['passphrase']):
@@ -131,14 +145,16 @@ class EthToken(Eth):
                               % (address, settings['passphrase']))
             return None, 0
 
-        tx_hash, fee = self.transfer2(token, None, address, to, self.to_wei(token, amount))
+        tx_hash, fee = self.transfer2(
+            token, None, address, to, self.to_wei(token, amount))
         return tx_hash, self.from_wei(token, fee)
 
     def get_decimal(self, name):
         for i in self.tokens:
             if i['name'] == name:
                 return int(i['decimal'])
-        raise SwapException(Error.EXCEPTION_CONFIG_ERROR_DECIMAL, 'coin=ethtoken,token=%s'%(name))
+        raise SwapException(Error.EXCEPTION_CONFIG_ERROR_DECIMAL,
+                            'coin=ethtoken,token=%s' % (name))
 
     def get_transaction(self, txid):
         try:
@@ -157,7 +173,7 @@ class EthToken(Eth):
             res['value'] = value
             receipt = self.make_request('eth_getTransactionReceipt', [txid])
             if not (receipt and receipt['logs']):
-                return 
+                return
 
             return res
 
