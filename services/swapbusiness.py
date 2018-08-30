@@ -173,20 +173,17 @@ class SwapBusiness(IBusiness):
                         issue_coin.status = int(Status.Token_Normal)
                         db.session.add(issue_coin)
                         db.session.commit()
-                        r.message = "confirm issued tx success"
 
-                        r.date = int(time.strftime(
-                            '%4Y%2m%2d', time.localtime()))
-                        r.time = int(time.strftime(
-                            '%2H%2M%2S', time.localtime()))
+                        r.message = "confirm issued tx success"
+                        r.date = self.get_current_date()
+                        r.time = self.get_current_time()
+
                     elif r.status == int(Status.Swap_Send):
                         r.status = int(Status.Swap_Finish)
                         r.tx_height = tx['blockNumber']
                         r.confirm_height = current_height
-                        r.date = int(time.strftime(
-                            '%4Y%2m%2d', time.localtime()))
-                        r.time = int(time.strftime(
-                            '%2H%2M%2S', time.localtime()))
+                        r.date = self.get_current_date()
+                        r.time = self.get_current_time()
                         r.message = "confirm send tx success, swap finish"
                         Logger.get().info(
                             'finish swap, coin: {}, token: {}, swap_id: {}, tx_from: {}, from: {}, to: {}'.format(
@@ -223,8 +220,8 @@ class SwapBusiness(IBusiness):
                     result.confirm_status = int(Status.Tx_Unconfirm)
                     result.fee = fee
                     db.message = "send tx success, wait for confirm"
-                    result.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
-                    result.time = int(time.strftime('%2H%2M%2S', time.localtime()))
+                    result.date = self.get_current_date()
+                    result.time = self.get_current_time()
                     db.session.add(result)
                     db.session.commit()
 
@@ -233,10 +230,10 @@ class SwapBusiness(IBusiness):
             except RpcException as e:
                 result.status = int(Status.Swap_Ban)
                 result.message = str(e)
-                result.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
-                result.time = int(time.strftime('%2H%2M%2S', time.localtime()))
+                result.date = self.get_current_date()
+                result.time = self.get_current_time()
                 Logger.get().info('send asset failed , forbid swap again : swap_id: {}, token: {}, amount: {}, to: {}, tx_hash: {}'.format(
-                result.swap_id, result.token, result.amount, result.to_address, result.tx_hash))
+                    result.swap_id, result.token, result.amount, result.to_address, result.tx_hash))
                 raise
 
         return Error.Success
@@ -272,9 +269,8 @@ class SwapBusiness(IBusiness):
                 result.tx_height = current_height
                 result.status = int(Status.Swap_Issue)
                 result.confirm_status = int(Status.Tx_Unconfirm)
-
-                result.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
-                result.time = int(time.strftime('%2H%2M%2S', time.localtime()))
+                result.date = self.get_current_date()
+                result.time = self.get_current_time()
 
                 issue_coin.status = int(Status.Token_Issue)
                 db.message = "send issue tx success, wait for confirm"
@@ -343,8 +339,8 @@ class SwapBusiness(IBusiness):
             result.confirm_height = 0
             result.confirm_status = int(Status.Tx_Unconfirm)
             result.status = int(Status.Swap_New)
-            result.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
-            result.time = int(time.strftime('%2H%2M%2S', time.localtime()))
+            result.date = self.get_current_date()
+            result.time = self.get_current_time()
             if not result.to_address:
                 b = db.session.query(Binder).filter_by(
                     binder=result.from_address).order_by(Binder.iden.desc()).all()
@@ -374,3 +370,9 @@ class SwapBusiness(IBusiness):
         self.post(self.process_unconfirm)
         self.post(self.process_swap)
         self.post(self.process_confirm)
+
+    def get_current_date():
+        return int(time.strftime('%4Y%2m%2d', time.localtime()))
+
+    def get_current_time():
+        return int(time.strftime('%2H%2M%2S', time.localtime()))

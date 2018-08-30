@@ -22,9 +22,11 @@ from wtforms.validators import DataRequired, Required, Length, Email, Regexp, Eq
 from sqlalchemy.sql import func
 from sqlalchemy import or_, and_, case
 import json
-import re, time
+import re
+import time
 import codecs
 import urllib.parse
+
 
 class MainService(IService):
 
@@ -55,7 +57,7 @@ class MainService(IService):
         def root():
             return render_template('index.html')
 
-        @self.app.route('/query', methods=['GET','POST'])
+        @self.app.route('/query', methods=['GET', 'POST'])
         def query():
             class FormCondition(FlaskForm):
                 submit = SubmitField("Submit")
@@ -65,25 +67,29 @@ class MainService(IService):
             #print (condition)
 
             if condition.isdigit():
-                result = db.session.query(Result).filter_by(swap_id=condition).limit(1).first()
+                result = db.session.query(Result).filter_by(
+                    swap_id=condition).limit(1).first()
                 if result:
                     return redirect(url_for('swap_raw', tx_from=result.tx_from))
 
-                result = db.session.query(Result).filter_by(date=condition).limit(1).first()
+                result = db.session.query(Result).filter_by(
+                    date=condition).limit(1).first()
                 if result:
                     return redirect(url_for('swap_date', date=condition))
 
             result = db.session.query(Result).filter(
-                or_(Result.from_address==str(condition),
-                Result.to_address==str(condition))).limit(1).first()
+                or_(Result.from_address == str(condition),
+                    Result.to_address == str(condition))).limit(1).first()
             if result:
                 return redirect(url_for('swap_address', address=condition))
 
-            result = db.session.query(Result).filter_by(tx_from=str(condition)).limit(1).first()
+            result = db.session.query(Result).filter_by(
+                tx_from=str(condition)).limit(1).first()
             if result:
                 return redirect(url_for('swap_raw', tx_from=condition))
 
-            result = db.session.query(Result).filter_by(token=str(condition)).limit(1).first()
+            result = db.session.query(Result).filter_by(
+                token=str(condition)).limit(1).first()
             if result:
                 return redirect(url_for('swap_token', token=condition))
 
@@ -92,12 +98,13 @@ class MainService(IService):
         @self.app.route('/getResult')
         def getResult():
             results = db.session.query(Result).order_by(
-            Result.swap_id.desc()).limit(1000).all()
+                Result.swap_id.desc()).limit(1000).all()
             records = []
+
             def getMinconf(coin, token):
                 if coin == 'ETH' or coin == 'ETHToken':
                     coin = 'ETP'
-                elif coin == 'ETP' and token == (constants.SWAP_TOKEN_PREFIX+'ETH'):
+                elif coin == 'ETP' and token == (constants.SWAP_TOKEN_PREFIX + 'ETH'):
                     coin = 'ETH'
                 else:
                     coin = 'ETHToken'
@@ -140,14 +147,17 @@ class MainService(IService):
 
             if status == 0:
                 results = db.session.query(Result).filter_by(
-                    date=date, coin=coin, token=token).order_by(Result.swap_id.desc()).all()
+                    date=date, coin=coin, token=token).order_by(
+                    Result.swap_id.desc()).all()
             elif status == 1:
                 results = db.session.query(Result).filter_by(
-                    date=date, coin=coin, token=token, status=int(Status.Swap_Finish)).order_by(Result.swap_id.desc()).all()
+                    date=date, coin=coin, token=token, status=int(Status.Swap_Finish)).order_by(
+                    Result.swap_id.desc()).all()
             else:
                 results = db.session.query(Result).filter(and_(
                     Result.date == date, Result.coin == coin, Result.token == token,
-                    Result.status != int(Status.Swap_Finish))).order_by(Result.swap_id.desc()).all()
+                    Result.status != int(Status.Swap_Finish))).order_by(
+                    Result.swap_id.desc()).all()
 
             records = []
             for r in results:
@@ -214,8 +224,7 @@ class MainService(IService):
         @self.app.route('/report')
         def report_per_day(date=None):
             if not date:
-                date=time.strftime('%4Y%2m%2d', time.localtime())
-
+                date = time.strftime('%4Y%2m%2d', time.localtime())
 
             num_finished = case(
                 [(Result.status == int(Status.Swap_Finish), 1)], else_=0)
@@ -279,7 +288,7 @@ class MainService(IService):
                         x[4], self.format_rough_amount(x[5]), x[6]) for x in results]
             return render_template('report.html', date="%s -- %s" % (date1, date2), reports=results)
 
-        @self.app.route('/report_query', methods=['GET','POST'])
+        @self.app.route('/report_query', methods=['GET', 'POST'])
         def report_query():
             class FormQuery(FlaskForm):
                 submit = SubmitField("Submit")
@@ -295,7 +304,8 @@ class MainService(IService):
 
         @self.app.route('/tx/<tx_from>')
         def swap_raw(tx_from):
-            result = db.session.query(Result).filter_by(tx_from=tx_from).first()
+            result = db.session.query(Result).filter_by(
+                tx_from=tx_from).first()
 
             if result != None:
                 result.confirm_status = constants.ConfirmStr[
@@ -309,11 +319,11 @@ class MainService(IService):
             else:
                 return response.make_response(response.ERR_INVALID_TRANSACTION)
 
-
         @self.app.route('/address/<address>')
         def swap_address(address):
             results = db.session.query(Result).filter(
-                or_(Result.from_address == address, Result.to_address == address)).order_by(Result.swap_id.desc()).all()
+                or_(Result.from_address == address, Result.to_address == address)).order_by(
+                Result.swap_id.desc()).all()
             records = []
             binders = []
             for r in results:
@@ -336,7 +346,8 @@ class MainService(IService):
                     Status.Swap_Finish) else 1
                 records.append(record)
 
-            results = db.session.query(Binder).filter_by(binder=address).order_by(Binder.iden.desc()).all()
+            results = db.session.query(Binder).filter_by(
+                binder=address).order_by(Binder.iden.desc()).all()
             for r in results:
                 bind = {}
                 bind['from'] = r.binder
@@ -344,7 +355,7 @@ class MainService(IService):
                 bind['height'] = r.block_height
                 binders.append(bind)
 
-            return render_template('address.html', address=address, results=records, binders = binders)
+            return render_template('address.html', address=address, results=records, binders=binders)
 
         @self.app.route('/swapcode/<address>')
         def swap_code(address):
@@ -364,26 +375,27 @@ class MainService(IService):
             rpcs = self.settings['rpcs']
             contract_mapaddress = ''
             for x in rpcs:
-                if 'name' in x and  x['name'] == 'ETHToken':
+                if 'name' in x and x['name'] == 'ETHToken':
                     contract_mapaddress = x['contract_mapaddress']
                     break
             result['did_or_address'] = address
             result['contract_mapaddress'] = contract_mapaddress
-            result['swapcode'] = func_prototype + nonfix_distance + len_encoded + address_encoded
-            return json.dumps(result, indent = 4)
+            result['swapcode'] = func_prototype + \
+                nonfix_distance + len_encoded + address_encoded
+            return json.dumps(result, indent=4)
 
         @self.app.route('/ban/<date>')
         @self.app.route('/ban')
         def swap_ban(date=None):
-            if not date :
+            if not date:
                 date = time.strftime('%4Y%2m%2d', time.localtime())
             return render_template('ban.html', date=date)
 
         @self.app.route('/getBan/<date>')
         def getBan(date):
             results = db.session.query(Result).filter(and_(
-                    Result.date == int(date),
-                    Result.status == int(Status.Swap_Ban))).order_by(Result.swap_id.desc()).all()
+                Result.date == int(date),
+                Result.status == int(Status.Swap_Ban))).order_by(Result.swap_id.desc()).all()
 
             records = []
             for r in results:
@@ -402,20 +414,24 @@ class MainService(IService):
 
                 if r.coin == 'ETH' or r.coin == 'ETHToken':
                     if len(r.to_address) == 34:
-                        record['scan'] = 'https://explorer.mvs.org/adr/'+r.to_address
+                        record[
+                            'scan'] = 'https://explorer.mvs.org/adr/' + r.to_address
                     else:
-                        record['scan'] = 'https://explorer.mvs.org/avatar/' + r.to_address
+                        record[
+                            'scan'] = 'https://explorer.mvs.org/avatar/' + r.to_address
                 elif r.coin == 'ETP':
-                    record['scan'] = 'https://etherscan.io/address/'+r.to_address
-
+                    record['scan'] = 'https://etherscan.io/address/' + \
+                        r.to_address
 
                 records.append(record)
 
             return json.dumps(records)
-        @self.app.route('/retry', methods  = ['POST'])
+
+        @self.app.route('/retry', methods=['POST'])
         def swap_retry():
             swap_id = request.form.get('swap_id')
-            result = db.session.query(Result).filter_by(swap_id = swap_id).first()
+            result = db.session.query(Result).filter_by(
+                swap_id=swap_id).first()
             if result:
                 result.status = int(Status.Swap_New)
                 result.message = "Retry swap"
@@ -423,9 +439,11 @@ class MainService(IService):
                 result.time = int(time.strftime('%2H%2M%2S', time.localtime()))
                 db.session.add(result)
                 db.session.commit()
-                return response.make_response(response.ERR_SUCCESS,
-                "retry success,swap_id: %d, coin: %s , token: %s, from: %s, to: %s, amount: %f" % (
-                    result.swap_id, result.coin, result.token, result.from_address, result.to_address, result.amount))
+                return response.make_response(
+                    response.ERR_SUCCESS,
+                    "retry success,swap_id: %d, coin: %s , token: %s, from: %s, to: %s, amount: %f" % (
+                        result.swap_id, result.coin, result.token, result.from_address,
+                        result.to_address, result.amount))
 
             return response.make_response(response.ERR_INVALID_SWAPID)
 

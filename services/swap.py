@@ -17,7 +17,7 @@ class SwapService(AbstractService):
         self.businesses.start()
 
         self.register_service('/service/%s/block/number',
-                             self.process_get_block_number, '%s_block_number')
+                              self.process_get_block_number, '%s_block_number')
 
     def process_get_block_number(self, rpc, setting):
         self.get_best_block_number(rpc)

@@ -67,7 +67,6 @@ class Etp(Base):
         except Exception as e:
             pass
 
-
     def is_address_valid(self, address):
         if address is None or address == '':
             return False
@@ -200,7 +199,7 @@ class Etp(Base):
 
         try:
             volume = self.to_wei(symbol, amount)
-            fee_volume = 0#int(volume * fee)
+            fee_volume = 0  # int(volume * fee)
             res = self.make_request(
                 'didsendasset', [account, passphrase, to, symbol, volume - fee_volume])
             result = res['result']
@@ -286,8 +285,8 @@ class Etp(Base):
             issue_amount = issue_coin.total_supply - \
                 decimal.Decimal(total_supply)
             if issue_amount < decimal.Decimal(amount - supply):
-                raise SwapException(Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH,\
-                'amount=%f, available=%f' % (amount, supply))
+                raise SwapException(Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH,
+                                    'amount=%f, available=%f' % (amount, supply))
 
             to_did = settings.get('did')
             if not self.is_asset_exist(symbol):
