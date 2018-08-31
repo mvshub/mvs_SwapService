@@ -80,13 +80,14 @@ class Etp(Base):
     def get_coins(self):
         coins = []
         for x in self.tokens:
-            supply = self.get_total_supply(self.get_erc_symbol(x['name']))
+            symbol = self.get_erc_symbol(x['name'])
+            supply = self.get_total_supply(symbol)
             if supply != 0:
                 coin = Coin()
                 coin.name = self.name
-                coin.token = self.get_erc_symbol(x['name'])
+                coin.token = symbol
                 coin.total_supply = supply
-                coin.decimal = self.get_decimal(coin.token)
+                coin.decimal = self.get_decimal(symbol)
                 coins.append(coin)
         return coins
 
