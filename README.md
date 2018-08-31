@@ -93,7 +93,11 @@ contract_address:代币创建合约地址
 enable:是否激活
 decimal: 小数位数
 ```
-
+2. erc20_tokens.json
+配置以太坊ERC20，MST 关联资产
+示例：
+"EDU" : "ERC20.EDU"
+ERC20 EDU代币 置换 MST ERC20.EDU资产
 
 #### ETH
 1. install & start
