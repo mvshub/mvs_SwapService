@@ -50,7 +50,6 @@ class MainService(IService):
 
     def start(self):
         self.app = Flask(__name__)
-        self.app.config.from_object('config.config')
 
         @self.app.route('/')
         def root():
@@ -441,11 +440,11 @@ class MainService(IService):
 
         # start swap service
         self.setup_db()
-        self.rpcmanager.start()
+        # self.rpcmanager.start()
 
-        self.swap = SwapService(
-            self.app, self.rpcmanager, self.settings['scans'])
-        self.swap.start()
+        # self.swap = SwapService(
+        #     self.app, self.rpcmanager, self.settings['scans'])
+        # self.swap.start()
 
         # start wsgi server
         self.http = WSGIServer(
