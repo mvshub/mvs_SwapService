@@ -50,7 +50,7 @@ def ProcessStr(status, confirm):
     if status == Status.Swap_New:
         str = "Scan transaction, waitting for process"
     elif status == Status.Swap_Issue:
-        str = "Secondary issue Asset, waitting for confirm"
+        str = "Issue Asset, waitting for confirm"
         if confirm == Status.Tx_Confirm:
             str = "Confirm tx success"
     elif status == Status.Swap_Send:

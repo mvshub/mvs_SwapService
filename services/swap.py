@@ -2,6 +2,7 @@ from services.abstract import AbstractService
 from services.swapbusiness import SwapBusiness
 from utils import response
 from models import db
+from utils.log.logger import Logger
 
 
 class SwapService(AbstractService):
@@ -11,6 +12,7 @@ class SwapService(AbstractService):
         self.businesses = {}
 
     def start_service(self):
+        Logger.get().info("SwapService start_service ...")
         AbstractService.start_service(self)
 
         self.businesses = SwapBusiness(self, self.rpcmanager, self.settings)
