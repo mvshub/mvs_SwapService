@@ -18,7 +18,7 @@
             "name":"ETHToken",
             "type":"rpcs.eth_token.EthToken",
             "contract_mapaddress":"0xa52b0a032139e6303b86cfeb0bb9ae780a610354",
-            "uri": "http://13.57.140.140:8545"
+            "uri": "http://127.0.0.1:8545"
         }
 
     ],
