@@ -32,7 +32,7 @@
                 "minrenew":20,
                 "account":"test1",
                 "passphrase":"test123456",
-                "did":"crosschain",
+                "did":"droplet",
                 "enable":true
             },
             {
