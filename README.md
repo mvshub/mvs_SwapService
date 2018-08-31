@@ -53,6 +53,48 @@ or, use watcher script (it will watch and restart the service if it's stopped)
 nohup ./scripts/start_swap_service.py >/dev/null 2>&1 &
 ```
 
+#### Config file
+1. service.json
+```
+服务:
+host: 服务监听地址
+port: 服务监听端口
+
+mysql数据库：
+mysql_host: 地址
+mysql_port: 监听端口
+mysql_user: 用户
+mysql_passwd: 密码
+mysql_db:  数据库名称
+
+rpcs 服务:
+id：唯一标志，不能重复
+name：ETP， ETH，ETHToken
+type：ETP为rpcs.etp.Etp， ETH代币 为 rpcs.eth_token.EthToken，ETH为 rpcs.eth.Eth
+uri:全节点url
+contract_mapaddress：ETPMap 合约地址，用于链接eth地址到etp did或者address
+
+scans 扫描置换模块：
+interval：扫描数据库间隔
+services 交易模块:
+rpc: rpc id,
+coin: 货币类型，ETH,ETP,ETHToken
+minconf: 最小块高确认,
+minrenew: 最小重试块高，交易失败，未生成有效交易哈希且超过minrenew，重新发送交易(未开启)
+account: 用户名
+passphrase:用户密码
+did:etp发行资产所需数字身份
+enable:是否启用
+
+
+tokens 监视代币模块：
+name:代币symbol，不能重复
+contract_address:代币创建合约地址
+enable:是否激活
+decimal: 小数位数
+```
+
+
 #### ETH
 1. install & start
 ```
@@ -197,3 +239,5 @@ mvs-cli issue test1 test123456 ERC.ABC
 mvs-cli createasset -i crosschain -n 4 -r -1 -s ERC.SMT -v 1 test1 test123456
 mvs-cli issue test1 test123456 ERC.SMT
 ```
+
+
