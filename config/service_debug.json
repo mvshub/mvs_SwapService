@@ -18,7 +18,7 @@
             "name":"ETHToken",
             "type":"rpcs.eth_token.EthToken",
             "contract_mapaddress":"0xa52b0a032139e6303b86cfeb0bb9ae780a610354",
-            "uri": "http://127.0.0.1:8545"
+            "uri": "http://13.57.140.140:8545"
         }
 
     ],
@@ -40,7 +40,7 @@
                 "coin":"ETHToken",
                 "minconf":13,
                 "minrenew":20,
-                "scan_address":"0xc1e5fd24fa2b4a3581335fc3f2850f717dd09c86",
+                "scan_address":"0x7863669296c272ddc4b0bba3badb071087b8ca6c",
                 "passphrase":"xiao123456",
                 "enable":true
             }
