@@ -32,5 +32,8 @@ def main(is_debug):
 
 
 if __name__ == '__main__':
-    is_debug = len(sys.argv) > 1
+    is_debug = False
+    if len(sys.argv) > 1:
+        if sys.argv[1] == '-d' or sys.argv[1] == '-D':
+            is_debug = True
     main(is_debug)
