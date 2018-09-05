@@ -21,7 +21,7 @@ def calc_multiple(fee):
     if int(fee) <= MIN_FEE_FOR_ETP_DEVELOPER_COMMUNITY:
         return 1
 
-    diff = (int(fee) - MIN_FEE_FOR_ETP_DEVELOPER_COMMUNITY) / MIN_FEE_FOR_ETP_DEVELOPER_COMMUNITY
+    diff = int(fee) / MIN_FEE_FOR_ETP_DEVELOPER_COMMUNITY - 1
     attenuation = 0.8
     option = 0.8
     return 1 + option * ( (1 - pow(attenuation, diff) ) / (1-attenuation) )
