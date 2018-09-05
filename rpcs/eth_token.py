@@ -100,7 +100,7 @@ class EthToken(Eth):
                                 {'from': from_address, 'to': contract, 'data': data}])
         return res, 0
 
-    def transfer2(self, name, passphrase, from_address, to_address, amount):
+    def transfer2(self, name, passphrase, from_address, to_address, amount, from_fee):
         contract = self.get_contractaddress(name)
         if contract is None:
             return None, 0
@@ -113,11 +113,15 @@ class EthToken(Eth):
             arg_to = to_address
 
         fee_amount = 0  # int(fee * amount)
+        gasPrice = self.gas_price()
+        gasUsed =  int(gasPrice * constants.calc_multiple(from_fee))
 
         data = '0xa9059cbb' + '0' * \
             (64 - len(arg_to)) + arg_to + ('%064x' % (amount - fee_amount))
         res = self.make_request('eth_sendTransaction', [
-                                {'from': from_address, 'to': contract, 'data': data}])
+                                {'from': from_address, 'to': contract, 'data': data, 'gasPrice':hex(gasUsed)}])
+        
+        Logger.get().info("tx:%s,gasprice:%d, gasUsed:%d", res, gasPrice, gasUsed)
         return res, fee_amount
 
     def get_eth_token(self, symbol):
@@ -136,7 +140,8 @@ class EthToken(Eth):
                 '{} not start with {} or not configed.'.format(symbol, constants.SWAP_TOKEN_PREFIX))
         return token
 
-    def transfer_asset(self, to, symbol, amount, settings):
+
+    def transfer_asset(self, to, symbol, amount, from_fee, settings):
         token = self.get_eth_token(symbol)
         address = settings["scan_address"]
 
@@ -146,7 +151,7 @@ class EthToken(Eth):
             return None, 0
 
         tx_hash, fee = self.transfer2(
-            token, None, address, to, self.to_wei(token, amount))
+            token, None, address, to, self.to_wei(token, amount), from_fee)
         return tx_hash, self.from_wei(token, fee)
 
     def get_decimal(self, name):

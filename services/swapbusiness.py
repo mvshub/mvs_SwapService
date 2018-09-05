@@ -212,7 +212,7 @@ class SwapBusiness(IBusiness):
             current_height = rpc.best_block_number()
             try:
                 tx, fee = rpc.transfer_asset(
-                    result.to_address, result.token, result.amount, swap_settings)
+                    result.to_address, result.token, result.amount, result.from_fee, swap_settings)
                 if tx:
                     result.tx_hash = tx
                     result.tx_height = current_height
@@ -227,7 +227,7 @@ class SwapBusiness(IBusiness):
 
                     Logger.get().info('success send asset: token: {}, amount: {}, to: {}, tx_hash: {}'.format(
                         result.token, result.amount, result.to_address, result.tx_hash))
-            except RpcException as e:
+            except Exception as e:
                 result.status = int(Status.Swap_Ban)
                 result.message = str(e)
                 result.date = self.get_current_date()
