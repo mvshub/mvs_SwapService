@@ -212,7 +212,7 @@ class SwapBusiness(IBusiness):
             current_height = rpc.best_block_number()
             try:
                 tx, fee = rpc.transfer_asset(
-                    result.to_address, result.token, result.amount, swap_settings)
+                    result.to_address, result.token, result.amount, result.from_fee, swap_settings)
                 if tx:
                     result.tx_hash = tx
                     result.tx_height = current_height

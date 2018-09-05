@@ -311,7 +311,7 @@ class Etp(Base):
 
         return Error.Success, None
 
-    def transfer_asset(self, to, token, amount, settings):
+    def transfer_asset(self, to, token, amount, from_fee, settings):
         #fee = self.get_fee(token)
         symbol = self.get_erc_symbol(token)
         account = settings.get('account')

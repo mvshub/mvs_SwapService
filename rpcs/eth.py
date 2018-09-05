@@ -106,7 +106,11 @@ class Eth(Base):
         res = self.make_request('eth_estimateGas', [options])
         return int(res, 16)
 
-    def transfer(self, passphrase, from_, to_, amount):
+    def gas_price(self):
+        res = self.make_request('eth_gasPrice')
+        return int(res, 16)
+
+    def transfer(self, passphrase, from_, to_, amount, from_fee):
         #fee = self.settings['fee']
 
         fee_amount = 0 #int(fee * int(amount))
@@ -114,20 +118,22 @@ class Eth(Base):
         options = {'from': from_, 'to': to_,
                    'value': hex(int(amount) - fee_amount)}
         gas = self.estimate_gas(options)
+        gasPrice = self.gas_price() * from_fee / constants.MIN_FEE_FOR_ETP_DEVELOPER_COMMUNITY
         options['gas'] = hex(gas)
+        options['gasPrice'] = hex(gasPrice)
 
         res = self.make_request('eth_sendTransaction', [options])
         # return res, gas * self.settings['gasPrice']
         return res, fee_amount
 
-    def transfer_asset(self, to, token, amount, settings):
+    def transfer_asset(self, to, token, amount, from_fee, settings):
         address = settings["scan_address"]
 
         if not self.unlock_account(address, settings['passphrase']):
             #logging.info('Failed to unlock_account, address:%s, passphrase:%s' % (address, settings['passphrase']))
             return None, 0
 
-        tx_hash, fee = self.transfer(None, address, to, self.to_wei(token, amount))
+        tx_hash, fee = self.transfer(None, address, to, self.to_wei(token, amount), from_fee)
 
         return tx_hash, self.from_wei(token, fee)
 
