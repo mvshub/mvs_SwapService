@@ -51,6 +51,10 @@ class MainService(IService):
     def start(self):
         self.app = Flask(__name__)
 
+        import os
+        self.app.config['CSRF_ENABLED'] = True
+        self.app.config['SECRET_KEY'] = os.urandom(24)
+        
         @self.app.route('/')
         def root():
             return render_template('index.html')
