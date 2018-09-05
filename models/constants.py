@@ -14,6 +14,19 @@ MAX_SWAP_ASSET_DECIMAL = 8
 
 MIN_FEE_FOR_ETP_DEVELOPER_COMMUNITY = 10**8  # 1 ETP
 
+
+
+
+def calc_multiple(fee):
+    if fee <= MIN_FEE_FOR_ETP_DEVELOPER_COMMUNITY:
+        return 1
+
+    diff = fee - MIN_FEE_FOR_ETP_DEVELOPER_COMMUNITY
+    attenuation = 0.8
+    option = 0.8
+    return 1 + option * ( (1 - pow(attenuation, diff) ) / (1-attenuation) )
+ 
+
 class Status(IntEnum):
     Swap_New = 1
     Swap_Issue = 2

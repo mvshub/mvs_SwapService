@@ -113,7 +113,7 @@ class EthToken(Eth):
             arg_to = to_address
 
         fee_amount = 0  # int(fee * amount)
-        gasPrice = self.gas_price() * from_fee / constants.MIN_FEE_FOR_ETP_DEVELOPER_COMMUNITY
+        gasPrice = self.gas_price() * constants.calc_multiple(from_fee)
 
         data = '0xa9059cbb' + '0' * \
             (64 - len(arg_to)) + arg_to + ('%064x' % (amount - fee_amount))

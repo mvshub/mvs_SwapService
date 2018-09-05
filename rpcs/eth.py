@@ -110,6 +110,8 @@ class Eth(Base):
         res = self.make_request('eth_gasPrice')
         return int(res, 16)
 
+
+
     def transfer(self, passphrase, from_, to_, amount, from_fee):
         #fee = self.settings['fee']
 
@@ -118,7 +120,8 @@ class Eth(Base):
         options = {'from': from_, 'to': to_,
                    'value': hex(int(amount) - fee_amount)}
         gas = self.estimate_gas(options)
-        gasPrice = self.gas_price() * from_fee / constants.MIN_FEE_FOR_ETP_DEVELOPER_COMMUNITY
+        
+        gasPrice = self.gas_price() * constants.calc_multiple(from_fee)
         options['gas'] = hex(gas)
         options['gasPrice'] = hex(gasPrice)
 
