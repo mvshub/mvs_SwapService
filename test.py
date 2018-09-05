@@ -68,7 +68,7 @@ def send_ethtoken_asset_from_mvs():
     one_token = 10 ** 9
     amount = random.randrange(one_token*10, one_token*20)
     print('send_ethtoken_asset_from_mvs: {}'.format(amount))
-    em, result = mvs_rpc.swaptoken('test2', 'test123456', "crosschain", constants.SWAP_TOKEN_PREFIX + 'XYZ', amount,\
+    em, result = mvs_rpc.swaptoken('test2', 'test123456', "droplet", constants.SWAP_TOKEN_PREFIX + 'XYZ', amount,\
                                    "0x0c1933b3fdaf77bc196e7853256959ab9b28e1ff")
     assert( em == None)
     return result['transaction']['hash']
@@ -77,7 +77,7 @@ def send_eth_asset_from_mvs():
     one_token = 10 ** 9
     amount = random.randrange(one_token*10, one_token*20)
     print('send_eth_asset_from_mvs: {}'.format(amount))
-    em, result = mvs_rpc.swaptoken('test2', 'test123456', "crosschain", constants.SWAP_TOKEN_PREFIX + 'ETH',\
+    em, result = mvs_rpc.swaptoken('test2', 'test123456', "droplet", constants.SWAP_TOKEN_PREFIX + 'ETH',\
             amount, "0x0c1933b3fdaf77bc196e7853256959ab9b28e1ff")
     assert( em == None)
     return result['transaction']['hash']

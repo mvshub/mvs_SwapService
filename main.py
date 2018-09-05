@@ -1,11 +1,17 @@
 from utils.log.logger import Logger
 from services.service import MainService
+import sys
 import json
 import signal
 
 
-def main():
-    settings = json.loads(open('config/service.json').read())
+def main(is_debug):
+    setting_filename = 'config/service.json'
+    if is_debug:
+        setting_filename = 'config/service_debug.json'
+    Logger.get().info("Loading config: {}".format(setting_filename))
+
+    settings = json.loads(open(setting_filename).read())
     service = MainService(settings)
 
     def stop_signal(a, b):
@@ -26,4 +32,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    is_debug = False
+    if len(sys.argv) > 1:
+        if sys.argv[1] == '-d' or sys.argv[1] == '-D':
+            is_debug = True
+    main(is_debug)

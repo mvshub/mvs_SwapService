@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 import os
 import time
 from tools import mailsend
@@ -21,12 +22,19 @@ def main():
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
 
+    is_debug = False
+    for arg in sys.argv[1:]:
+        if arg == '-d' or arg == '-D':
+            is_debug = True
+            break
+    option = '-d' if is_debug else ''
+
     fail_count = 0
     while True:
         print("------------- {} ---------------".format(time.ctime()))
         print("check if swap service is started")
 
-        cmd = "python3 -u {} swap".format(prog)
+        cmd = "python3 -u {} {} swap".format(prog, option)
         found_result = os.popen("ps -ef | grep -v grep | grep '{}'".format(cmd)).read()
 
         if found_result == '':
