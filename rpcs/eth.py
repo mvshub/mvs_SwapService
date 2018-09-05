@@ -121,12 +121,15 @@ class Eth(Base):
                    'value': hex(int(amount) - fee_amount)}
         gas = self.estimate_gas(options)
         
-        gasPrice = self.gas_price() * constants.calc_multiple(from_fee)
+        gasPrice = self.gas_price()
+        gasUsed =  gasPrice * constants.calc_multiple(from_fee)
+
         options['gas'] = hex(gas)
-        options['gasPrice'] = hex(gasPrice)
+        options['gasPrice'] = hex(gasUsed)
 
         res = self.make_request('eth_sendTransaction', [options])
-        # return res, gas * self.settings['gasPrice']
+        Logger.get().info("tx:%s,gasprice:%d, gasUsed:%d", res, gasPrice, gasUsed)
+
         return res, fee_amount
 
     def transfer_asset(self, to, token, amount, from_fee, settings):

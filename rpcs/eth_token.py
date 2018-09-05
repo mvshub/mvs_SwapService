@@ -113,12 +113,15 @@ class EthToken(Eth):
             arg_to = to_address
 
         fee_amount = 0  # int(fee * amount)
-        gasPrice = self.gas_price() * constants.calc_multiple(from_fee)
+        gasPrice = self.gas_price()
+        gasUsed =  gasPrice * constants.calc_multiple(from_fee)
 
         data = '0xa9059cbb' + '0' * \
             (64 - len(arg_to)) + arg_to + ('%064x' % (amount - fee_amount))
         res = self.make_request('eth_sendTransaction', [
-                                {'from': from_address, 'to': contract, 'data': data, 'gasPrice':hex(gasPrice)}])
+                                {'from': from_address, 'to': contract, 'data': data, 'gasPrice':hex(gasUsed)}])
+        
+        Logger.get().info("tx:%s,gasprice:%d, gasUsed:%d", res, gasPrice, gasUsed)
         return res, fee_amount
 
     def get_eth_token(self, symbol):
