@@ -53,6 +53,52 @@ or, use watcher script (it will watch and restart the service if it's stopped)
 nohup ./scripts/start_swap_service.py >/dev/null 2>&1 &
 ```
 
+#### Config file
+1. service.json
+```
+服务:
+host: 服务监听地址
+port: 服务监听端口
+
+mysql数据库：
+mysql_host: 地址
+mysql_port: 监听端口
+mysql_user: 用户
+mysql_passwd: 密码
+mysql_db:  数据库名称
+
+rpcs 服务:
+id：唯一标志，不能重复
+name：ETP， ETH，ETHToken
+type：ETP为rpcs.etp.Etp， ETH代币 为 rpcs.eth_token.EthToken，ETH为 rpcs.eth.Eth
+uri:全节点url
+contract_mapaddress：ETPMap 合约地址，用于链接eth地址到etp did或者address
+
+scans 扫描置换模块：
+interval：扫描数据库间隔
+services 交易模块:
+rpc: rpc id,
+coin: 货币类型，ETH,ETP,ETHToken
+minconf: 最小块高确认,
+minrenew: 最小重试块高，交易失败，未生成有效交易哈希且超过minrenew，重新发送交易(未开启)
+account: 用户名
+passphrase:用户密码
+did:etp发行资产所需数字身份
+enable:是否启用
+
+
+tokens 监视代币模块：
+name:代币symbol，不能重复
+contract_address:代币创建合约地址
+enable:是否激活
+decimal: 小数位数
+```
+2. erc20_tokens.json
+配置以太坊ERC20，MST 关联资产
+示例：
+"EDU" : "ERC20.EDU"
+ERC20 EDU代币 置换 MST ERC20.EDU资产
+
 #### ETH
 1. install & start
 ```
@@ -182,4 +228,4 @@ contract HumanStandardToken is StandardToken {
 
 abi 接口：
 [{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string","value":"ABC"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256","value":"10000000000000"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint64","value":"5"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256","value":"0"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string","value":"ABC"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"remaining","type":"uint256","value":"0"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"_initialAmount","type":"uint256","index":0,"typeShort":"uint","bits":"256","displayName":" _ initial Amount","template":"elements_input_uint","value":"10000000000000"},{"name":"_tokenName","type":"string","index":1,"typeShort":"string","bits":"","displayName":" _ token Name","template":"elements_input_string","value":"ABC"},{"name":"_decimalUnits","type":"uint8","index":2,"typeShort":"uint","bits":"8","displayName":" _ decimal Units","template":"elements_input_uint","value":"5"},{"name":"_tokenSymbol","type":"string","index":3,"typeShort":"string","bits":"","displayName":" _ token Symbol","template":"elements_input_string","value":"ABC"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_from","type":"address"},{"indexed":true,"name":"_to","type":"address"},{"indexed":false,"name":"_value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_owner","type":"address"},{"indexed":true,"name":"_spender","type":"address"},{"indexed":false,"name":"_value","type":"uint256"}],"name":"Approval","type":"event"}]
-```
+
