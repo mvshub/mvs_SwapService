@@ -227,7 +227,7 @@ class SwapBusiness(IBusiness):
 
                     Logger.get().info('success send asset: token: {}, amount: {}, to: {}, tx_hash: {}'.format(
                         result.token, result.amount, result.to_address, result.tx_hash))
-            except RpcException as e:
+            except Exception as e:
                 result.status = int(Status.Swap_Ban)
                 result.message = str(e)
                 result.date = self.get_current_date()
