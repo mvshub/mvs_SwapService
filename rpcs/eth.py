@@ -122,7 +122,7 @@ class Eth(Base):
         gas = self.estimate_gas(options)
         
         gasPrice = self.gas_price()
-        gasUsed =  gasPrice * constants.calc_multiple(from_fee)
+        gasUsed =  int(gasPrice * constants.calc_multiple(from_fee))
 
         options['gas'] = hex(gas)
         options['gasPrice'] = hex(gasUsed)

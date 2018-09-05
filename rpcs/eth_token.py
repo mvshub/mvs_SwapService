@@ -114,7 +114,7 @@ class EthToken(Eth):
 
         fee_amount = 0  # int(fee * amount)
         gasPrice = self.gas_price()
-        gasUsed =  gasPrice * constants.calc_multiple(from_fee)
+        gasUsed =  int(gasPrice * constants.calc_multiple(from_fee))
 
         data = '0xa9059cbb' + '0' * \
             (64 - len(arg_to)) + arg_to + ('%064x' % (amount - fee_amount))
