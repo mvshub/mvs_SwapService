@@ -294,6 +294,7 @@ class SwapBusiness(IBusiness):
     @timeit
     def ban_swap(self, result, tx_height_new, current_height, minRenew):
         tx_hash = result.tx_hash
+        pre_status = result.status
         result.status = int(Status.Swap_Ban)
         result.message = "{} maybe is reverted because it was on a forked chain.".format(
             tx_hash)
@@ -301,9 +302,16 @@ class SwapBusiness(IBusiness):
         result.time = date_time.get_current_time()
         db.session.add(result)
         Logger.get().info('ban fork swap, coin:%s, token:%s, last tx hash: %s, '
-                          'last tx height: %d, cur height: %d,  ' %
+                          'last tx height: %d, cur height: %d, status: %d' %
                           (result.coin, result.token, tx_hash,
-                           result.tx_height, current_height))
+                           result.tx_height, current_height, pre_status))
+
+        if pre_status == int(Status.Swap_Issue):
+            issue_coin = db.session.query(Coin).filter_by(
+                name=r.coin, token=r.token).first()
+            issue_coin.status = int(Status.Token_Normal)
+            db.session.add(issue_coin)
+            db.session.commit()
 
     @timeit
     def renew_swap(self, result, tx_height_new, current_height, minRenew):
