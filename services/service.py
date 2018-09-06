@@ -54,7 +54,7 @@ class MainService(IService):
         import os
         self.app.config['CSRF_ENABLED'] = True
         self.app.config['SECRET_KEY'] = os.urandom(24)
-        
+
         @self.app.route('/')
         def root():
             return render_template('index.html')
@@ -432,11 +432,15 @@ class MainService(IService):
                 result.message = "Retry swap"
                 result.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
                 result.time = int(time.strftime('%2H%2M%2S', time.localtime()))
+                result.confirm_status = None
+                result.tx_hash = None
+                result.tx_height = 0
+                result.confirm_height = 0
                 db.session.add(result)
                 db.session.commit()
                 return response.make_response(
                     response.ERR_SUCCESS,
-                    "retry success,swap_id: %d, coin: %s , token: %s, from: %s, to: %s, amount: %f" % (
+                    "retry success, swap_id: %d, coin: %s , token: %s, from: %s, to: %s, amount: %f" % (
                         result.swap_id, result.coin, result.token, result.from_address,
                         result.to_address, result.amount))
 
