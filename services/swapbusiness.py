@@ -104,7 +104,7 @@ class SwapBusiness(IBusiness):
 
             except SwapException as e:
                 if e.errcode != Error.EXCEPTION_COIN_ISSUING:
-                    if e.errcode in  self.ban_code:
+                    if e.errcode in self.ban_code:
                         r.status = int(Status.Swap_Ban)
 
                     r.message = e.get_error_str()
@@ -146,10 +146,13 @@ class SwapBusiness(IBusiness):
                 tx = rpc.get_transaction(r.tx_hash)
 
                 tx_height_new = r.tx_height
-                # if tx == None:
-                #     if tx_height_new != 0 and tx_height_new + minRenew < current_height:
-                #         self.renew_swap(r, tx_height_new,
-                #                         current_height, minRenew)
+                if tx == None:
+                    if tx_height_new != 0 and tx_height_new + minRenew < current_height:
+                        self.ban_swap(r, tx_height_new,
+                                      current_height, minRenew)
+                        # self.renew_swap(r, tx_height_new,
+                        #                 current_height, minRenew)
+                        continue
 
                 if tx == None or tx['blockNumber'] == 0:
                     continue
@@ -288,8 +291,23 @@ class SwapBusiness(IBusiness):
         return err
 
     @timeit
+    def ban_swap(self, result, tx_height_new, current_height, minRenew)
+        tx_hash = result.tx_hash
+        result.status = int(Status.Swap_Ban)
+        result.message = "{} maybe is reverted because it was on a forked chain.".format(
+            tx_hash)
+        result.date = self.get_current_date()
+        result.time = self.get_current_time()
+        db.session.add(result)
+        Logger.get().info('ban fork swap, coin:%s, token:%s, last tx hash: %s, '
+                          'last tx height: %d, cur height: %d,  ' %
+                          (result.coin, result.token, tx_hash,
+                           result.tx_height, current_height))
+
+    @timeit
     def renew_swap(self, result, tx_height_new, current_height, minRenew):
         tx_hash = result.tx_hash
+        tx_height = result.tx_height
         result.status = int(Status.Swap_New)
         result.confirm_status = None
         result.tx_hash = None
@@ -297,9 +315,10 @@ class SwapBusiness(IBusiness):
         result.confirm_height = 0
         result.message = "renew swap"
         db.session.add(result)
-        Logger.get().info('success renew swap, coin:%s, token:%s, last tx hash: %s, \
-        last tx height: %d, cur height: %d,  ' %
-                          (result.coin, result.token, tx_hash, result.tx_height, current_height))
+        Logger.get().info('success renew swap, coin:%s, token:%s, last tx hash: %s, '
+                          'last tx height: %d, cur height: %d,  ' %
+                          (result.coin, result.token, tx_hash,
+                           tx_height, current_height))
 
     @timeit
     def process_unconfirm(self):
@@ -358,7 +377,8 @@ class SwapBusiness(IBusiness):
 
             results.append(result)
 
-            Logger.get().info('scan swap, coin: %s, token: %s, swap_id: %s, tx_from: %s, from: %s, to: %s' %
+            Logger.get().info('scan swap, coin: %s, token: %s, swap_id: %s, '
+                              'tx_from: %s, from: %s, to: %s' %
                               (result.coin, result.token, result.swap_id, result.tx_from,
                                ("" if not result.from_address else result.from_address),
                                   ("" if not result.to_address else result.to_address)))
