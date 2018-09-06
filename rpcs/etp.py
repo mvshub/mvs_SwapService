@@ -215,15 +215,6 @@ class Etp(Base):
             raise
         return tx_hash, self.from_wei(symbol, fee_volume)
 
-    def is_invalid_to_address(self, address):
-        return address is None or len(address) < 42 or not self.is_hex(address[2:])
-
-    def is_hex(self, s):
-        if s is None or s == '':
-            return False
-        import re
-        return re.fullmatch(r"^[0-9a-f]+", s) is not None
-
     def get_transaction(self, txid):
         result = None
         try:
