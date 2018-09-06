@@ -15,6 +15,7 @@ from models.coin import Coin
 class Etp(Base):
     rpc_version = "2.0"
     rpc_id = 0
+    blackhole_address = '1111111111111111111114oLvT2'
 
     def __init__(self, settings, tokens):
         Base.__init__(self, settings)
@@ -100,6 +101,17 @@ class Etp(Base):
                 return supply
         return 0
 
+    def get_address_asset(self, address, token):
+        if token:
+            res = self.make_request(
+                'getaddressasset', [address, '-s', token])
+            assets = res['result']
+            if len(assets) > 0:
+                total = sum([int(x['quantity']) for x in assets])
+                supply = self.from_wei(token, total)
+                return supply
+        return 0
+
     def get_total_supply(self, token=None):
         if token:
             res = self.make_request('getasset', [token])
@@ -107,7 +119,8 @@ class Etp(Base):
             if len(assets) > 0:
                 total = sum([int(x['maximum_supply']) for x in assets])
                 supply = self.from_wei(token, total)
-                return supply
+                burned = self.get_address_asset(blackhole_address, token)
+                return supply - burned
         return 0
 
     def get_balance(self, address):
