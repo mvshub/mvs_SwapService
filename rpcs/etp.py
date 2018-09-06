@@ -285,7 +285,7 @@ class Etp(Base):
         if volume == 0:
             raise SwapException(Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL)
 
-        if supply < amount and total_supply < issue_coin.total_supply:
+        if total_supply < issue_coin.total_supply:
             issue_amount = issue_coin.total_supply - \
                 decimal.Decimal(total_supply)
             if issue_amount < decimal.Decimal(amount - supply):
@@ -299,7 +299,7 @@ class Etp(Base):
                     token)
                 try:
                     self.create_asset(account, passphrase, to_did,
-                                      dec, -1, symbol, issue_amount, description)
+                                      dec, -1, symbol, amount, description)
                     tx_hash = self.issue(account, passphrase, symbol)
                 except RpcException as e:
                     self.delete_asset(account, passphrase, symbol)
@@ -308,7 +308,7 @@ class Etp(Base):
                 return Error.Success, tx_hash
             else:
                 tx_hash = self.secondary_issue(
-                    account, passphrase, to_did, symbol, issue_amount)
+                    account, passphrase, to_did, symbol, amount)
 
                 return Error.Success, tx_hash
 
