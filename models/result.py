@@ -40,6 +40,7 @@ class Result(db.Model):
         dep.token = dep_.token
         dep.coin = dep_.coin
         dep.tx_hash = dep_.tx_hash
+        dep.tx_burn = dep_.tx_burn
         dep.tx_from = dep_.tx_from
         dep.confirm_status = dep_.confirm_status
         dep.status = dep_.status

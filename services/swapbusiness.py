@@ -106,6 +106,7 @@ class SwapBusiness(IBusiness):
 
                 self.before_swap(rpc, r)
                 self.send_swap_tx(rpc, r)
+                self.after_swap(r)
 
             except SwapException as e:
                 if e.errcode != Error.EXCEPTION_COIN_ISSUING:
@@ -148,7 +149,10 @@ class SwapBusiness(IBusiness):
                 current_height = rpc.best_block_number()
                 minconf = self.min_confirm_map[swap_coin]
                 minRenew = self.min_renew_map[swap_coin]
-                tx = rpc.get_transaction(r.tx_hash)
+                if r.status == int(Status.Swap_Burn):
+                    tx = rpc.get_transaction(r.tx_burn)
+                else:
+                    tx = rpc.get_transaction(r.tx_hash)
 
                 tx_height_new = r.tx_height
                 if tx == None:
@@ -190,21 +194,15 @@ class SwapBusiness(IBusiness):
                         r.date = date_time.get_current_date()
                         r.time = date_time.get_current_time()
 
-                        r.status = int(Status.Swap_Finish)
-                        r.message = "confirm send tx success, swap finish"
+                        if r.coin != 'ETP':
+                            r.status = int(Status.Swap_Finish)
+                            r.message = "confirm send tx success, swap finish"
+                            Logger.get().info(
+                                'finish swap, coin: {}, token: {}, swap_id: {}, tx_from: {}, from: {}, to: {}'.format(
+                                    r.coin, r.token, r.swap_id, r.tx_from, r.from_address, r.to_address))
 
-                        Logger.get().info(
-                            'finish swap, coin: {}, token: {}, swap_id: {}, tx_from: {}, from: {}, to: {}'.format(
-                                r.coin, r.token, r.swap_id, r.tx_from, r.from_address, r.to_address))
-
-                        if r.coin == 'ETP':
-                            r.status = int(Status.Swap_Burn)
+                        else:
                             r.message = "confirm send tx success, wait to burn"
-                            src_rpc = self.get_src_rpc(r)
-                            src_settings = self.get_rpc_settings(r.coin)
-                            src_rpc.transfer_asset("BLACKHOLE", r.token, r.amount, 0,
-                                "burn for "% r.tx_hash, src_settings)
-                            Logger.get().info('confirm send, wait to burn: swap_id=%s' %(r.swap_id,))
 
 
 
@@ -316,6 +314,37 @@ class SwapBusiness(IBusiness):
                                   (result.token, result.tx_hash))
 
         return err
+
+    @timeit
+    def after_swap(self, result):
+        if result.status == Status.Swap_Send and result.confirm_status == Status.Tx_Confirm:
+            try:
+                src_rpc = self.get_src_rpc(result)
+                src_settings = self.get_rpc_settings(result.coin)
+                tx, _ = src_rpc.transfer_asset("BLACKHOLE", result.token, result.amount, 0,
+                    "burn for %s" % result.from_tx, src_settings)
+                if tx:
+                    result.tx_burn = tx
+                    result.status = int(Status.Swap_Burn)
+                    result.confirm_status = int(Status.Tx_Unconfirm)
+                    db.message = "burn tx success, wait for confirm"
+                    result.date = date_time.get_current_date()
+                    result.time = date_time.get_current_time()
+                    db.session.add(result)
+                    db.session.commit()
+
+                    Logger.get().info('success burn asset: token: {}, amount: {}, to: {}, tx_hash: {}'.format(
+                        result.token, result.amount, result.to_address, result.tx_hash))
+            except Exception as e:
+                result.status = int(Status.Swap_Ban)
+                result.message = str(e)
+                result.date = date_time.get_current_date()
+                result.time = date_time.get_current_time()
+                Logger.get().info('burn asset failed , forbid burn again : swap_id: {}, token: {}, amount: {}, to: {}, tx_hash: {}'.format(
+                result.swap_id, result.token, result.amount, result.to_address, result.tx_hash))
+                raise
+
+        return Error.Success
 
     @timeit
     def ban_swap(self, result, tx_height_new, current_height, minRenew):
