@@ -31,7 +31,9 @@ class Status(IntEnum):
     Swap_New = 1
     Swap_Issue = 2
     Swap_Send = 3
+    Swap_Burn = 5
     Swap_Finish = 4
+
     Swap_Ban = 10
 
     Tx_Unconfirm = 0

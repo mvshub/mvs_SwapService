@@ -78,6 +78,10 @@ class SwapBusiness(IBusiness):
             return self.rpcs[swap_coin]
         return None
 
+    def get_src_rpc(self, result):
+        coin = result.coin
+        return self.rpcs[coin]
+
     @timeit
     def commit_results(self, results):
         if not results:
@@ -183,6 +187,28 @@ class SwapBusiness(IBusiness):
                         r.time = date_time.get_current_time()
 
                     elif r.status == int(Status.Swap_Send):
+                        r.date = date_time.get_current_date()
+                        r.time = date_time.get_current_time()
+
+                        r.status = int(Status.Swap_Finish)
+                        r.message = "confirm send tx success, swap finish"
+
+                        Logger.get().info(
+                            'finish swap, coin: {}, token: {}, swap_id: {}, tx_from: {}, from: {}, to: {}'.format(
+                                r.coin, r.token, r.swap_id, r.tx_from, r.from_address, r.to_address))
+
+                        if r.coin == 'ETP':
+                            r.status = int(Status.Swap_Burn)
+                            r.message = "confirm send tx success, wait to burn"
+                            src_rpc = self.get_src_rpc(r)
+                            src_settings = self.get_rpc_settings(r.coin)
+                            src_rpc.transfer_asset("BLACKHOLE", r.token, r.amount, 0,
+                                "burn for "% r.tx_hash, src_settings)
+                            Logger.get().info('confirm send, wait to burn: swap_id=%s' %(r.swap_id,))
+
+
+
+                    elif r.status == int(Status.Swap_Burn):
                         r.status = int(Status.Swap_Finish)
                         r.tx_height = tx['blockNumber']
                         r.confirm_height = current_height

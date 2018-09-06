@@ -16,6 +16,8 @@ class Result(db.Model):
 
     tx_from = db.Column(db.String(256))
     tx_hash = db.Column(db.String(256))
+    tx_burn = db.Column(db.String(256))
+
     tx_height = db.Column(db.Integer)
     confirm_height = db.Column(db.Integer)
     confirm_status = db.Column(db.SmallInteger, default=0)
