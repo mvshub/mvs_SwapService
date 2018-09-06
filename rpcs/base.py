@@ -3,6 +3,7 @@
 
 import decimal
 import math
+import json
 
 
 class Base:
@@ -10,6 +11,7 @@ class Base:
     def __init__(self, settings):
         self.settings = settings
         self.name = ''
+        self.erc20_tokens = json.loads(open('config/erc20_tokens.json').read())
 
     def get_transaction(self, txid):
         pass

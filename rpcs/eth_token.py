@@ -1,5 +1,4 @@
 from rpcs.eth import Eth
-import json
 import decimal
 from utils.log.logger import Logger
 from utils.exception import TransactionNotfoundException, RpcErrorException
@@ -14,8 +13,6 @@ class EthToken(Eth):
     def __init__(self, settings, tokens):
         Eth.__init__(self, settings)
         self.name = settings['name']
-
-        self.erc20_tokens = json.loads(open('config/erc20_tokens.json').read())
 
         self.tokens = tokens
         self.token_names = []
