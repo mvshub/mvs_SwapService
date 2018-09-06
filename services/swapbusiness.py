@@ -308,7 +308,7 @@ class SwapBusiness(IBusiness):
 
         if pre_status == int(Status.Swap_Issue):
             issue_coin = db.session.query(Coin).filter_by(
-                name=r.coin, token=r.token).first()
+                name=result.coin, token=result.token).first()
             issue_coin.status = int(Status.Token_Normal)
             db.session.add(issue_coin)
             db.session.commit()
