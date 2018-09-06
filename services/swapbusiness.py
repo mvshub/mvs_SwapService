@@ -9,10 +9,10 @@ from models.result import Result
 from models.constants import Status, Error, SwapException
 from utils.exception import RpcException, CriticalException, RpcErrorException
 from utils import response
+from utils import date_time
 from utils.log.logger import Logger
 from utils.timeit import timeit
 import threading
-import time
 import traceback
 from decimal import Decimal
 from functools import partial
@@ -178,15 +178,15 @@ class SwapBusiness(IBusiness):
                         db.session.commit()
 
                         r.message = "confirm issued tx success"
-                        r.date = self.get_current_date()
-                        r.time = self.get_current_time()
+                        r.date = date_time.get_current_date()
+                        r.time = date_time.get_current_time()
 
                     elif r.status == int(Status.Swap_Send):
                         r.status = int(Status.Swap_Finish)
                         r.tx_height = tx['blockNumber']
                         r.confirm_height = current_height
-                        r.date = self.get_current_date()
-                        r.time = self.get_current_time()
+                        r.date = date_time.get_current_date()
+                        r.time = date_time.get_current_time()
                         r.message = "confirm send tx success, swap finish"
                         Logger.get().info(
                             'finish swap, coin: {}, token: {}, swap_id: {}, tx_from: {}, from: {}, to: {}'.format(
@@ -229,8 +229,8 @@ class SwapBusiness(IBusiness):
                     result.confirm_status = int(Status.Tx_Unconfirm)
                     result.fee = fee
                     db.message = "send tx success, wait for confirm"
-                    result.date = self.get_current_date()
-                    result.time = self.get_current_time()
+                    result.date = date_time.get_current_date()
+                    result.time = date_time.get_current_time()
                     db.session.add(result)
                     db.session.commit()
 
@@ -239,8 +239,8 @@ class SwapBusiness(IBusiness):
             except Exception as e:
                 result.status = int(Status.Swap_Ban)
                 result.message = str(e)
-                result.date = self.get_current_date()
-                result.time = self.get_current_time()
+                result.date = date_time.get_current_date()
+                result.time = date_time.get_current_time()
                 Logger.get().info('send asset failed , forbid swap again : swap_id: {}, token: {}, amount: {}, to: {}, tx_hash: {}'.format(
                     result.swap_id, result.token, result.amount, result.to_address, result.tx_hash))
                 raise
@@ -278,8 +278,8 @@ class SwapBusiness(IBusiness):
                 result.tx_height = current_height
                 result.status = int(Status.Swap_Issue)
                 result.confirm_status = int(Status.Tx_Unconfirm)
-                result.date = self.get_current_date()
-                result.time = self.get_current_time()
+                result.date = date_time.get_current_date()
+                result.time = date_time.get_current_time()
 
                 issue_coin.status = int(Status.Token_Issue)
                 db.message = "send issue tx success, wait for confirm"
@@ -291,13 +291,13 @@ class SwapBusiness(IBusiness):
         return err
 
     @timeit
-    def ban_swap(self, result, tx_height_new, current_height, minRenew)
+    def ban_swap(self, result, tx_height_new, current_height, minRenew):
         tx_hash = result.tx_hash
         result.status = int(Status.Swap_Ban)
         result.message = "{} maybe is reverted because it was on a forked chain.".format(
             tx_hash)
-        result.date = self.get_current_date()
-        result.time = self.get_current_time()
+        result.date = date_time.get_current_date()
+        result.time = date_time.get_current_time()
         db.session.add(result)
         Logger.get().info('ban fork swap, coin:%s, token:%s, last tx hash: %s, '
                           'last tx height: %d, cur height: %d,  ' %
@@ -323,8 +323,7 @@ class SwapBusiness(IBusiness):
     @timeit
     def process_unconfirm(self):
         # only process the latest two weeks unconfirmed operations
-        begin_date_to_process = int(time.strftime(
-            '%4Y%2m%2d', time.localtime(time.time() - 14 * 24 * 60 * 60)))
+        begin_date_to_process = date_time.get_n_days_before(14)
         results = db.session.query(Result).filter(and_(
             Result.status != int(Status.Swap_Finish),
             Result.status != int(Status.Swap_Ban),
@@ -364,8 +363,8 @@ class SwapBusiness(IBusiness):
             result.confirm_height = 0
             result.confirm_status = int(Status.Tx_Unconfirm)
             result.status = int(Status.Swap_New)
-            result.date = self.get_current_date()
-            result.time = self.get_current_time()
+            result.date = date_time.get_current_date()
+            result.time = date_time.get_current_time()
             if not result.to_address:
                 b = db.session.query(Binder).filter_by(
                     binder=result.from_address).order_by(Binder.iden.desc()).all()
@@ -396,9 +395,3 @@ class SwapBusiness(IBusiness):
         self.post(self.process_unconfirm)
         self.post(self.process_swap)
         self.post(self.process_confirm)
-
-    def get_current_date(self):
-        return int(time.strftime('%4Y%2m%2d', time.localtime()))
-
-    def get_current_time(self):
-        return int(time.strftime('%2H%2M%2S', time.localtime()))

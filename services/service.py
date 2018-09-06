@@ -7,6 +7,7 @@ from models.binder import Binder
 from models import constants
 from models.constants import Status, Error, SwapException
 from utils import response
+from utils import date_time
 from utils.log.logger import Logger
 from flask import Flask, jsonify, redirect, url_for
 import sqlalchemy_utils
@@ -23,7 +24,6 @@ from sqlalchemy.sql import func
 from sqlalchemy import or_, and_, case
 import json
 import re
-import time
 import codecs
 
 
@@ -222,7 +222,7 @@ class MainService(IService):
         @self.app.route('/report')
         def report_per_day(date=None):
             if not date:
-                date = time.strftime('%4Y%2m%2d', time.localtime())
+                date = date_time.get_current_date();
 
             num_finished = case(
                 [(Result.status == int(Status.Swap_Finish), 1)], else_=0)
@@ -384,7 +384,7 @@ class MainService(IService):
         @self.app.route('/ban')
         def swap_ban(date=None):
             if not date:
-                date = time.strftime('%4Y%2m%2d', time.localtime())
+                date = date_time.get_current_date();
             return render_template('ban.html', date=date)
 
         @self.app.route('/getBan/<date>')
@@ -430,8 +430,8 @@ class MainService(IService):
             if result:
                 result.status = int(Status.Swap_New)
                 result.message = "Retry swap"
-                result.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
-                result.time = int(time.strftime('%2H%2M%2S', time.localtime()))
+                result.date = date_time.get_current_date()
+                result.time = date_time.get_current_time()
                 result.confirm_status = None
                 result.tx_hash = None
                 result.tx_height = 0
