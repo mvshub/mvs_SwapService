@@ -20,6 +20,7 @@ from sqlalchemy.sql import func
 from sqlalchemy import or_, and_, case
 import json
 
+
 class SwapBusiness(IBusiness):
 
     def __init__(self, service_, rpcmanager_, settings):
@@ -221,7 +222,7 @@ class SwapBusiness(IBusiness):
 
                 tx, fee = rpc.transfer_asset(
                     result.to_address, result.token, result.amount, result.from_fee,
-                     json.dumps(msg), swap_settings)
+                    json.dumps(msg), swap_settings)
                 if tx:
                     result.tx_hash = tx
                     result.tx_height = current_height
