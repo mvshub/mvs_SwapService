@@ -306,12 +306,15 @@ class SwapBusiness(IBusiness):
                           (result.coin, result.token, tx_hash,
                            result.tx_height, current_height, pre_status))
 
+        # update coin status to move on
         if pre_status == int(Status.Swap_Issue):
             issue_coin = db.session.query(Coin).filter_by(
                 name=result.coin, token=result.token).first()
             issue_coin.status = int(Status.Token_Normal)
             db.session.add(issue_coin)
-            db.session.commit()
+
+        # commit database
+        db.session.commit()
 
     @timeit
     def renew_swap(self, result, tx_height_new, current_height, minRenew):
