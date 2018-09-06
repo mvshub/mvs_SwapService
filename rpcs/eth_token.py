@@ -120,7 +120,7 @@ class EthToken(Eth):
             (64 - len(arg_to)) + arg_to + ('%064x' % (amount - fee_amount))
         res = self.make_request('eth_sendTransaction', [
                                 {'from': from_address, 'to': contract, 'data': data, 'gasPrice':hex(gasUsed)}])
-        
+
         Logger.get().info("tx:%s,gasprice:%d, gasUsed:%d", res, gasPrice, gasUsed)
         return res, fee_amount
 

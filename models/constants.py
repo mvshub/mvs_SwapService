@@ -25,7 +25,7 @@ def calc_multiple(fee):
     attenuation = 0.8
     option = 0.8
     return 1 + option * ( (1 - pow(attenuation, diff) ) / (1-attenuation) )
- 
+
 
 class Status(IntEnum):
     Swap_New = 1
