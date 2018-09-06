@@ -64,7 +64,7 @@ class Eth(Base):
                 'bad response content, failed to parse,%s' % res.text)
             return 0
 
-        return self.from_wei(token_name, wei=js['value']) 
+        return self.from_wei(token_name, wei=js['value'])
 
     def get_balance(self, address):
         try:
@@ -120,7 +120,7 @@ class Eth(Base):
         options = {'from': from_, 'to': to_,
                    'value': hex(int(amount) - fee_amount)}
         gas = self.estimate_gas(options)
-        
+
         gasPrice = self.gas_price()
         gasUsed =  int(gasPrice * constants.calc_multiple(from_fee))
 
