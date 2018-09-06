@@ -193,14 +193,17 @@ class Etp(Base):
                 symbol, str(e)))
             raise
 
-    def send_asset(self, account, passphrase, to, symbol, amount, fee):
+    def send_asset(self, account, passphrase, to, symbol, amount, fee, msg):
         tx_hash = None
 
         try:
             volume = self.to_wei(symbol, amount)
             fee_volume = 0  # int(volume * fee)
+            params = [account, passphrase, to, symbol, volume - fee_volume]
+            if msg:
+                params.extend(['-i', msg])
             res = self.make_request(
-                'didsendasset', [account, passphrase, to, symbol, volume - fee_volume])
+                'didsendasset', params)
             result = res['result']
             if result:
                 tx_hash = result['hash']
@@ -311,9 +314,9 @@ class Etp(Base):
 
         return Error.Success, None
 
-    def transfer_asset(self, to, token, amount, from_fee, settings):
+    def transfer_asset(self, to, token, amount, from_fee, msg, settings):
         #fee = self.get_fee(token)
         symbol = self.get_erc_symbol(token)
         account = settings.get('account')
         passphrase = settings.get('passphrase')
-        return self.send_asset(account, passphrase, to, symbol, amount, 0)
+        return self.send_asset(account, passphrase, to, symbol, amount, 0, msg)

@@ -18,7 +18,7 @@ from decimal import Decimal
 from functools import partial
 from sqlalchemy.sql import func
 from sqlalchemy import or_, and_, case
-
+import json
 
 class SwapBusiness(IBusiness):
 
@@ -211,8 +211,14 @@ class SwapBusiness(IBusiness):
             swap_settings = self.get_rpc_settings(swap_coin)
             current_height = rpc.best_block_number()
             try:
+                msg = {}
+                msg['token'] = result.token
+                msg['coin'] = result.coin
+                msg['from_tx'] = result.from_tx
+
                 tx, fee = rpc.transfer_asset(
-                    result.to_address, result.token, result.amount, result.from_fee, swap_settings)
+                    result.to_address, result.token, result.amount, result.from_fee,
+                     json.dumps(msg), swap_settings)
                 if tx:
                     result.tx_hash = tx
                     result.tx_height = current_height

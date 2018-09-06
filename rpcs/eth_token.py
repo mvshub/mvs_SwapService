@@ -87,7 +87,7 @@ class EthToken(Eth):
         strLen = int('0x' + symbol[126:130], 16)
         return str(binascii.unhexlify(symbol[130:194])[:strLen], "utf-8")
 
-    def transfer(self, name, passphrase, from_address, to_address, amount):
+    def transfer(self, name, passphrase, from_address, to_address, amount, msg):
         contract = self.get_contractaddress(name)
         if contract is None:
             return None
@@ -100,7 +100,7 @@ class EthToken(Eth):
                                 {'from': from_address, 'to': contract, 'data': data}])
         return res, 0
 
-    def transfer2(self, name, passphrase, from_address, to_address, amount, from_fee):
+    def transfer2(self, name, passphrase, from_address, to_address, amount, from_fee, msg):
         contract = self.get_contractaddress(name)
         if contract is None:
             return None, 0
@@ -141,7 +141,7 @@ class EthToken(Eth):
         return token
 
 
-    def transfer_asset(self, to, symbol, amount, from_fee, settings):
+    def transfer_asset(self, to, symbol, amount, from_fee, msg, settings):
         token = self.get_eth_token(symbol)
         address = settings["scan_address"]
 
@@ -151,7 +151,7 @@ class EthToken(Eth):
             return None, 0
 
         tx_hash, fee = self.transfer2(
-            token, None, address, to, self.to_wei(token, amount), from_fee)
+            token, None, address, to, self.to_wei(token, amount), from_fee, msg)
         return tx_hash, self.from_wei(token, fee)
 
     def get_decimal(self, name):
