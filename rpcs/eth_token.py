@@ -12,12 +12,11 @@ from models import constants
 class EthToken(Eth):
 
     def __init__(self, settings, tokens):
-        Eth.__init__(self, settings)
+        Eth.__init__(self, settings, tokens)
         self.name = settings['name']
 
         self.erc20_tokens = json.loads(open('config/erc20_tokens.json').read())
 
-        self.tokens = tokens
         self.token_names = []
         self.contract_addresses = []
 
