@@ -106,7 +106,7 @@ class MainService(IService):
             def getMinconf(coin, token):
                 if coin == 'ETH' or coin == 'ETHToken':
                     coin = 'ETP'
-                elif coin == 'ETP' and token == (constants.SWAP_TOKEN_PREFIX + 'ETH'):
+                elif coin == 'ETP' and token == 'ETH':
                     coin = 'ETH'
                 else:
                     coin = 'ETHToken'
