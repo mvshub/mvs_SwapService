@@ -368,9 +368,10 @@ class Etp(Base):
     def get_exchange_rate(self, token):
         rate = 88
         rate_url = None
-        token_settings = self.tokens[token]
-        if token_settings.get('exchange_rate_url'):
-            rate_url = token_settings['exchange_rate_url']
+        if self.tokens.get(token):
+            settings = self.tokens[token]
+            if settings.get('exchange_rate_url'):
+                rate_url = settings['exchange_rate_url']
 
         if not rate_url:
             symbol = self.get_erc_symbol(token)
