@@ -218,7 +218,7 @@ class SwapBusiness(IBusiness):
             try:
                 msg = {}
                 msg['coin'] = result.coin
-                msg['tx_hash'] = result.from_tx
+                msg['tx_hash'] = result.tx_from
                 msg['amount'] = result.amount
 
                 tx, fee = rpc.transfer_asset(
@@ -322,7 +322,7 @@ class SwapBusiness(IBusiness):
         tx_hash = result.tx_hash
         tx_height = result.tx_height
         result.status = int(Status.Swap_New)
-        result.confirm_status = None
+        result.confirm_status = int(Status.Tx_Unconfirm)
         result.tx_hash = None
         result.tx_height = 0
         result.confirm_height = 0

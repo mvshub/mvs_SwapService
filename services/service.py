@@ -432,7 +432,7 @@ class MainService(IService):
                 result.message = "Retry swap"
                 result.date = date_time.get_current_date()
                 result.time = date_time.get_current_time()
-                result.confirm_status = None
+                result.confirm_status = int(Status.Tx_Unconfirm)
                 result.tx_hash = None
                 result.tx_height = 0
                 result.confirm_height = 0
