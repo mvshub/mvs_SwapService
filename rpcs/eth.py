@@ -41,18 +41,6 @@ class Eth(Base):
             raise RpcErrorException('%s' % js['error']['message'])
         return js['result']
 
-    def get_coins(self):
-        coins = []
-        supply = self.get_total_supply()
-        if supply != 0:
-            coin = Coin()
-            coin.name = self.name
-            coin.token = self.name
-            coin.total_supply = supply
-            coin.decimal = 18
-            coins.append(coin)
-        return coins
-
     def get_total_supply(self, token_name=None):
         res = requests.get('https://www.etherchain.org/api/supply', timeout=constants.DEFAULT_REQUEST_TIMEOUT)
         if res.status_code != 200:

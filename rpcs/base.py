@@ -23,9 +23,6 @@ class Base:
     def transfer_asset(self, to, token, amount, from_fee, msg, settings):
         pass
 
-    def get_coins(self):
-        pass
-
     def start(self):
         pass
 

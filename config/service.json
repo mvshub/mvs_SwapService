@@ -52,6 +52,13 @@
             "contract_address":"0xf263292e14d9d8ecd55b58dad1f1df825a874b7c",
             "enable":true,
             "decimal": 18
+        },
+        {
+            "name":"ETH",
+            "contract_address":"",
+            "enable":true,
+            "decimal": 18,
+            "exchange_rate_url":"http://xxx.xxx.xxx.xx:8820/todo"
         }
     ]
 }

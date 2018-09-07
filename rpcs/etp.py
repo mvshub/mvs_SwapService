@@ -78,20 +78,6 @@ class Etp(Base):
         res = self.make_request('validateaddress', [address])
         return res['result']['is_valid']
 
-    def get_coins(self):
-        coins = []
-        for x in self.tokens:
-            symbol = self.get_erc_symbol(x['name'])
-            supply = self.get_total_supply(symbol)
-            if supply != 0:
-                coin = Coin()
-                coin.name = self.name
-                coin.token = symbol
-                coin.total_supply = supply
-                coin.decimal = self.get_decimal(symbol)
-                coins.append(coin)
-        return coins
-
     def get_account_asset(self, account, passphrase, token):
         if token:
             res = self.make_request(
@@ -230,6 +216,29 @@ class Etp(Base):
             raise
         return tx_hash, self.from_wei(symbol, fee_volume)
 
+    def send_etp(self, account, passphrase, to, amount, msg):
+        tx_hash = None
+
+        try:
+            fee_volume = 0
+            volume = int(math.ceil(amount * decimal.Decimal(10.0**8)))
+            params = [account, passphrase, to, volume]
+            if msg:
+                params.extend(['-m', msg])
+            res = self.make_request('send', params)
+            result = res['result']
+            if result:
+                tx_hash = result['hash']
+
+            Logger.get().info("send_etp: to: {}, amount: {}, volume: {}, tx_hash: {}".format(
+                to, amount, volume, tx_hash))
+
+        except RpcException as e:
+            Logger.get().error("failed to send etp to {}, volume: {}, error: {}".format(
+                to, volume, str(e)))
+            raise
+        return tx_hash, 0
+
     def is_invalid_to_address(self, address):
         return address is None or len(address) < 42 or not self.is_hex(address[2:])
 
@@ -284,9 +293,14 @@ class Etp(Base):
     def get_erc_symbol(self, token):
         if token in self.erc20_tokens:
             return self.erc20_tokens[token]
+        else if token == 'ETH':
+            return 'ETP'
         return constants.SWAP_TOKEN_PREFIX + token
 
     def before_swap(self, token, amount, issue_coin, settings):
+        if token == 'ETH':
+            return Error.Success, None
+
         account = settings.get('account')
         passphrase = settings.get('passphrase')
 
@@ -327,9 +341,35 @@ class Etp(Base):
 
         return Error.Success, None
 
+    def get_exchange_rate(self, token):
+        rate = 1.0
+        rate_url = None
+        token_settings = self.tokens[token]
+        if token_settings.get('exchange_rate_url')
+            rate_url = token_settings['exchange_rate_url']
+
+        if not rate_url:
+            symbol = self.get_erc_symbol(token)
+            raise SwapException(Error.EXCEPTION_CONFIG_ERROR_EXCHANGE_RATE_URL,
+                                'token: {}, target: {}' % (token, symbol))
+
+        # TODO get rate from rate_url
+        return rate
+
     def transfer_asset(self, to, token, amount, from_fee, msg, settings):
-        #fee = self.get_fee(token)
-        symbol = self.get_erc_symbol(token)
-        account = settings.get('account')
-        passphrase = settings.get('passphrase')
-        return self.send_asset(account, passphrase, to, symbol, amount, 0, msg)
+        if token == 'ETH':
+            account = settings.get('account')
+            passphrase = settings.get('passphrase')
+            exchange_rate = self.get_exchange_rate(token)
+            etp_amount = amount * exchange_rate
+            msg['amount'] = amount
+            msg['rate'] = exchange_rate
+            memo = json.dumps(msg)
+            return self.send_etp(account, passphrase, to, etp_amount, msg)
+        else:
+            #fee = self.get_fee(token)
+            symbol = self.get_erc_symbol(token)
+            account = settings.get('account')
+            passphrase = settings.get('passphrase')
+            memo = json.dumps(msg)
+            return self.send_asset(account, passphrase, to, symbol, amount, 0, memo)

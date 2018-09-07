@@ -48,19 +48,6 @@ class EthToken(Eth):
                 return x['fee']
         return 0
 
-    def get_coins(self):
-        coins = []
-        for x in self.tokens:
-            supply = self.get_total_supply(x['name'])
-            if supply != 0:
-                coin = Coin()
-                coin.name = self.name
-                coin.token = x['name']
-                coin.total_supply = supply
-                coin.decimal = self.get_decimal(coin.token)
-                coins.append(coin)
-        return coins
-
     def get_total_supply(self, name=None):
         contract = self.get_contractaddress(name)
         if contract is None:
@@ -150,8 +137,9 @@ class EthToken(Eth):
                               % (address, settings['passphrase']))
             return None, 0
 
+        memo = json.dumps(msg)
         tx_hash, fee = self.transfer2(
-            token, None, address, to, self.to_wei(token, amount), from_fee, msg)
+            token, None, address, to, self.to_wei(token, amount), from_fee, memo)
         return tx_hash, self.from_wei(token, fee)
 
     def get_decimal(self, name):
