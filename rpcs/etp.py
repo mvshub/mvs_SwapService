@@ -300,7 +300,7 @@ class Etp(Base):
     def get_erc_symbol(self, token):
         if token in self.erc20_tokens:
             return self.erc20_tokens[token]
-        else if token == 'ETH':
+        elif token == 'ETH':
             return 'ETP'
         return constants.SWAP_TOKEN_PREFIX + token
 
@@ -366,7 +366,7 @@ class Etp(Base):
         rate = 88
         rate_url = None
         token_settings = self.tokens[token]
-        if token_settings.get('exchange_rate_url')
+        if token_settings.get('exchange_rate_url'):
             rate_url = token_settings['exchange_rate_url']
 
         if not rate_url:
