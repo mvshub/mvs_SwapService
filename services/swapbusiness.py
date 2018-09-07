@@ -49,7 +49,8 @@ class SwapBusiness(IBusiness):
             Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL,
             Error.EXCEPTION_CONFIG_ERROR_DECIMAL,
             Error.EXCEPTION_COIN_NOT_EXIST,
-            Error.EXCEPTION_INVAILD_ADDRESS
+            Error.EXCEPTION_INVAILD_ADDRESS,
+            Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH
         )
 
     @timeit

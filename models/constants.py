@@ -92,6 +92,7 @@ class Error(IntEnum):
     EXCEPTION_COIN_AMOUNT_NO_ENOUGH = 7
     EXCEPTION_CONFIG_ERROR_DECIMAL = 8
     EXCEPTION_CONFIG_ERROR_EXCHANGE_RATE_URL = 9
+    EXCEPTION_INVAILD_EXCHANGE_RATE = 10
 
 
 class SwapException(Exception):
@@ -110,7 +111,8 @@ class SwapException(Exception):
         Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL: "Coin amount too small",
         Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH: "Coin amount no enough",
         Error.EXCEPTION_CONFIG_ERROR_DECIMAL: "Config error of decimal number, must be specified",
-        Error.EXCEPTION_CONFIG_ERROR_EXCHANGE_RATE_URL: "Config error of exchange rate url, must be specified"
+        Error.EXCEPTION_CONFIG_ERROR_EXCHANGE_RATE_URL: "Config error of exchange rate url, must be specified",
+        Error.EXCEPTION_INVAILD_EXCHANGE_RATE: "invaild exchange rate"
     }
 
     def get_error_str(self):

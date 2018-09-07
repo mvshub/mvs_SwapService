@@ -27,6 +27,8 @@ class Etp(Base):
         self.token_names = [self.get_erc_symbol(
             x['name']) for x in self.tokens]
 
+        self.exchange_rate = 0.0
+
     def start(self):
         Logger.get().info("{}: tokens: {}".format(self.name, self.token_names))
         self.best_block_number()
@@ -107,8 +109,8 @@ class Etp(Base):
             if len(assets) > 0:
                 total = sum([int(x['maximum_supply']) for x in assets])
                 supply = self.from_wei(token, total)
-                burned = self.get_address_asset(blackhole_address, token)
-                return supply - burned
+                # burned = self.get_address_asset(blackhole_address, token)
+                return supply
         return 0
 
     def get_balance(self, address):
@@ -119,6 +121,11 @@ class Etp(Base):
             Logger.get().error('failed to get ETP balance on address: %s, %s' % (address, str(e)))
         except Exception as e:
             raise
+
+    def get_balance(self, account, passphrase):      
+        res = self.make_request('getbalance', [account, passphrase])
+        return res['result']['total_available']
+
 
     def is_asset_exist(self, token):
         res = self.make_request('getasset', [token])
@@ -299,6 +306,20 @@ class Etp(Base):
 
     def before_swap(self, token, amount, issue_coin, settings):
         if token == 'ETH':
+            self.exchange_rate = self.get_exchange_rate(token)
+            etp_amount = amount * exchange_rate
+            volume = int(math.ceil(etp_amount * decimal.Decimal(10.0**8)))
+            if volume == 0:
+                raise SwapException(Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL, 
+                    'type:eth, amount:%f' % amount)
+
+            account = settings.get('account')
+            passphrase = settings.get('passphrase')
+            balances = self.get_balance(account, passphrase) 
+            if balances < volume:
+                raise SwapException(Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH, 
+                    'available: %d, amount: %d' % (balances, volume))
+
             return Error.Success, None
 
         account = settings.get('account')
@@ -358,10 +379,13 @@ class Etp(Base):
 
     def transfer_asset(self, to, token, amount, from_fee, msg, settings):
         if token == 'ETH':
+            if self.exchange_rate <= 0:
+                raise SwapException(Error.EXCEPTION_INVAILD_EXCHANGE_RATE,
+                                'exchange_rate: %f' % exchange_rate)
+
             account = settings.get('account')
-            passphrase = settings.get('passphrase')
-            exchange_rate = self.get_exchange_rate(token)
-            etp_amount = amount * exchange_rate
+            passphrase = settings.get('passphrase')       
+            etp_amount = amount * self.exchange_rate
             msg['rate'] = exchange_rate
             memo = json.dumps(msg)
             return self.send_etp(account, passphrase, to, etp_amount, msg)
