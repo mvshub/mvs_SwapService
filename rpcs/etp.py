@@ -342,7 +342,7 @@ class Etp(Base):
         return Error.Success, None
 
     def get_exchange_rate(self, token):
-        rate = 1.0
+        rate = 88
         rate_url = None
         token_settings = self.tokens[token]
         if token_settings.get('exchange_rate_url')
