@@ -26,9 +26,9 @@ class Etp(Base):
         self.tokens = {}
         for token in tokens:
             name = token['name']
-            token['erc_symbol'] = self.get_erc_symbol(name)
+            token['mvs_symbol'] = self.get_mvs_symbol(name)
             self.tokens[name] = token
-        self.token_names = [v['erc_symbol'] for (k, v) in self.tokens]
+        self.token_names = [v['mvs_symbol'] for (k, v) in self.tokens]
 
         self.exchange_rate = 0.0
 
@@ -289,7 +289,7 @@ class Etp(Base):
 
     def get_decimal(self, token):
         for (k, v) in self.tokens:
-            if v['erc_symbol'] == token:
+            if v['mvs_symbol'] == token:
                 return min(v['decimal'], constants.MAX_SWAP_ASSET_DECIMAL)
         raise SwapException(Error.EXCEPTION_CONFIG_ERROR_DECIMAL,
                             'coin={},token={}'.format(self.name, token))
@@ -300,7 +300,7 @@ class Etp(Base):
             return settings['fee']
         return 0
 
-    def get_erc_symbol(self, token):
+    def get_mvs_symbol(self, token):
         if token in self.erc20_tokens:
             return self.erc20_tokens[token]
         elif token == 'ETH':
@@ -328,7 +328,7 @@ class Etp(Base):
         account = settings.get('account')
         passphrase = settings.get('passphrase')
 
-        symbol = self.get_erc_symbol(token)
+        symbol = self.get_mvs_symbol(token)
         total_supply = self.get_total_supply(symbol)
         supply = self.get_account_asset(account, passphrase, symbol)
         volume = self.to_wei(symbol, amount, ceil=False)
@@ -374,7 +374,7 @@ class Etp(Base):
                 rate_url = settings['exchange_rate_url']
 
         if not rate_url:
-            symbol = self.get_erc_symbol(token)
+            symbol = self.get_mvs_symbol(token)
             raise SwapException(Error.EXCEPTION_CONFIG_ERROR_EXCHANGE_RATE_URL,
                                 'token: {}, target: {}' % (token, symbol))
 
@@ -395,7 +395,7 @@ class Etp(Base):
             return self.send_etp(account, passphrase, to, etp_amount, msg)
         else:
             #fee = self.get_fee(token)
-            symbol = self.get_erc_symbol(token)
+            symbol = self.get_mvs_symbol(token)
             account = settings.get('account')
             passphrase = settings.get('passphrase')
             memo = json.dumps(msg)
