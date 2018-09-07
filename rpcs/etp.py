@@ -23,9 +23,12 @@ class Etp(Base):
         self.erc20_tokens = json.loads(open('config/erc20_tokens.json').read())
 
         self.name = 'ETP'
-        self.tokens = tokens
-        self.token_names = [self.get_erc_symbol(
-            x['name']) for x in self.tokens]
+        self.tokens = {}
+        for token in tokens:
+            name = token['name']
+            token['erc_symbol'] = self.get_erc_symbol(name)
+            self.tokens[name] = token
+        self.token_names = [v['erc_symbol'] for (k, v) in self.tokens]
 
         self.exchange_rate = 0.0
 
@@ -122,7 +125,7 @@ class Etp(Base):
         except Exception as e:
             raise
 
-    def get_balance(self, account, passphrase):      
+    def get_balance(self, account, passphrase):
         res = self.make_request('getbalance', [account, passphrase])
         return res['result']['total_available']
 
@@ -285,16 +288,16 @@ class Etp(Base):
         return res['result']
 
     def get_decimal(self, token):
-        for i in self.tokens:
-            if self.get_erc_symbol(i['name']) == token:
-                return min(i['decimal'], constants.MAX_SWAP_ASSET_DECIMAL)
+        for (k, v) in self.tokens:
+            if v['erc_symbol'] == token:
+                return min(v['decimal'], constants.MAX_SWAP_ASSET_DECIMAL)
         raise SwapException(Error.EXCEPTION_CONFIG_ERROR_DECIMAL,
                             'coin={},token={}'.format(self.name, token))
 
     def get_fee(self, name):
-        for x in self.tokens:
-            if x['name'] == name:
-                return x['fee']
+        if self.tokens.get(name):
+            settings = self.tokens[name]
+            return settings['fee']
         return 0
 
     def get_erc_symbol(self, token):
@@ -310,14 +313,14 @@ class Etp(Base):
             etp_amount = amount * exchange_rate
             volume = int(math.ceil(etp_amount * decimal.Decimal(10.0**8)))
             if volume == 0:
-                raise SwapException(Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL, 
+                raise SwapException(Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL,
                     'type:eth, amount:%f' % amount)
 
             account = settings.get('account')
             passphrase = settings.get('passphrase')
-            balances = self.get_balance(account, passphrase) 
+            balances = self.get_balance(account, passphrase)
             if balances < volume:
-                raise SwapException(Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH, 
+                raise SwapException(Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH,
                     'available: %d, amount: %d' % (balances, volume))
 
             return Error.Success, None
@@ -384,7 +387,7 @@ class Etp(Base):
                                 'exchange_rate: %f' % exchange_rate)
 
             account = settings.get('account')
-            passphrase = settings.get('passphrase')       
+            passphrase = settings.get('passphrase')
             etp_amount = amount * self.exchange_rate
             msg['rate'] = exchange_rate
             memo = json.dumps(msg)
