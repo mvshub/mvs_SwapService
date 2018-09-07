@@ -9,3 +9,6 @@ def get_current_time():
 def get_n_days_before(n):
     return int(time.strftime(
         '%4Y%2m%2d', time.localtime(time.time() - n * 24 * 60 * 60)))
+
+def get_local_time():
+    return time.ctime()
