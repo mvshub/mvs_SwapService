@@ -290,7 +290,7 @@ class Etp(Base):
         return res['result']
 
     def get_decimal(self, token):
-        for k, v in self.tokens.items:
+        for k, v in self.tokens.items():
             if v['mvs_symbol'] == token:
                 return min(v['decimal'], constants.MAX_SWAP_ASSET_DECIMAL)
         raise SwapException(Error.EXCEPTION_CONFIG_ERROR_DECIMAL,
@@ -400,5 +400,5 @@ class Etp(Base):
             symbol = self.get_mvs_symbol(token)
             account = settings.get('account')
             passphrase = settings.get('passphrase')
-            memo = json.dumps(msg, cls=DecimalEncoder)
+            memo = json.dumps([v for k,v in msg.items()], cls=DecimalEncoder)
             return self.send_asset(account, passphrase, to, symbol, amount, 0, memo)

@@ -469,38 +469,17 @@ class MainService(IService):
             self.swap.stop()
 
     def format_amount(self, amount):
-        if not amount:
-            return '0'
-
-        amount_str = str(amount)
-        return self.format_amount_str(amount_str)
+        return constants.format_amount(amount)
 
     def format_rough_amount(self, amount):
         if not amount:
             return '0'
 
         amount_str = '{:0.4f}'.format(float(amount))
-        return self.format_amount_str(amount_str)
+        return constants.format_amount_str(amount_str)
 
     def format_amount_str(self, amount_str):
-        dot_index = amount_str.find('.')
-        if dot_index != -1:
-            e_index = amount_str.find('E-', dot_index)
-            if e_index == -1:
-                amount_str = amount_str.rstrip('0')
-                if amount_str.endswith('.'):
-                    amount_str = amount_str[0:len(amount_str) - 1]
-            else:
-                prefix = amount_str[:e_index]
-                postfix = amount_str[e_index:]
-                prefix = prefix.rstrip('0')
-                if prefix.endswith('.'):
-                    prefix = prefix[0:len(prefix) - 1]
-                amount_str = prefix + postfix
-
-        if amount_str == '0E-18':
-            amount_str = '0'
-        return amount_str
+        return constants.format_amount_str(amount_str)
 
     def format_time(self, time):
         return "%02d:%02d:%02d" % (

@@ -2,6 +2,7 @@ from rpcs.eth import Eth
 import json
 import decimal
 from utils.log.logger import Logger
+from utils.decimal_encoder import DecimalEncoder
 from utils.exception import TransactionNotfoundException, RpcErrorException
 import binascii
 from models.coin import Coin
@@ -136,7 +137,7 @@ class EthToken(Eth):
                               % (address, settings['passphrase']))
             return None, 0
 
-        memo = json.dumps(msg)
+        memo = json.dumps([v for k,v in msg.items()], cls=DecimalEncoder)
         tx_hash, fee = self.transfer2(
             token, None, address, to, self.to_wei(token, amount), from_fee, memo)
         return tx_hash, self.from_wei(token, fee)

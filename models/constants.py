@@ -124,3 +124,31 @@ class SwapException(Exception):
             strAll = strAll + ':' + self.errstr
 
         return strAll
+
+def format_amount(amount):
+    if not amount:
+        return '0'
+
+    amount_str = str(amount)
+    return format_amount_str(amount_str)
+
+def format_amount_str(amount_str):
+    dot_index = amount_str.find('.')
+    if dot_index != -1:
+        e_index = amount_str.find('E-', dot_index)
+        if e_index == -1:
+            amount_str = amount_str.rstrip('0')
+            if amount_str.endswith('.'):
+                amount_str = amount_str[0:len(amount_str) - 1]
+        else:
+            prefix = amount_str[:e_index]
+            postfix = amount_str[e_index:]
+            prefix = prefix.rstrip('0')
+            if prefix.endswith('.'):
+                prefix = prefix[0:len(prefix) - 1]
+            amount_str = prefix + postfix
+
+    if amount_str == '0E-18':
+        amount_str = '0'
+    return amount_str
+
