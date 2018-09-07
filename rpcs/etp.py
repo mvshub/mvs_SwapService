@@ -28,7 +28,7 @@ class Etp(Base):
             name = token['name']
             token['mvs_symbol'] = self.get_mvs_symbol(name)
             self.tokens[name] = token
-        self.token_names = [v['mvs_symbol'] for (k, v) in self.tokens if v['mvs_symbol']]
+        self.token_names = [v['mvs_symbol'] for k, v in self.tokens.items()]
 
         self.exchange_rate = 0.0
 
@@ -288,7 +288,7 @@ class Etp(Base):
         return res['result']
 
     def get_decimal(self, token):
-        for (k, v) in self.tokens:
+        for k, v in self.tokens.items:
             if v['mvs_symbol'] == token:
                 return min(v['decimal'], constants.MAX_SWAP_ASSET_DECIMAL)
         raise SwapException(Error.EXCEPTION_CONFIG_ERROR_DECIMAL,
