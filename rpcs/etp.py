@@ -28,7 +28,7 @@ class Etp(Base):
             name = token['name']
             token['mvs_symbol'] = self.get_mvs_symbol(name)
             self.tokens[name] = token
-        self.token_names = [v['mvs_symbol'] for (k, v) in self.tokens]
+        self.token_names = [v['mvs_symbol'] for (k, v) in self.tokens if v['mvs_symbol']]
 
         self.exchange_rate = 0.0
 
