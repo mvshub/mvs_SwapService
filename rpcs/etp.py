@@ -362,7 +362,6 @@ class Etp(Base):
             passphrase = settings.get('passphrase')
             exchange_rate = self.get_exchange_rate(token)
             etp_amount = amount * exchange_rate
-            msg['amount'] = amount
             msg['rate'] = exchange_rate
             memo = json.dumps(msg)
             return self.send_etp(account, passphrase, to, etp_amount, msg)
