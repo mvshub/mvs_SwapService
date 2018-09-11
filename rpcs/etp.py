@@ -180,9 +180,6 @@ class Etp(Base):
                                 '-n', decimal, '-r', rate, '-s', symbol, '-v', volume,
                                 '-d', description])
 
-            if 'result' not in res:
-                raise
-
             Logger.get().info("create_asset: to: {}, symbol: {}, amount: {}, volume: {}, deccimal: {}, rate: {}".
                               format(to_did, symbol, amount, volume, decimal, rate))
         except RpcException as e:
@@ -194,9 +191,6 @@ class Etp(Base):
         try:
             res = self.make_request(
                 'deletelocalasset', [account, passphrase, '-s', symbol])
-
-            if 'result' not in res:
-                raise
 
             Logger.get().info("delete_asset:  symbol: {}".format(symbol))
         except RpcException as e:
@@ -378,7 +372,7 @@ class Etp(Base):
         if not rate_url:
             symbol = self.get_mvs_symbol(token)
             raise SwapException(Error.EXCEPTION_CONFIG_ERROR_EXCHANGE_RATE_URL,
-                                'token: {}, target: {}' % (token, symbol))
+                                'token: {}, target: {}'.format(token, symbol))
 
         # TODO get rate from rate_url
         return rate
