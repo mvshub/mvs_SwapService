@@ -74,7 +74,7 @@
             "contract_address":"",
             "enable":true,
             "decimal": 18,
-            "exchange_rate_url":"http://xxx.xxx.xxx.xx:8820/todo"
+            "exchange_rate_url":"https://api.coinmarketcap.com/v2/ticker/1703/?convert=ETH"
         }
     ]
 }

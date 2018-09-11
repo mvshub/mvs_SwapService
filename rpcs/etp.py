@@ -42,6 +42,33 @@ class Etp(Base):
     def stop(self):
         return False
 
+    def request_exchange_rate(self, url):
+        result = requests.get(url, timeout=constants.DEFAULT_REQUEST_TIMEOUT)
+        if result.status_code != 200:
+            raise RpcException(
+                'bad request code, url: {}, {}'.format(url, res.status_code))
+
+        try:
+            js = json.loads(result.text)
+            if not isinstance(js, dict) or js.get('data') is None:
+                raise RpcErrorException('not data item.')
+
+            data = js['data']
+            if data.get('quotes') is None:
+                raise RpcErrorException('not quotes item')
+
+            quotes = data['quotes']
+            if quotes.get('ETH') is None:
+                raise RpcErrorException('not ETH item')
+
+            eth = quotes['ETH']
+            if eth.get('price') is None:
+                raise RpcErrorException('not price item')
+            return eth.get('price')
+        except ValueError as e:
+            pass
+        return None
+
     def make_request(self, method, params=[]):
         req_body = {
             'id': self.rpc_id,
@@ -130,7 +157,6 @@ class Etp(Base):
     def get_account_balance(self, account, passphrase):
         res = self.make_request('getbalance', [account, passphrase])
         return res['result']['total_available']
-
 
     def is_asset_exist(self, token):
         res = self.make_request('getasset', [token])
@@ -310,14 +336,14 @@ class Etp(Base):
             volume = int(math.ceil(etp_amount * decimal.Decimal(10.0**8)))
             if volume == 0:
                 raise SwapException(Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL,
-                    'type:eth, amount:%f' % amount)
+                                    'type:eth, amount:%f' % amount)
 
             account = settings.get('account')
             passphrase = settings.get('passphrase')
             balances = self.get_account_balance(account, passphrase)
             if balances < volume:
                 raise SwapException(Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH,
-                    'available: %d, amount: %d' % (balances, volume))
+                                    'available: %d, amount: %d' % (balances, volume))
 
             return Error.Success, None
 
@@ -362,7 +388,6 @@ class Etp(Base):
         return Error.Success, None
 
     def get_exchange_rate(self, token):
-        rate = 88
         rate_url = None
         if self.tokens.get(token):
             settings = self.tokens[token]
@@ -374,25 +399,30 @@ class Etp(Base):
             raise SwapException(Error.EXCEPTION_CONFIG_ERROR_EXCHANGE_RATE_URL,
                                 'token: {}, target: {}'.format(token, symbol))
 
-        # TODO get rate from rate_url
-        return rate
+        rate = self.request_exchange_rate(rate_url)
+        if not rate:
+            symbol = self.get_mvs_symbol(token)
+            raise SwapException(Error.EXCEPTION_GET_EXCHANGE_RATE_FAIL,
+                                'token: {}, target: {}, url: {}'.format(token, symbol, rate_url))
+
+        return (1 / rate)
 
     def transfer_asset(self, to, token, amount, from_fee, msg, settings):
         if token == 'ETH':
             if self.exchange_rate <= 0:
                 raise SwapException(Error.EXCEPTION_INVAILD_EXCHANGE_RATE,
-                                'exchange_rate: %f' % self.exchange_rate)
+                                    'exchange_rate: %f' % self.exchange_rate)
 
             account = settings.get('account')
             passphrase = settings.get('passphrase')
             etp_amount = amount * self.exchange_rate
             msg['rate'] = self.exchange_rate
-            memo = json.dumps([v for k,v in msg.items()], cls=DecimalEncoder)
+            memo = json.dumps([v for k, v in msg.items()], cls=DecimalEncoder)
             return self.send_etp(account, passphrase, to, etp_amount, memo)
         else:
             #fee = self.get_fee(token)
             symbol = self.get_mvs_symbol(token)
             account = settings.get('account')
             passphrase = settings.get('passphrase')
-            memo = json.dumps([v for k,v in msg.items()], cls=DecimalEncoder)
+            memo = json.dumps([v for k, v in msg.items()], cls=DecimalEncoder)
             return self.send_asset(account, passphrase, to, symbol, amount, 0, memo)
