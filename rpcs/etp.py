@@ -127,7 +127,7 @@ class Etp(Base):
         except Exception as e:
             raise
 
-    def get_balance(self, account, passphrase):
+    def get_account_balance(self, account, passphrase):
         res = self.make_request('getbalance', [account, passphrase])
         return res['result']['total_available']
 
@@ -320,7 +320,7 @@ class Etp(Base):
 
             account = settings.get('account')
             passphrase = settings.get('passphrase')
-            balances = self.get_balance(account, passphrase)
+            balances = self.get_account_balance(account, passphrase)
             if balances < volume:
                 raise SwapException(Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH,
                     'available: %d, amount: %d' % (balances, volume))
