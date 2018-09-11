@@ -54,15 +54,15 @@ class Etp(Base):
                 raise RpcErrorException('not data item.')
 
             data = js['data']
-            if data.get('quotes') is None:
+            if not isinstance(data, dict) or data.get('quotes') is None:
                 raise RpcErrorException('not quotes item')
 
             quotes = data['quotes']
-            if quotes.get('ETH') is None:
+            if not isinstance(quotes, dict) or quotes.get('ETH') is None:
                 raise RpcErrorException('not ETH item')
 
             eth = quotes['ETH']
-            if eth.get('price') is None:
+            if not isinstance(eth, dict) or eth.get('price') is None:
                 raise RpcErrorException('not price item')
             return eth.get('price')
         except ValueError as e:
