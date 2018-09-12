@@ -312,7 +312,7 @@ class Etp(Base):
     def before_swap(self, token, amount, issue_coin, settings):
         if token == 'ETH':
             self.etpeth_exchange_rate = ExchangeRate.get_etpeth_exchange_rate()
-            etp_amount = amount * self.etpeth_exchange_rate
+            etp_amount = amount * decimal.Decimal(self.etpeth_exchange_rate)
             volume = int(math.ceil(etp_amount * decimal.Decimal(10.0**8)))
             if volume == 0:
                 raise SwapException(Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL,
@@ -375,8 +375,8 @@ class Etp(Base):
 
             account = settings.get('account')
             passphrase = settings.get('passphrase')
-            etp_amount = amount * self.etpeth_exchange_rate
-            msg['rate'] = self.etpeth_exchange_rate
+            etp_amount = amount * decimal.Decimal(self.etpeth_exchange_rate)
+            msg['rate'] = constants.format_amount(self.etpeth_exchange_rate)
             memo = json.dumps([v for k, v in msg.items()], cls=DecimalEncoder)
             return self.send_etp(account, passphrase, to, etp_amount, memo)
         else:

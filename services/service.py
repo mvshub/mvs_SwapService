@@ -310,6 +310,7 @@ class MainService(IService):
                     result.confirm_status]
                 result.time = self.format_time(result.time)
                 result.amount = self.format_amount(result.amount)
+                result.rate = self.format_amount(result.rate)
                 result.fee = self.format_amount(result.from_fee)
                 result.status = constants.StatusStr[result.status]
                 return render_template('transaction.html', tx_from=tx_from,  result=result)
