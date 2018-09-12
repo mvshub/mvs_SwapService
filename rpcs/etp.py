@@ -67,7 +67,7 @@ class Etp(Base):
                 raise RpcErrorException('not price item')
             return eth.get('price')
 
-        except ValueError as e:
+        except Exception as e:
             raise RpcErrorException(
                 'Failed to request: {}. {}'.format(url, str(e)))
         return None
@@ -91,7 +91,7 @@ class Etp(Base):
             if isinstance(js, dict) and js.get('error') is not None:
                 raise RpcErrorException(js['error'])
             return js
-        except ValueError as e:
+        except Exception as e:
             raise RpcErrorException(
                 'Failed to make_request: {}. {}'.format(url, str(e)))
         return res.text
