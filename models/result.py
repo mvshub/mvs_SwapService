@@ -23,7 +23,7 @@ class Result(db.Model):
     date = db.Column(db.Integer, default=0)
     time = db.Column(db.Integer, default=0)
     message = db.Column(db.Text)
-    rate = db.Column(db.Numeric(64, 18))
+    rate = db.Column(db.Numeric(64, 18), default=1.0)
 
     fee = db.Column(db.Numeric(64, 18))
     from_fee = db.Column(db.Numeric(64, 18))
