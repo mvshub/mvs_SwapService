@@ -43,12 +43,13 @@ class Etp(Base):
         return False
 
     def request_exchange_rate(self, url):
-        result = requests.get(url, timeout=constants.DEFAULT_REQUEST_TIMEOUT)
-        if result.status_code != 200:
-            raise RpcException(
-                'bad request code, url: {}, {}'.format(url, res.status_code))
-
         try:
+            result = requests.get(
+                url, timeout=constants.DEFAULT_REQUEST_TIMEOUT)
+            if result.status_code != 200:
+                raise RpcException(
+                    'bad request code, url: {}, {}'.format(url, result.status_code))
+
             js = json.loads(result.text)
             if not isinstance(js, dict) or js.get('data') is None:
                 raise RpcErrorException('not data item.')
@@ -65,8 +66,10 @@ class Etp(Base):
             if not isinstance(eth, dict) or eth.get('price') is None:
                 raise RpcErrorException('not price item')
             return eth.get('price')
-        except ValueError as e:
-            pass
+
+        except Exception as e:
+            raise RpcErrorException(
+                'Failed to request: {}. {}'.format(url, str(e)))
         return None
 
     def make_request(self, method, params=[]):
@@ -75,17 +78,22 @@ class Etp(Base):
             'jsonrpc': self.rpc_version,
             'method': method,
             "params": params}
-        res = requests.post(
-            self.settings['uri'], json.dumps(req_body, cls=DecimalEncoder), timeout=constants.DEFAULT_REQUEST_TIMEOUT)
-        if res.status_code != 200:
-            raise RpcException('bad request code,%s' % res.status_code)
+
         try:
+            url = self.settings['uri']
+            res = requests.post(
+                url, json.dumps(req_body, cls=DecimalEncoder),
+                timeout=constants.DEFAULT_REQUEST_TIMEOUT)
+            if res.status_code != 200:
+                raise RpcException('bad request code,%s' % res.status_code)
+
             js = json.loads(res.text)
             if isinstance(js, dict) and js.get('error') is not None:
                 raise RpcErrorException(js['error'])
             return js
-        except ValueError as e:
-            pass
+        except Exception as e:
+            raise RpcErrorException(
+                'Failed to make_request: {}. {}'.format(url, str(e)))
         return res.text
 
     def is_to_address_valid(self, did):
