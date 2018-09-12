@@ -243,6 +243,7 @@ class SwapBusiness(IBusiness):
                     db.message = "send tx success, wait for confirm"
                     result.date = date_time.get_current_date()
                     result.time = date_time.get_current_time()
+                    result.rate = msg.get('rate',0.0)
                     db.session.add(result)
                     db.session.commit()
 
