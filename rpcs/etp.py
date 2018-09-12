@@ -6,6 +6,7 @@ import requests
 from utils.log.logger import Logger
 from utils.exception import RpcException, CriticalException, RpcErrorException
 from utils.decimal_encoder import DecimalEncoder
+from utils.exchange_rate import ExchangeRate
 import json
 import decimal
 from models.constants import Status, Error, SwapException
@@ -32,7 +33,7 @@ class Etp(Base):
             self.tokens[name] = token
         self.token_names = [v['mvs_symbol'] for k, v in self.tokens.items()]
 
-        self.exchange_rate = 0.0
+        self.etpeth_exchange_rate = 0.0
 
     def start(self):
         Logger.get().info("{}: tokens: {}".format(self.name, self.token_names))
@@ -41,36 +42,6 @@ class Etp(Base):
 
     def stop(self):
         return False
-
-    def request_exchange_rate(self, url):
-        try:
-            result = requests.get(
-                url, timeout=constants.DEFAULT_REQUEST_TIMEOUT)
-            if result.status_code != 200:
-                raise RpcException(
-                    'bad request code, url: {}, {}'.format(url, result.status_code))
-
-            js = json.loads(result.text)
-            if not isinstance(js, dict) or js.get('data') is None:
-                raise RpcErrorException('not data item.')
-
-            data = js['data']
-            if not isinstance(data, dict) or data.get('quotes') is None:
-                raise RpcErrorException('not quotes item')
-
-            quotes = data['quotes']
-            if not isinstance(quotes, dict) or quotes.get('ETH') is None:
-                raise RpcErrorException('not ETH item')
-
-            eth = quotes['ETH']
-            if not isinstance(eth, dict) or eth.get('price') is None:
-                raise RpcErrorException('not price item')
-            return eth.get('price')
-
-        except Exception as e:
-            raise RpcErrorException(
-                'Failed to request: {}. {}'.format(url, str(e)))
-        return None
 
     def make_request(self, method, params=[]):
         req_body = {
@@ -112,6 +83,7 @@ class Etp(Base):
             return res['result']
         except Exception as e:
             pass
+        return None
 
     def is_address_valid(self, address):
         if address is None or address == '':
@@ -339,8 +311,8 @@ class Etp(Base):
 
     def before_swap(self, token, amount, issue_coin, settings):
         if token == 'ETH':
-            self.exchange_rate = self.get_exchange_rate(token)
-            etp_amount = amount * self.exchange_rate
+            self.etpeth_exchange_rate = ExchangeRate.get_etpeth_exchange_rate()
+            etp_amount = amount * self.etpeth_exchange_rate
             volume = int(math.ceil(etp_amount * decimal.Decimal(10.0**8)))
             if volume == 0:
                 raise SwapException(Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL,
@@ -395,36 +367,16 @@ class Etp(Base):
 
         return Error.Success, None
 
-    def get_exchange_rate(self, token):
-        rate_url = None
-        if self.tokens.get(token):
-            settings = self.tokens[token]
-            if settings.get('exchange_rate_url'):
-                rate_url = settings['exchange_rate_url']
-
-        if not rate_url:
-            symbol = self.get_mvs_symbol(token)
-            raise SwapException(Error.EXCEPTION_CONFIG_ERROR_EXCHANGE_RATE_URL,
-                                'token: {}, target: {}'.format(token, symbol))
-
-        rate = self.request_exchange_rate(rate_url)
-        if not rate:
-            symbol = self.get_mvs_symbol(token)
-            raise SwapException(Error.EXCEPTION_GET_EXCHANGE_RATE_FAIL,
-                                'token: {}, target: {}, url: {}'.format(token, symbol, rate_url))
-
-        return (1 / rate)
-
     def transfer_asset(self, to, token, amount, from_fee, msg, settings):
         if token == 'ETH':
-            if self.exchange_rate <= 0:
+            if self.etpeth_exchange_rate <= 0:
                 raise SwapException(Error.EXCEPTION_INVAILD_EXCHANGE_RATE,
-                                    'exchange_rate: %f' % self.exchange_rate)
+                                    'etpeth_exchange_rate: %f' % self.etpeth_exchange_rate)
 
             account = settings.get('account')
             passphrase = settings.get('passphrase')
-            etp_amount = amount * self.exchange_rate
-            msg['rate'] = self.exchange_rate
+            etp_amount = amount * self.etpeth_exchange_rate
+            msg['rate'] = self.etpeth_exchange_rate
             memo = json.dumps([v for k, v in msg.items()], cls=DecimalEncoder)
             return self.send_etp(account, passphrase, to, etp_amount, memo)
         else:

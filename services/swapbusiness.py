@@ -113,9 +113,20 @@ class SwapBusiness(IBusiness):
                     r.message = e.get_error_str()
 
                     if e.errcode == Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH:
-                        subject = "MVS Swap reserves not enough Warning ({}: {})".format(r.coin, r.token)
+                        subject = "MVS Swap reserves not enough Warning ({}: {})".format(
+                            r.coin, r.token)
                         body = "process swap ({}: {}) transaction {} failed at {}, {}".format(
-                                r.coin, r.token, r.tx_from, data_time.get_local_time(), r.message)
+                            r.coin, r.token, r.tx_from, data_time.get_local_time(), r.message)
+                        Logger.get().error("{}\n{}".format(subject, body))
+                        symbol = "Swapping {}:{}".format(r.coin, r.token)
+                        mailer.send_mail(symbol, subject, body)
+
+                    elif (e.errcode == Error.EXCEPTION_GET_EXCHANGE_RATE_FAIL
+                          or e.errcode == Error.EXCEPTION_INVAILD_EXCHANGE_RATE):
+                        subject = "MVS Swap get etpeth exchange rate failed ({}: {})".format(
+                            r.coin, r.token)
+                        body = "process swap ({}: {}) transaction {} failed at {}, {}".format(
+                            r.coin, r.token, r.tx_from, data_time.get_local_time(), r.message)
                         Logger.get().error("{}\n{}".format(subject, body))
                         symbol = "Swapping {}:{}".format(r.coin, r.token)
                         mailer.send_mail(symbol, subject, body)
