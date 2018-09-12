@@ -59,7 +59,7 @@ class ExchangeRate:
             if not isinstance(result, dict) or result.get('sell') is None:
                 raise RpcErrorException('not sell item')
 
-            value = result.get('sell') * (1e-8)
+            value = result.get('last') * (1e-8)
             return 1 / value
 
         except Exception as e:
