@@ -73,8 +73,7 @@
             "name":"ETH",
             "contract_address":"",
             "enable":true,
-            "decimal": 18,
-            "exchange_rate_url":"https://api.coinmarketcap.com/v2/ticker/1703/?convert=ETH"
+            "decimal": 18
         }
     ]
 }
