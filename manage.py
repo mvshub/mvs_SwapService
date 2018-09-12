@@ -6,6 +6,9 @@ from models.coin import Coin
 from models.binder import Binder
 from models.result import Result
 from models.swap import Swap
+from models.swap_ban import Swap_ban
+from models.swap_ban import Swap_ban
+from models.immature import Immature
 import json
 from models import db
 
