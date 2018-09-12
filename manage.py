@@ -9,6 +9,8 @@ from models.swap import Swap
 from models.swap_ban import Swap_ban
 from models.swap_ban import Swap_ban
 from models.immature import Immature
+from models.scan import Scan
+
 import json
 from models import db
 
