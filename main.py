@@ -6,6 +6,8 @@ import signal
 
 
 def main(is_debug):
+    Logger.logFilename = "swap_log"
+
     setting_filename = 'config/service.json'
     if is_debug:
         setting_filename = 'config/service_debug.json'

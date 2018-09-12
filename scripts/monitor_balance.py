@@ -29,6 +29,8 @@ class BalanceMonitor:
         if self.address == '':
             raise CriticalException("no did/address is configed")
 
+        Logger.logFilename = "monitor_balance_{}_log".format(self.coin)
+
     def load_service_settings(self, is_debug):
         if is_debug:
             self.service_settings = json.loads(open('config/service_debug.json').read())
