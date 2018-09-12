@@ -70,7 +70,9 @@ class ExchangeRate:
     @classmethod
     def get_etpeth_exchange_rate(cls):
         coinmarketcap_rate = ExchangeRate.request_coinmarketcap_rate()
-        rightbtc_rate = ExchangeRate.request_rightbtc_rate()
+        #connection timeout to rightbtc
+        #rightbtc_rate = ExchangeRate.request_rightbtc_rate()
+        rightbtc_rate = ExchangeRate.request_coinmarketcap_rate()
 
         if not coinmarketcap_rate or not rightbtc_rate:
             raise SwapException(Error.EXCEPTION_GET_EXCHANGE_RATE_FAIL,

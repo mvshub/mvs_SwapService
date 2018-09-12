@@ -1,5 +1,5 @@
 import time
-from scripts.tools import mailsend
+from utils import mailsend
 
 
 def send_mail(symbol, subject, content, history = {}):
