@@ -68,7 +68,8 @@ class Etp(Base):
             return eth.get('price')
 
         except ValueError as e:
-            raise RpcErrorException('Failed to request_exchange_rate. {}'.format(str(e)))
+            raise RpcErrorException(
+                'Failed to request: {}. {}'.format(url, str(e)))
         return None
 
     def make_request(self, method, params=[]):
@@ -79,8 +80,9 @@ class Etp(Base):
             "params": params}
 
         try:
+            url = self.settings['uri']
             res = requests.post(
-                self.settings['uri'], json.dumps(req_body, cls=DecimalEncoder),
+                url, json.dumps(req_body, cls=DecimalEncoder),
                 timeout=constants.DEFAULT_REQUEST_TIMEOUT)
             if res.status_code != 200:
                 raise RpcException('bad request code,%s' % res.status_code)
@@ -90,7 +92,8 @@ class Etp(Base):
                 raise RpcErrorException(js['error'])
             return js
         except ValueError as e:
-            raise RpcErrorException('Failed to request_exchange_rate. {}'.format(str(e)))
+            raise RpcErrorException(
+                'Failed to make_request: {}. {}'.format(url, str(e)))
         return res.text
 
     def is_to_address_valid(self, did):
