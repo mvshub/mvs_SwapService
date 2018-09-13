@@ -33,8 +33,10 @@ def main():
     while True:
         print("------------- {} ---------------".format(time.ctime()))
         print("check if swap service is started")
-
-        cmd = "python3 -u {} {} swap".format(prog, option)
+        if is_debug:
+            cmd = "python3 -u {} {} swap".format(prog, option)
+        else:
+            cmd = "python3 -u {} swap".format(prog)
         found_result = os.popen("ps -ef | grep -v grep | grep '{}'".format(cmd)).read()
 
         if found_result == '':
