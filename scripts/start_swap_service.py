@@ -5,7 +5,7 @@ import os
 import time
 
 sys.path.append('./')
-from utils import mailsend
+from utils import mailer
 
 
 def main():
@@ -46,9 +46,8 @@ def main():
                 subject = "MVS Swap Service Restart Warning ({})".format(fail_count)
                 body = "swap service stopped ({}) and try restart at {}".format(fail_count, time.ctime())
                 print("{}\n{}".format(subject, body))
-                # NOTICE: call send_mail after config and testing
-                #ms = mailsend.MailSending()
-                #ms.send_mail("swap-service@watchdog.host", subject, body)
+                symbol = "Swap Service Process Monitor: {}".format(sys.argv[0])
+                mailer.send_mail(symbol, subject, body)
 
             fail_count += 1
         else:

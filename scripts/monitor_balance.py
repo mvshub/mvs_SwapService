@@ -8,7 +8,7 @@ from multiprocessing import Process
 
 sys.path.append('./')
 from rpcs import etp, eth
-from utils import mailsend
+from utils import mailer
 from utils.log.logger import Logger
 from utils.exception import RpcException, RpcErrorException, CriticalException
 
@@ -56,9 +56,8 @@ class BalanceMonitor:
         body = "{}: Only {} balance left on account/address '{}', at time {}".format(
             self.coin, self.balance, self.address, time.ctime())
         Logger.get().warning("\n-------\n{}\n{}\n-------".format(subject, body))
-        # NOTICE: call send_mail after config and testing
-        #ms = mailsend.MailSending()
-        #ms.send_mail("BalanceMonitor", subject, body)
+        symbol = "BalanceMonitor: {}".format(self.coin)
+        mailer.send_mail(symbol, subject, body)
 
     def get_balance(self):
         if not hasattr(self.rpc,'get_balance'):
