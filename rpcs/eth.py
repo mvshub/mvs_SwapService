@@ -11,9 +11,10 @@ from models.coin import Coin
 
 class Eth(Base):
 
-    def __init__(self, settings):
+    def __init__(self, settings, tokens):
         Base.__init__(self, settings)
         self.name = 'ETH' if settings.get('name') is None else settings['name']
+        self.tokens = tokens
         self.contract_mapaddress = settings['contract_mapaddress'].lower()
 
     def start(self):
@@ -41,18 +42,6 @@ class Eth(Base):
             raise RpcErrorException('%s' % js['error']['message'])
         return js['result']
 
-    def get_coins(self):
-        coins = []
-        supply = self.get_total_supply()
-        if supply != 0:
-            coin = Coin()
-            coin.name = self.name
-            coin.token = self.name
-            coin.total_supply = supply
-            coin.decimal = 18
-            coins.append(coin)
-        return coins
-
     def get_total_supply(self, token_name=None):
         res = requests.get('https://www.etherchain.org/api/supply', timeout=constants.DEFAULT_REQUEST_TIMEOUT)
         if res.status_code != 200:
@@ -64,7 +53,7 @@ class Eth(Base):
                 'bad response content, failed to parse,%s' % res.text)
             return 0
 
-        return self.from_wei(token_name, wei=js['value']) 
+        return self.from_wei(token_name, wei=js['value'])
 
     def get_balance(self, address):
         try:
@@ -112,7 +101,7 @@ class Eth(Base):
 
 
 
-    def transfer(self, passphrase, from_, to_, amount, from_fee):
+    def transfer(self, passphrase, from_, to_, amount, from_fee, msg):
         #fee = self.settings['fee']
 
         fee_amount = 0 #int(fee * int(amount))
@@ -120,7 +109,7 @@ class Eth(Base):
         options = {'from': from_, 'to': to_,
                    'value': hex(int(amount) - fee_amount)}
         gas = self.estimate_gas(options)
-        
+
         gasPrice = self.gas_price()
         gasUsed =  int(gasPrice * constants.calc_multiple(from_fee))
 
@@ -132,7 +121,7 @@ class Eth(Base):
 
         return res, fee_amount
 
-    def transfer_asset(self, to, token, amount, from_fee, settings):
+    def transfer_asset(self, to, token, amount, from_fee, msg, settings):
         address = settings["scan_address"]
 
         if not self.unlock_account(address, settings['passphrase']):

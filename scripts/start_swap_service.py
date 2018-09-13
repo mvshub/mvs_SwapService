@@ -3,20 +3,20 @@
 import sys
 import os
 import time
-from tools import mailsend
+
+sys.path.append('./')
+from utils import mailer
+
 
 def main():
-    script_dir = os.path.split(os.path.realpath(__file__))[0]
-    os.chdir(script_dir + "/..")
 
-    pwd = os.getcwd()
     prog = "main.py"
 
     if not os.path.exists(prog):
-        print("{}/{} does not exist".format(pwd, prog))
+        print("{} does not exist at current directory".format(prog))
         return False
     else:
-        print("run {}/{}".format(pwd, prog))
+        print("run {}/{}".format(os.getcwd(), prog))
 
     log_dir = "log"
     if not os.path.exists(log_dir):
@@ -46,9 +46,8 @@ def main():
                 subject = "MVS Swap Service Restart Warning ({})".format(fail_count)
                 body = "swap service stopped ({}) and try restart at {}".format(fail_count, time.ctime())
                 print("{}\n{}".format(subject, body))
-                # NOTICE: call send_mail after config and testing
-                #ms = mailsend.MailSending()
-                #ms.send_mail("swap-service@watchdog.host", subject, body)
+                symbol = "Swap Service Process Monitor: {}".format(sys.argv[0])
+                mailer.send_mail(symbol, subject, body)
 
             fail_count += 1
         else:

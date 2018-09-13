@@ -1,33 +1,41 @@
 #!/usr/bin/env python3
 # coding:utf-8
 
+import sys
 import time
 import json
-from tools import mailsend
 from multiprocessing import Process
 
-import sys
 sys.path.append('./')
-sys.path.append('../')
 from rpcs import etp, eth
+from utils import mailer
 from utils.log.logger import Logger
 from utils.exception import RpcException, RpcErrorException, CriticalException
 
-service_settings = json.loads(open('../config/service.json').read())
-
 class BalanceMonitor:
-    def __init__(self, setting):
+    def __init__(self, setting, is_debug):
         self.coin = setting['coin']
         self.balance_limit = setting['limit']
         self.balance = 0
         self.rpc = None
         self.address = ''
+        self.service_settings = {}
+
+        self.load_service_settings(is_debug)
 
         self.parse_service_settings()
         if self.rpc == None:
             raise CriticalException("no uri/host/port is configed")
         if self.address == '':
             raise CriticalException("no did/address is configed")
+
+        Logger.logFilename = "monitor_balance_{}_log".format(self.coin)
+
+    def load_service_settings(self, is_debug):
+        if is_debug:
+            self.service_settings = json.loads(open('config/service_debug.json').read())
+        else:
+            self.service_settings = json.loads(open('config/service.json').read())
 
     def monitor(self):
         send_flag = True
@@ -48,9 +56,8 @@ class BalanceMonitor:
         body = "{}: Only {} balance left on account/address '{}', at time {}".format(
             self.coin, self.balance, self.address, time.ctime())
         Logger.get().warning("\n-------\n{}\n{}\n-------".format(subject, body))
-        # NOTICE: call send_mail after config and testing
-        #ms = mailsend.MailSending()
-        #ms.send_mail("BalanceMonitor", subject, body)
+        symbol = "BalanceMonitor: {}".format(self.coin)
+        mailer.send_mail(symbol, subject, body)
 
     def get_balance(self):
         if not hasattr(self.rpc,'get_balance'):
@@ -67,18 +74,19 @@ class BalanceMonitor:
 
     def parse_service_settings(self):
         coin = self.coin.lower()
-        for s in service_settings['rpcs']:
+        tokens = self.service_settings['tokens']
+        for s in self.service_settings['rpcs']:
             if 'name' in s and s['name'].lower() == coin:
                 if coin == 'etp':
-                    self.rpc = etp.Etp(s)
+                    self.rpc = etp.Etp(s, tokens)
                 elif coin == 'eth' or coin == 'ethtoken':
-                    self.rpc = eth.Eth(s)
+                    self.rpc = eth.Eth(s, tokens)
 
         if self.rpc == None:
             return
 
         did = ""
-        for s in service_settings['scans']['services']:
+        for s in self.service_settings['scans']['services']:
             if s['coin'].lower() == coin:
                 if 'scan_address' in s:
                     self.address = s['scan_address']
@@ -102,13 +110,18 @@ class BalanceMonitor:
 
 if __name__ == '__main__':
     monitor_settings = (
-        {'coin':'ETP', 'limit':1},
+        {'coin':'ETP', 'limit':12},
         {'coin':'ETHToken', 'limit':1},
     )
 
+    is_debug = False
+    if len(sys.argv) > 1:
+        if sys.argv[1] == '-d' or sys.argv[1] == '-D':
+            is_debug = True
+
     processes = []
     for setting in monitor_settings:
-        monitor = BalanceMonitor(setting)
+        monitor = BalanceMonitor(setting, is_debug)
         p = Process(target=monitor.monitor)
         processes.append(p)
         p.start()

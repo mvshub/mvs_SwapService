@@ -42,6 +42,23 @@ pip3 install flask_wtf
 create database wallet charset utf8;
 ```
 
+4 update db
+```
+需要使用 flask-script:
+sudo pip3 install flask-script
+
+首次使用:
+1.python3 manage.py db init  初始化会创建migrations文件夹
+2.python3 manage.py db migrate 检测改变
+3.python3 manage.py db upgrade 更新数据库版本
+
+4.python3 manage.py db --help 帮助
+
+后续更新只需要执行2,3步骤即可
+
+```
+
+
 #### Instructions
 
 Run:
@@ -228,4 +245,7 @@ contract HumanStandardToken is StandardToken {
 
 abi 接口：
 [{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string","value":"ABC"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256","value":"10000000000000"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint64","value":"5"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256","value":"0"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string","value":"ABC"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"remaining","type":"uint256","value":"0"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"_initialAmount","type":"uint256","index":0,"typeShort":"uint","bits":"256","displayName":" _ initial Amount","template":"elements_input_uint","value":"10000000000000"},{"name":"_tokenName","type":"string","index":1,"typeShort":"string","bits":"","displayName":" _ token Name","template":"elements_input_string","value":"ABC"},{"name":"_decimalUnits","type":"uint8","index":2,"typeShort":"uint","bits":"8","displayName":" _ decimal Units","template":"elements_input_uint","value":"5"},{"name":"_tokenSymbol","type":"string","index":3,"typeShort":"string","bits":"","displayName":" _ token Symbol","template":"elements_input_string","value":"ABC"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_from","type":"address"},{"indexed":true,"name":"_to","type":"address"},{"indexed":false,"name":"_value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_owner","type":"address"},{"indexed":true,"name":"_spender","type":"address"},{"indexed":false,"name":"_value","type":"uint256"}],"name":"Approval","type":"event"}]
+
+
+
 

@@ -15,8 +15,6 @@ MAX_SWAP_ASSET_DECIMAL = 8
 MIN_FEE_FOR_ETP_DEVELOPER_COMMUNITY = 10**8  # 1 ETP
 
 
-
-
 def calc_multiple(fee):
     if int(fee) <= MIN_FEE_FOR_ETP_DEVELOPER_COMMUNITY:
         return 1
@@ -24,8 +22,8 @@ def calc_multiple(fee):
     diff = int(fee) / MIN_FEE_FOR_ETP_DEVELOPER_COMMUNITY - 1
     attenuation = 0.8
     option = 0.8
-    return 1 + option * ( (1 - pow(attenuation, diff) ) / (1-attenuation) )
- 
+    return 1 + option * ((1 - pow(attenuation, diff)) / (1 - attenuation))
+
 
 class Status(IntEnum):
     Swap_New = 1
@@ -91,8 +89,10 @@ class Error(IntEnum):
     EXCEPTION_COIN_NOT_EXIST = 4
     EXCEPTION_COIN_ISSUING = 5
     EXCEPTION_COIN_AMOUNT_TOO_SMALL = 6
-    EXCEPTION_CONFIG_ERROR_DECIMAL = 7
-    EXCEPTION_COIN_AMOUNT_NO_ENOUGH = 8
+    EXCEPTION_COIN_AMOUNT_NO_ENOUGH = 7
+    EXCEPTION_CONFIG_ERROR_DECIMAL = 8
+    EXCEPTION_GET_EXCHANGE_RATE_FAIL = 9
+    EXCEPTION_INVAILD_EXCHANGE_RATE = 10
 
 
 class SwapException(Exception):
@@ -110,7 +110,9 @@ class SwapException(Exception):
         Error.EXCEPTION_COIN_ISSUING: "Coin is issuing,cannot issue again",
         Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL: "Coin amount too small",
         Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH: "Coin amount no enough",
-        Error.EXCEPTION_CONFIG_ERROR_DECIMAL: "Config error of decimal number, must be specified"
+        Error.EXCEPTION_CONFIG_ERROR_DECIMAL: "Config error of decimal number, must be specified",
+        Error.EXCEPTION_GET_EXCHANGE_RATE_FAIL: "Failed to get exchange rate",
+        Error.EXCEPTION_INVAILD_EXCHANGE_RATE: "Invaild exchange rate"
     }
 
     def get_error_str(self):
@@ -122,3 +124,31 @@ class SwapException(Exception):
             strAll = strAll + ':' + self.errstr
 
         return strAll
+
+def format_amount(amount):
+    if not amount:
+        return '0'
+
+    amount_str = str(amount)
+    return format_amount_str(amount_str)
+
+def format_amount_str(amount_str):
+    dot_index = amount_str.find('.')
+    if dot_index != -1:
+        e_index = amount_str.find('E-', dot_index)
+        if e_index == -1:
+            amount_str = amount_str.rstrip('0')
+            if amount_str.endswith('.'):
+                amount_str = amount_str[0:len(amount_str) - 1]
+        else:
+            prefix = amount_str[:e_index]
+            postfix = amount_str[e_index:]
+            prefix = prefix.rstrip('0')
+            if prefix.endswith('.'):
+                prefix = prefix[0:len(prefix) - 1]
+            amount_str = prefix + postfix
+
+    if amount_str == '0E-18':
+        amount_str = '0'
+    return amount_str
+

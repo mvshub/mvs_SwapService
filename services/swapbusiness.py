@@ -9,15 +9,17 @@ from models.result import Result
 from models.constants import Status, Error, SwapException
 from utils.exception import RpcException, CriticalException, RpcErrorException
 from utils import response
+from utils import date_time
+from utils import mailer
 from utils.log.logger import Logger
 from utils.timeit import timeit
 import threading
-import time
 import traceback
 from decimal import Decimal
 from functools import partial
 from sqlalchemy.sql import func
 from sqlalchemy import or_, and_, case
+import json
 
 
 class SwapBusiness(IBusiness):
@@ -48,7 +50,8 @@ class SwapBusiness(IBusiness):
             Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL,
             Error.EXCEPTION_CONFIG_ERROR_DECIMAL,
             Error.EXCEPTION_COIN_NOT_EXIST,
-            Error.EXCEPTION_INVAILD_ADDRESS
+            Error.EXCEPTION_INVAILD_ADDRESS,
+            Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH
         )
 
     @timeit
@@ -104,10 +107,30 @@ class SwapBusiness(IBusiness):
 
             except SwapException as e:
                 if e.errcode != Error.EXCEPTION_COIN_ISSUING:
-                    if e.errcode in  self.ban_code:
+                    if e.errcode in self.ban_code:
                         r.status = int(Status.Swap_Ban)
 
                     r.message = e.get_error_str()
+
+                    if e.errcode == Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH:
+                        subject = "MVS Swap reserves not enough Warning ({}: {})".format(
+                            r.coin, r.token)
+                        body = "process swap ({}: {}) transaction {} failed at {}, {}".format(
+                            r.coin, r.token, r.tx_from, data_time.get_local_time(), r.message)
+                        Logger.get().error("{}\n{}".format(subject, body))
+                        symbol = "Swapping {}:{}".format(r.coin, r.token)
+                        mailer.send_mail(symbol, subject, body)
+
+                    elif (e.errcode == Error.EXCEPTION_GET_EXCHANGE_RATE_FAIL
+                          or e.errcode == Error.EXCEPTION_INVAILD_EXCHANGE_RATE):
+                        subject = "MVS Swap get etpeth exchange rate failed ({}: {})".format(
+                            r.coin, r.token)
+                        body = "process swap ({}: {}) transaction {} failed at {}, {}".format(
+                            r.coin, r.token, r.tx_from, data_time.get_local_time(), r.message)
+                        Logger.get().error("{}\n{}".format(subject, body))
+                        symbol = "Swapping {}:{}".format(r.coin, r.token)
+                        mailer.send_mail(symbol, subject, body)
+
                     Logger.get().error('process swap exception, coin:%s, token: %s, error:%s' % (
                         r.coin, r.token, r.message))
                     Logger.get().error('{}'.format(traceback.format_exc()))
@@ -146,10 +169,13 @@ class SwapBusiness(IBusiness):
                 tx = rpc.get_transaction(r.tx_hash)
 
                 tx_height_new = r.tx_height
-                # if tx == None:
-                #     if tx_height_new != 0 and tx_height_new + minRenew < current_height:
-                #         self.renew_swap(r, tx_height_new,
-                #                         current_height, minRenew)
+                if tx == None:
+                    if tx_height_new != 0 and tx_height_new + minRenew < current_height:
+                        self.ban_swap(r, tx_height_new,
+                                      current_height, minRenew)
+                        # self.renew_swap(r, tx_height_new,
+                        #                 current_height, minRenew)
+                        continue
 
                 if tx == None or tx['blockNumber'] == 0:
                     continue
@@ -175,15 +201,15 @@ class SwapBusiness(IBusiness):
                         db.session.commit()
 
                         r.message = "confirm issued tx success"
-                        r.date = self.get_current_date()
-                        r.time = self.get_current_time()
+                        r.date = date_time.get_current_date()
+                        r.time = date_time.get_current_time()
 
                     elif r.status == int(Status.Swap_Send):
                         r.status = int(Status.Swap_Finish)
                         r.tx_height = tx['blockNumber']
                         r.confirm_height = current_height
-                        r.date = self.get_current_date()
-                        r.time = self.get_current_time()
+                        r.date = date_time.get_current_date()
+                        r.time = date_time.get_current_time()
                         r.message = "confirm send tx success, swap finish"
                         Logger.get().info(
                             'finish swap, coin: {}, token: {}, swap_id: {}, tx_from: {}, from: {}, to: {}'.format(
@@ -211,8 +237,14 @@ class SwapBusiness(IBusiness):
             swap_settings = self.get_rpc_settings(swap_coin)
             current_height = rpc.best_block_number()
             try:
+                msg = {}
+                msg['coin'] = result.coin
+                msg['tx_hash'] = result.tx_from
+                msg['amount'] = constants.format_amount(result.amount)
+
                 tx, fee = rpc.transfer_asset(
-                    result.to_address, result.token, result.amount, result.from_fee, swap_settings)
+                    result.to_address, result.token, result.amount, result.from_fee,
+                    msg, swap_settings)
                 if tx:
                     result.tx_hash = tx
                     result.tx_height = current_height
@@ -220,8 +252,9 @@ class SwapBusiness(IBusiness):
                     result.confirm_status = int(Status.Tx_Unconfirm)
                     result.fee = fee
                     db.message = "send tx success, wait for confirm"
-                    result.date = self.get_current_date()
-                    result.time = self.get_current_time()
+                    result.date = date_time.get_current_date()
+                    result.time = date_time.get_current_time()
+                    result.rate = msg.get('rate',1.0)
                     db.session.add(result)
                     db.session.commit()
 
@@ -230,8 +263,8 @@ class SwapBusiness(IBusiness):
             except Exception as e:
                 result.status = int(Status.Swap_Ban)
                 result.message = str(e)
-                result.date = self.get_current_date()
-                result.time = self.get_current_time()
+                result.date = date_time.get_current_date()
+                result.time = date_time.get_current_time()
                 Logger.get().info('send asset failed , forbid swap again : swap_id: {}, token: {}, amount: {}, to: {}, tx_hash: {}'.format(
                     result.swap_id, result.token, result.amount, result.to_address, result.tx_hash))
                 raise
@@ -269,8 +302,8 @@ class SwapBusiness(IBusiness):
                 result.tx_height = current_height
                 result.status = int(Status.Swap_Issue)
                 result.confirm_status = int(Status.Tx_Unconfirm)
-                result.date = self.get_current_date()
-                result.time = self.get_current_time()
+                result.date = date_time.get_current_date()
+                result.time = date_time.get_current_time()
 
                 issue_coin.status = int(Status.Token_Issue)
                 db.message = "send issue tx success, wait for confirm"
@@ -282,24 +315,50 @@ class SwapBusiness(IBusiness):
         return err
 
     @timeit
+    def ban_swap(self, result, tx_height_new, current_height, minRenew):
+        tx_hash = result.tx_hash
+        pre_status = result.status
+        result.status = int(Status.Swap_Ban)
+        result.message = "{} maybe is reverted because it was on a forked chain.".format(
+            tx_hash)
+        result.date = date_time.get_current_date()
+        result.time = date_time.get_current_time()
+        db.session.add(result)
+        Logger.get().info('ban fork swap, coin:%s, token:%s, last tx hash: %s, '
+                          'last tx height: %d, cur height: %d, status: %d' %
+                          (result.coin, result.token, tx_hash,
+                           result.tx_height, current_height, pre_status))
+
+        # update coin status to move on
+        if pre_status == int(Status.Swap_Issue):
+            issue_coin = db.session.query(Coin).filter_by(
+                name=result.coin, token=result.token).first()
+            issue_coin.status = int(Status.Token_Normal)
+            db.session.add(issue_coin)
+
+        # commit database
+        db.session.commit()
+
+    @timeit
     def renew_swap(self, result, tx_height_new, current_height, minRenew):
         tx_hash = result.tx_hash
+        tx_height = result.tx_height
         result.status = int(Status.Swap_New)
-        result.confirm_status = None
+        result.confirm_status = int(Status.Tx_Unconfirm)
         result.tx_hash = None
         result.tx_height = 0
         result.confirm_height = 0
         result.message = "renew swap"
         db.session.add(result)
-        Logger.get().info('success renew swap, coin:%s, token:%s, last tx hash: %s, \
-        last tx height: %d, cur height: %d,  ' %
-                          (result.coin, result.token, tx_hash, result.tx_height, current_height))
+        Logger.get().info('success renew swap, coin:%s, token:%s, last tx hash: %s, '
+                          'last tx height: %d, cur height: %d,  ' %
+                          (result.coin, result.token, tx_hash,
+                           tx_height, current_height))
 
     @timeit
     def process_unconfirm(self):
         # only process the latest two weeks unconfirmed operations
-        begin_date_to_process = int(time.strftime(
-            '%4Y%2m%2d', time.localtime(time.time() - 14 * 24 * 60 * 60)))
+        begin_date_to_process = date_time.get_n_days_before(14)
         results = db.session.query(Result).filter(and_(
             Result.status != int(Status.Swap_Finish),
             Result.status != int(Status.Swap_Ban),
@@ -339,8 +398,8 @@ class SwapBusiness(IBusiness):
             result.confirm_height = 0
             result.confirm_status = int(Status.Tx_Unconfirm)
             result.status = int(Status.Swap_New)
-            result.date = self.get_current_date()
-            result.time = self.get_current_time()
+            result.date = date_time.get_current_date()
+            result.time = date_time.get_current_time()
             if not result.to_address:
                 b = db.session.query(Binder).filter_by(
                     binder=result.from_address).order_by(Binder.iden.desc()).all()
@@ -352,7 +411,8 @@ class SwapBusiness(IBusiness):
 
             results.append(result)
 
-            Logger.get().info('scan swap, coin: %s, token: %s, swap_id: %s, tx_from: %s, from: %s, to: %s' %
+            Logger.get().info('scan swap, coin: %s, token: %s, swap_id: %s, '
+                              'tx_from: %s, from: %s, to: %s' %
                               (result.coin, result.token, result.swap_id, result.tx_from,
                                ("" if not result.from_address else result.from_address),
                                   ("" if not result.to_address else result.to_address)))
@@ -370,9 +430,3 @@ class SwapBusiness(IBusiness):
         self.post(self.process_unconfirm)
         self.post(self.process_swap)
         self.post(self.process_confirm)
-
-    def get_current_date(self):
-        return int(time.strftime('%4Y%2m%2d', time.localtime()))
-
-    def get_current_time(self):
-        return int(time.strftime('%2H%2M%2S', time.localtime()))

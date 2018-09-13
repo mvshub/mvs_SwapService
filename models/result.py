@@ -23,6 +23,7 @@ class Result(db.Model):
     date = db.Column(db.Integer, default=0)
     time = db.Column(db.Integer, default=0)
     message = db.Column(db.Text)
+    rate = db.Column(db.Numeric(64, 18), default=1.0)
 
     fee = db.Column(db.Numeric(64, 18))
     from_fee = db.Column(db.Numeric(64, 18))
@@ -46,6 +47,7 @@ class Result(db.Model):
         dep.message = dep_.message
         dep.fee = dep_.fee
         dep.from_fee = dep_.from_fee
+        dep.rate = dep_.rate
 
         return dep
 

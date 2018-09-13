@@ -12,7 +12,6 @@ class Coin(db.Model):
     total_supply = db.Column(db.Numeric(64, 18), nullable=False)
     decimal = db.Column(db.Integer)
     status = db.Column(db.Integer)
-
     @classmethod
     def copy(cls, dep_):
         dep = Coin()

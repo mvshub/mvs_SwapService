@@ -2,6 +2,7 @@ from rpcs.eth import Eth
 import json
 import decimal
 from utils.log.logger import Logger
+from utils.decimal_encoder import DecimalEncoder
 from utils.exception import TransactionNotfoundException, RpcErrorException
 import binascii
 from models.coin import Coin
@@ -12,12 +13,11 @@ from models import constants
 class EthToken(Eth):
 
     def __init__(self, settings, tokens):
-        Eth.__init__(self, settings)
+        Eth.__init__(self, settings, tokens)
         self.name = settings['name']
 
         self.erc20_tokens = json.loads(open('config/erc20_tokens.json').read())
 
-        self.tokens = tokens
         self.token_names = []
         self.contract_addresses = []
 
@@ -48,19 +48,6 @@ class EthToken(Eth):
                 return x['fee']
         return 0
 
-    def get_coins(self):
-        coins = []
-        for x in self.tokens:
-            supply = self.get_total_supply(x['name'])
-            if supply != 0:
-                coin = Coin()
-                coin.name = self.name
-                coin.token = x['name']
-                coin.total_supply = supply
-                coin.decimal = self.get_decimal(coin.token)
-                coins.append(coin)
-        return coins
-
     def get_total_supply(self, name=None):
         contract = self.get_contractaddress(name)
         if contract is None:
@@ -87,7 +74,7 @@ class EthToken(Eth):
         strLen = int('0x' + symbol[126:130], 16)
         return str(binascii.unhexlify(symbol[130:194])[:strLen], "utf-8")
 
-    def transfer(self, name, passphrase, from_address, to_address, amount):
+    def transfer(self, name, passphrase, from_address, to_address, amount, msg):
         contract = self.get_contractaddress(name)
         if contract is None:
             return None
@@ -100,7 +87,7 @@ class EthToken(Eth):
                                 {'from': from_address, 'to': contract, 'data': data}])
         return res, 0
 
-    def transfer2(self, name, passphrase, from_address, to_address, amount, from_fee):
+    def transfer2(self, name, passphrase, from_address, to_address, amount, from_fee, msg):
         contract = self.get_contractaddress(name)
         if contract is None:
             return None, 0
@@ -120,7 +107,7 @@ class EthToken(Eth):
             (64 - len(arg_to)) + arg_to + ('%064x' % (amount - fee_amount))
         res = self.make_request('eth_sendTransaction', [
                                 {'from': from_address, 'to': contract, 'data': data, 'gasPrice':hex(gasUsed)}])
-        
+
         Logger.get().info("tx:%s,gasprice:%d, gasUsed:%d", res, gasPrice, gasUsed)
         return res, fee_amount
 
@@ -141,7 +128,7 @@ class EthToken(Eth):
         return token
 
 
-    def transfer_asset(self, to, symbol, amount, from_fee, settings):
+    def transfer_asset(self, to, symbol, amount, from_fee, msg, settings):
         token = self.get_eth_token(symbol)
         address = settings["scan_address"]
 
@@ -150,8 +137,9 @@ class EthToken(Eth):
                               % (address, settings['passphrase']))
             return None, 0
 
+        memo = json.dumps([v for k,v in msg.items()], cls=DecimalEncoder)
         tx_hash, fee = self.transfer2(
-            token, None, address, to, self.to_wei(token, amount), from_fee)
+            token, None, address, to, self.to_wei(token, amount), from_fee, memo)
         return tx_hash, self.from_wei(token, fee)
 
     def get_decimal(self, name):

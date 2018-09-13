@@ -20,10 +20,7 @@ class Base:
     def best_block_number(self):
         pass
 
-    def transfer_asset(self, to, token, amount, from_fee, settings):
-        pass
-
-    def get_coins(self):
+    def transfer_asset(self, to, token, amount, from_fee, msg, settings):
         pass
 
     def start(self):

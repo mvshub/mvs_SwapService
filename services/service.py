@@ -7,6 +7,7 @@ from models.binder import Binder
 from models import constants
 from models.constants import Status, Error, SwapException
 from utils import response
+from utils import date_time
 from utils.log.logger import Logger
 from flask import Flask, jsonify, redirect, url_for
 import sqlalchemy_utils
@@ -23,7 +24,6 @@ from sqlalchemy.sql import func
 from sqlalchemy import or_, and_, case
 import json
 import re
-import time
 import codecs
 
 
@@ -54,7 +54,7 @@ class MainService(IService):
         import os
         self.app.config['CSRF_ENABLED'] = True
         self.app.config['SECRET_KEY'] = os.urandom(24)
-        
+
         @self.app.route('/')
         def root():
             return render_template('index.html')
@@ -106,7 +106,7 @@ class MainService(IService):
             def getMinconf(coin, token):
                 if coin == 'ETH' or coin == 'ETHToken':
                     coin = 'ETP'
-                elif coin == 'ETP' and token == (constants.SWAP_TOKEN_PREFIX + 'ETH'):
+                elif coin == 'ETP' and token == 'ETH':
                     coin = 'ETH'
                 else:
                     coin = 'ETHToken'
@@ -222,7 +222,7 @@ class MainService(IService):
         @self.app.route('/report')
         def report_per_day(date=None):
             if not date:
-                date = time.strftime('%4Y%2m%2d', time.localtime())
+                date = date_time.get_current_date();
 
             num_finished = case(
                 [(Result.status == int(Status.Swap_Finish), 1)], else_=0)
@@ -310,6 +310,7 @@ class MainService(IService):
                     result.confirm_status]
                 result.time = self.format_time(result.time)
                 result.amount = self.format_amount(result.amount)
+                result.rate = self.format_amount(result.rate)
                 result.fee = self.format_amount(result.from_fee)
                 result.status = constants.StatusStr[result.status]
                 return render_template('transaction.html', tx_from=tx_from,  result=result)
@@ -384,7 +385,7 @@ class MainService(IService):
         @self.app.route('/ban')
         def swap_ban(date=None):
             if not date:
-                date = time.strftime('%4Y%2m%2d', time.localtime())
+                date = date_time.get_current_date();
             return render_template('ban.html', date=date)
 
         @self.app.route('/getBan/<date>')
@@ -430,13 +431,17 @@ class MainService(IService):
             if result:
                 result.status = int(Status.Swap_New)
                 result.message = "Retry swap"
-                result.date = int(time.strftime('%4Y%2m%2d', time.localtime()))
-                result.time = int(time.strftime('%2H%2M%2S', time.localtime()))
+                result.date = date_time.get_current_date()
+                result.time = date_time.get_current_time()
+                result.confirm_status = int(Status.Tx_Unconfirm)
+                result.tx_hash = None
+                result.tx_height = 0
+                result.confirm_height = 0
                 db.session.add(result)
                 db.session.commit()
                 return response.make_response(
                     response.ERR_SUCCESS,
-                    "retry success,swap_id: %d, coin: %s , token: %s, from: %s, to: %s, amount: %f" % (
+                    "retry success, swap_id: %d, coin: %s , token: %s, from: %s, to: %s, amount: %f" % (
                         result.swap_id, result.coin, result.token, result.from_address,
                         result.to_address, result.amount))
 
@@ -465,38 +470,17 @@ class MainService(IService):
             self.swap.stop()
 
     def format_amount(self, amount):
-        if not amount:
-            return '0'
-
-        amount_str = str(amount)
-        return self.format_amount_str(amount_str)
+        return constants.format_amount(amount)
 
     def format_rough_amount(self, amount):
         if not amount:
             return '0'
 
         amount_str = '{:0.4f}'.format(float(amount))
-        return self.format_amount_str(amount_str)
+        return constants.format_amount_str(amount_str)
 
     def format_amount_str(self, amount_str):
-        dot_index = amount_str.find('.')
-        if dot_index != -1:
-            e_index = amount_str.find('E-', dot_index)
-            if e_index == -1:
-                amount_str = amount_str.rstrip('0')
-                if amount_str.endswith('.'):
-                    amount_str = amount_str[0:len(amount_str) - 1]
-            else:
-                prefix = amount_str[:e_index]
-                postfix = amount_str[e_index:]
-                prefix = prefix.rstrip('0')
-                if prefix.endswith('.'):
-                    prefix = prefix[0:len(prefix) - 1]
-                amount_str = prefix + postfix
-
-        if amount_str == '0E-18':
-            amount_str = '0'
-        return amount_str
+        return constants.format_amount_str(amount_str)
 
     def format_time(self, time):
         return "%02d:%02d:%02d" % (
