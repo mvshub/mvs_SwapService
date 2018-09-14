@@ -30,7 +30,8 @@ class Logger():
         # use dynamic file name
         filename = 'log/{}'.format(Logger.logFilename)
         filehandler = logging.handlers.TimedRotatingFileHandler(
-            filename, 'D', 1, 5, None, False, False)
+            filename, when='D', interval=1, backupCount=5,
+            encoding=None, delay=False, atTime=False)
         formatter = logging.Formatter(
             '%(asctime)s [%(levelname)s](%(filename)s:%(lineno)d, %(threadName)s, %(funcName)s): %(message)s')
         filehandler.setFormatter(formatter)
