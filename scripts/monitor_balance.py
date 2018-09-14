@@ -9,6 +9,7 @@ from multiprocessing import Process
 sys.path.append('./')
 from rpcs import etp, eth
 from utils import mailer
+from utils import date_time
 from utils.log.logger import Logger
 from utils.exception import RpcException, RpcErrorException, CriticalException
 
@@ -50,17 +51,17 @@ class BalanceMonitor:
                     self.send_mail()
                     send_flag = False
                 Logger.get().info("\n{}: Only {} balance left on account/address '{}', at time {}\n".format(
-                    self.coin, self.balance, self.address, time.ctime()))
+                    self.coin, self.balance, self.address, date_time.get_local_time()))
             else:
                 send_flag = True
                 Logger.get().info("\n{}: Enough {} balance left on account/address '{}', at time {}".format(
-                    self.coin, self.balance, self.address, time.ctime()))
+                    self.coin, self.balance, self.address, date_time.get_local_time()))
             time.sleep(60)
 
     def send_mail(self):
         subject = "{} Balance Monitor Warning".format(self.coin)
         body = "{}: Only {} balance left on account/address '{}', at time {}".format(
-            self.coin, self.balance, self.address, time.ctime())
+            self.coin, self.balance, self.address, date_time.get_local_time())
         if self.coin == 'ETH':
             body = "{}\nPlease add ETH address to ignore_list of scan service" \
                 " and send ETH to scaned-address".format(body)
