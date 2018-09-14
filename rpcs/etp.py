@@ -384,5 +384,6 @@ class Etp(Base):
             symbol = self.get_mvs_symbol(token)
             account = settings.get('account')
             passphrase = settings.get('passphrase')
+            msg['rate'] = constants.format_amount(msg['rate'])
             memo = self.get_msg_memo(msg)
             return self.send_asset(account, passphrase, to, symbol, amount, 0, memo)
