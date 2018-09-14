@@ -3,6 +3,7 @@ import requests
 import json
 import random
 from models import constants
+from utils import date_time
 
 def make_request(method, params=[]):
     data = {"jsonrpc": "2.0", "method": method, "params": params, "id": 83}
@@ -88,7 +89,7 @@ def main():
     while True:
         loop_count += 1
         print('------------------ loop {} --------------------'.format(loop_count))
-        print(time.ctime())
+        print(date_time.get_local_time())
         for desc, func in funcs:
             for i in range(3):
                 try:

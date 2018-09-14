@@ -6,6 +6,7 @@ import time
 
 sys.path.append('./')
 from utils import mailer
+from utils import date_time
 
 
 def main():
@@ -31,7 +32,7 @@ def main():
 
     fail_count = 0
     while True:
-        print("------------- {} ---------------".format(time.ctime()))
+        print("------------- {} ---------------".format(date_time.get_local_time()))
         print("check if swap service is started")
         if is_debug:
             cmd = "python3 -u {} {} swap".format(prog, option)
@@ -46,7 +47,7 @@ def main():
             # sending mail when restart process
             if fail_count == 1 or fail_count == 2:
                 subject = "MVS Swap Service Restart Warning ({})".format(fail_count)
-                body = "swap service stopped ({}) and try restart at {}".format(fail_count, time.ctime())
+                body = "swap service stopped ({}) and try restart at {}".format(fail_count, date_time.get_local_time())
                 print("{}\n{}".format(subject, body))
                 symbol = "Swap Service Process Monitor: {}".format(sys.argv[0])
                 mailer.send_mail(symbol, subject, body)
