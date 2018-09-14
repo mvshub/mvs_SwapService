@@ -12,7 +12,9 @@ from utils import mailer
 from utils.log.logger import Logger
 from utils.exception import RpcException, RpcErrorException, CriticalException
 
+
 class BalanceMonitor:
+
     def __init__(self, setting, is_debug):
         self.coin = setting['coin']
         self.balance_limit = setting['limit']
@@ -33,9 +35,11 @@ class BalanceMonitor:
 
     def load_service_settings(self, is_debug):
         if is_debug:
-            self.service_settings = json.loads(open('config/service_debug.json').read())
+            self.service_settings = json.loads(
+                open('config/service_debug.json').read())
         else:
-            self.service_settings = json.loads(open('config/service.json').read())
+            self.service_settings = json.loads(
+                open('config/service.json').read())
 
     def monitor(self):
         send_flag = True
@@ -45,29 +49,35 @@ class BalanceMonitor:
                 if send_flag:
                     self.send_mail()
                     send_flag = False
-                Logger.get().info("\n{}: Only {} balance left on account/address '{}', at time {}\n".format(self.coin, self.balance, self.address, time.ctime()))
+                Logger.get().info("\n{}: Only {} balance left on account/address '{}', at time {}\n".format(
+                    self.coin, self.balance, self.address, time.ctime()))
             else:
                 send_flag = True
-                Logger.get().info("\n{}: Enough {} balance left on account/address '{}', at time {}".format(self.coin, self.balance, self.address, time.ctime()))
+                Logger.get().info("\n{}: Enough {} balance left on account/address '{}', at time {}".format(
+                    self.coin, self.balance, self.address, time.ctime()))
             time.sleep(60)
 
     def send_mail(self):
         subject = "{} Balance Monitor Warning".format(self.coin)
         body = "{}: Only {} balance left on account/address '{}', at time {}".format(
             self.coin, self.balance, self.address, time.ctime())
+        if self.coin == 'ETH':
+            body = "{}\nPlease add ETH address to ignore_list of scan service" \
+                " and send ETH to scaned-address".format(body)
         Logger.get().warning("\n-------\n{}\n{}\n-------".format(subject, body))
         symbol = "BalanceMonitor: {}".format(self.coin)
         mailer.send_mail(symbol, subject, body)
 
     def get_balance(self):
-        if not hasattr(self.rpc,'get_balance'):
+        if not hasattr(self.rpc, 'get_balance'):
             raise NotImplementedError("{} not supported".format(self.coin))
 
         while True:
             try:
                 self.balance = self.rpc.get_balance(self.address)
             except Exception as e:
-                print('failed to get {} balance on address: {}, {}'.format(self.coin, self.address, str(e)))
+                print('failed to get {} balance on address: {}, {}'.format(
+                    self.coin, self.address, str(e)))
                 time.sleep(5)
             else:
                 break
@@ -98,10 +108,12 @@ class BalanceMonitor:
                 try:
                     res = self.rpc.make_request("getdid", [did])
                 except RpcErrorException as e:
-                    print('failed to get {} address of DID: {}, {}'.format(self.coin, did, str(e)))
+                    print('failed to get {} address of DID: {}, {}'.format(
+                        self.coin, did, str(e)))
                     break
                 except Exception as e:
-                    print('failed to get {} address of DID: {}, {}'.format(self.coin, did, str(e)))
+                    print('failed to get {} address of DID: {}, {}'.format(
+                        self.coin, did, str(e)))
                     time.sleep(5)
                 else:
                     self.address = res['result'][0]['address']
@@ -110,8 +122,8 @@ class BalanceMonitor:
 
 if __name__ == '__main__':
     monitor_settings = (
-        {'coin':'ETP', 'limit':12},
-        {'coin':'ETHToken', 'limit':1},
+        {'coin': 'ETP', 'limit': 12},
+        {'coin': 'ETHToken', 'limit': 1},
     )
 
     is_debug = False

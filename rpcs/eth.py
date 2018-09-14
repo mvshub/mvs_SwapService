@@ -1,6 +1,7 @@
 from rpcs.base import Base
 import requests
 from utils.log.logger import Logger
+from utils.decimal_encoder import DecimalEncoder
 from utils.exception import RpcException, CriticalException, RpcErrorException
 import json
 import decimal
@@ -28,7 +29,8 @@ class Eth(Base):
 
     def make_request(self, method, params=[]):
         data = {"jsonrpc": "2.0", "method": method, "params": params, "id": 83}
-        res = requests.post(self.settings['uri'], json.dumps(data),
+        res = requests.post(self.settings['uri'],
+                            json.dumps(data, cls=DecimalEncoder),
                             headers={'Content-Type': 'application/json'},
                             timeout=constants.DEFAULT_REQUEST_TIMEOUT_MAX)
         if res.status_code != 200:

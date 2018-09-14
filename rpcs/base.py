@@ -3,6 +3,8 @@
 
 import decimal
 import math
+import json
+from utils.decimal_encoder import DecimalEncoder
 
 
 class Base:
@@ -52,3 +54,9 @@ class Base:
 
     def is_to_address_valid(self, address):
         return True
+
+    @classmethod
+    def get_msg_memo(cls, msg):
+        key_orders = ('rate', 'amount', 'coin', 'tx_hash')
+        memo = json.dumps([msg[k] for k in key_orders], cls=DecimalEncoder)
+        return memo
