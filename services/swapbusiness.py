@@ -241,6 +241,7 @@ class SwapBusiness(IBusiness):
                 msg['coin'] = result.coin
                 msg['tx_hash'] = result.tx_from
                 msg['amount'] = constants.format_amount(result.amount)
+                msg['rate'] = 1
 
                 tx, fee = rpc.transfer_asset(
                     result.to_address, result.token, result.amount, result.from_fee,
