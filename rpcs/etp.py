@@ -23,7 +23,7 @@ class Etp(Base):
     def __init__(self, settings, tokens):
         Base.__init__(self, settings)
 
-        self.erc20_tokens = json.loads(open('config/erc20_tokens.json').read())
+        self.token_mapping = json.loads(open('config/token_mapping.json').read())
 
         self.name = 'ETP'
         self.tokens = {}
@@ -303,30 +303,31 @@ class Etp(Base):
         return 0
 
     def get_mvs_symbol(self, token):
-        if token in self.erc20_tokens:
-            return self.erc20_tokens[token]
+        if token in self.token_mapping:
+            return self.token_mapping[token]
         elif token == 'ETH':
             return 'ETP'
         return constants.SWAP_TOKEN_PREFIX + token
 
-    def before_swap(self, token, amount, issue_coin, settings):
-        if token == 'ETH':
-            self.etpeth_exchange_rate = ExchangeRate.get_etpeth_exchange_rate()
-            etp_amount = amount * decimal.Decimal(self.etpeth_exchange_rate)
-            volume = int(math.ceil(etp_amount * decimal.Decimal(10.0**8)))
-            if volume == 0:
-                raise SwapException(Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL,
-                                    'type:eth, amount:%f' % amount)
+    def before_swap_eth(self, token, amount, issue_coin, settings):
+        account = settings.get('account')
+        passphrase = settings.get('passphrase')
 
-            account = settings.get('account')
-            passphrase = settings.get('passphrase')
-            balances = self.get_account_balance(account, passphrase)
-            if balances < volume:
-                raise SwapException(Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH,
-                                    'available: %d, amount: %d' % (balances, volume))
+        self.etpeth_exchange_rate = ExchangeRate.get_etpeth_exchange_rate()
+        etp_amount = amount * decimal.Decimal(self.etpeth_exchange_rate)
+        volume = int(math.ceil(etp_amount * decimal.Decimal(10.0**8)))
+        if volume == 0:
+            raise SwapException(Error.EXCEPTION_COIN_AMOUNT_TOO_SMALL,
+                                'type:eth, amount:%f' % amount)
 
-            return Error.Success, None
+        balances = self.get_account_balance(account, passphrase)
+        if balances < volume:
+            raise SwapException(Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH,
+                                'available: %d, amount: %d' % (balances, volume))
 
+        return Error.Success, None
+
+    def before_swap_erc20(self, token, amount, issue_coin, settings):
         account = settings.get('account')
         passphrase = settings.get('passphrase')
 
@@ -367,23 +368,75 @@ class Etp(Base):
 
         return Error.Success, None
 
-    def transfer_asset(self, to, token, amount, from_fee, msg, settings):
-        if token == 'ETH':
-            if self.etpeth_exchange_rate <= 0:
-                raise SwapException(Error.EXCEPTION_INVAILD_EXCHANGE_RATE,
-                                    'etpeth_exchange_rate: %f' % self.etpeth_exchange_rate)
+    def before_swap_erc721(self, token, amount, issue_coin, settings):
+        # TODO
+        pass
 
-            account = settings.get('account')
-            passphrase = settings.get('passphrase')
-            etp_amount = amount * decimal.Decimal(self.etpeth_exchange_rate)
-            msg['rate'] = constants.format_amount(self.etpeth_exchange_rate)
-            memo = self.get_msg_memo(msg)
-            return self.send_etp(account, passphrase, to, etp_amount, memo)
+    def before_swap(self, token, amount, issue_coin, settings):
+        if token not in self.tokens:
+            raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST,
+                                'coin: {}, token: {} not configed.'.format(self.name, token))
+
+        token_setting = self.tokens[token]
+        token_type = token_setting['token_type'].lower()
+
+        if token_type == 'eth':
+            return self.before_swap_eth(token, amount, issue_coin, settings)
+
+        elif token_type == 'erc20':
+            return self.before_swap_erc20(token, amount, issue_coin, settings)
+
+        elif token_type == 'erc721':
+            return self.before_swap_erc721(token, amount, issue_coin, settings)
+
         else:
-            #fee = self.get_fee(token)
-            symbol = self.get_mvs_symbol(token)
-            account = settings.get('account')
-            passphrase = settings.get('passphrase')
-            msg['rate'] = constants.format_amount(msg['rate'])
-            memo = self.get_msg_memo(msg)
-            return self.send_asset(account, passphrase, to, symbol, amount, 0, memo)
+            raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST,
+                                'coin: {}, token: {}, type: {} not supported.'.format(
+                                    self.name, token, token_type))
+
+    def transfer_etp(self, to, token, amount, from_fee, msg, settings):
+        if self.etpeth_exchange_rate <= 0:
+            raise SwapException(Error.EXCEPTION_INVAILD_EXCHANGE_RATE,
+                                'etpeth_exchange_rate: %f' % self.etpeth_exchange_rate)
+
+        etp_amount = amount * decimal.Decimal(self.etpeth_exchange_rate)
+        msg['rate'] = constants.format_amount(self.etpeth_exchange_rate)
+        memo = self.get_msg_memo(msg)
+        account = settings.get('account')
+        passphrase = settings.get('passphrase')
+        return self.send_etp(account, passphrase, to, etp_amount, memo)
+
+    def transfer_mst(self, to, token, amount, from_fee, msg, settings):
+        #fee = self.get_fee(token)
+        msg['rate'] = constants.format_amount(msg['rate'])
+        memo = self.get_msg_memo(msg)
+        account = settings.get('account')
+        passphrase = settings.get('passphrase')
+        symbol = self.get_mvs_symbol(token)
+        return self.send_asset(account, passphrase, to, symbol, amount, 0, memo)
+
+    def transfer_mit(self, to, token, amount, from_fee, msg, settings):
+        # TODO
+        pass
+
+    def transfer_asset(self, to, token, amount, from_fee, msg, settings):
+        if token not in self.tokens:
+            raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST,
+                                'coin: {}, token: {} not configed.'.format(self.name, token))
+
+        token_setting = self.tokens[token]
+        token_type = token_setting['token_type'].lower()
+
+        if token_type == 'eth':
+            return self.transfer_etp(to, token, amount, from_fee, msg, settings)
+
+        elif token_type == 'erc20':
+            return self.transfer_mst(to, token, amount, from_fee, msg, settings)
+
+        elif token_type == 'erc721':
+            return self.transfer_mit(to, token, amount, from_fee, msg, settings)
+
+        else:
+            raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST,
+                                'coin: {}, token: {}, type: {} not supported.'.format(
+                                    self.name, token, token_type))

@@ -15,7 +15,7 @@ class EthToken(Eth):
         Eth.__init__(self, settings, tokens)
         self.name = settings['name']
 
-        self.erc20_tokens = json.loads(open('config/erc20_tokens.json').read())
+        self.token_mapping = json.loads(open('config/token_mapping.json').read())
 
         self.token_names = []
         self.contract_addresses = []
@@ -115,7 +115,7 @@ class EthToken(Eth):
         if symbol.startswith(constants.SWAP_TOKEN_PREFIX):
             token = symbol[len(constants.SWAP_TOKEN_PREFIX):]
         else:
-            for (k, v) in self.erc20_tokens.items():
+            for (k, v) in self.token_mapping.items():
                 if v == symbol:
                     token = k
                     break
