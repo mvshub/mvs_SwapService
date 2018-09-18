@@ -271,7 +271,7 @@ class Etp(Base):
             .format(to_did, symbol, tx_hash, str(e)))
             raise
 
-        return tx_hash, 0
+        return tx_hash
 
     def send_mit(self, account, passphrase, to_did, symbol, msg =None):
         tx_hash = None

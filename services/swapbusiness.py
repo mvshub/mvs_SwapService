@@ -197,9 +197,10 @@ class SwapBusiness(IBusiness):
                     if r.status == int(Status.Swap_Issue):
                         issue_coin = db.session.query(Coin).filter_by(
                             name=r.coin, token=r.token).first()
-                        issue_coin.status = int(Status.Token_Normal)
-                        db.session.add(issue_coin)
-                        db.session.commit()
+                        if issue_coin:
+                            issue_coin.status = int(Status.Token_Normal)
+                            db.session.add(issue_coin)
+                            db.session.commit()
 
                         r.message = "confirm issued tx success"
                         r.date = date_time.get_current_date()
@@ -317,7 +318,7 @@ class SwapBusiness(IBusiness):
             err, tx = swap_rpc.before_swap(
                 result.token, result.amount, issue_coin, connect, swap_settings)
             if err == Error.Success and tx is not None:
-                connect_id = None
+                connect_id = 0
                 if connect.get('type') == 'erc721':
                     conn = ERC721_Connect()
                     conn.token = connect['token']
@@ -326,7 +327,7 @@ class SwapBusiness(IBusiness):
                     conn.status = int(Status.Connect_Mit_Register)
                     db.session.add(conn)
                     db.session.commit()
-                    connect_id = 1
+                    connect_id = conn.iden
                     Logger.get().info("new connect: type=%s, id=%d" % ('erc721', connect_id))
 
                 result.tx_hash = tx
@@ -337,10 +338,11 @@ class SwapBusiness(IBusiness):
                 result.time = date_time.get_current_time()
                 result.connect_id = connect_id
 
-                if token_type != 'erc721':
+                if issue_coin:
                     issue_coin.status = int(Status.Token_Issue)
                     db.message = "send issue tx success, wait for confirm"
                     db.session.add(issue_coin)
+                    db.session.commit()
 
                 Logger.get().info('success issue asset: %s, tx_hash: %s ' %
                                   (result.token, result.tx_hash))
