@@ -7,7 +7,7 @@ from models.binder import Binder
 from models.coin import Coin
 from models.result import Result
 from models.erc721_connect import ERC721_Connect
-from models.constants import Status, Error, SwapException
+from models.constants import Status, TokenType, Error, SwapException
 from utils.exception import RpcException, CriticalException, RpcErrorException
 from utils import response
 from utils import date_time
@@ -244,19 +244,16 @@ class SwapBusiness(IBusiness):
                 msg['tx_hash'] = result.tx_from
                 msg['amount'] = constants.format_amount(result.amount)
                 msg['rate'] = 1
-                
+
                 connect = None
-                token_type = rpc.get_connect_type(result.token)
-                if token_type == 'erc721':
-                    connect = db.session.query(ERC721_Connect).filter_by(iden=result.connect_id).first()
+                if result.token_type == TokenType.Erc721:
+                    connect = db.session.query(ERC721_Connect).filter_by(
+                        iden=result.connect_id).first()
                     if not connect:
                         raise SwapException(Error.EXCEPTION_INVAILD_CONNECT_ID)
 
-                
-
                 tx, fee = rpc.transfer_asset(
-                    result.to_address, result.token, result.amount, result.from_fee,
-                    msg, connect, swap_settings)
+                    result, msg, connect, swap_settings)
                 if tx:
                     result.tx_hash = tx
                     result.tx_height = current_height
@@ -266,7 +263,7 @@ class SwapBusiness(IBusiness):
                     db.message = "send tx success, wait for confirm"
                     result.date = date_time.get_current_date()
                     result.time = date_time.get_current_time()
-                    result.rate = msg.get('rate',1.0)
+                    result.rate = msg.get('rate', 1.0)
 
                     if connect:
                         connect.status = int(Status.Connect_MIT_Transfer)
@@ -298,15 +295,14 @@ class SwapBusiness(IBusiness):
             swap_coin = self.get_swap_coin(result)
             swap_settings = self.get_rpc_settings(swap_coin)
 
-            token_type = swap_rpc.get_connect_type(result.token)
             issue_coin = None
-            if token_type != 'erc721':
+            if result.token_type != TokenType.Erc721:
                 issue_coin = db.session.query(Coin).filter_by(
                     name=result.coin, token=result.token).order_by(Coin.iden.desc()).first()
 
                 if not issue_coin:
                     Logger.get().error("coin: %s, token: %s not exist in the db" %
-                                        (result.coin, result.token))
+                                       (result.coin, result.token))
                     raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST)
 
                 if issue_coin.status == int(Status.Token_Issue):
@@ -318,8 +314,8 @@ class SwapBusiness(IBusiness):
             err, tx = swap_rpc.before_swap(
                 result.token, result.amount, issue_coin, connect, swap_settings)
             if err == Error.Success and tx is not None:
-                connect_id = 0
-                if connect.get('type') == 'erc721':
+                connect_id = None
+                if result.token_type == TokenType.Erc721:
                     conn = ERC721_Connect()
                     conn.token = connect['token']
                     conn.token_id = connect['token_id']
@@ -428,6 +424,7 @@ class SwapBusiness(IBusiness):
             result.from_fee = Decimal(swap.fee)
             result.coin = swap.coin
             result.token = swap.token
+            result.token_type = swap.token_type
             result.tx_from = swap.tx_hash
             result.tx_height = 0
             result.confirm_height = 0

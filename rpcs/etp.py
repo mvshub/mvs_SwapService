@@ -9,10 +9,11 @@ from utils.decimal_encoder import DecimalEncoder
 from utils.exchange_rate import ExchangeRate
 import json
 import decimal
-from models.constants import Status, Error, SwapException
+from models.constants import Status, TokenType, Error, SwapException
 from models import constants
 from models.coin import Coin
-import math, time
+import math
+import time
 
 
 class Etp(Base):
@@ -23,7 +24,8 @@ class Etp(Base):
     def __init__(self, settings, tokens):
         Base.__init__(self, settings)
 
-        self.token_mapping = json.loads(open('config/token_mapping.json').read())
+        self.token_mapping = json.loads(
+            open('config/token_mapping.json').read())
 
         self.name = 'ETP'
         self.tokens = {}
@@ -268,12 +270,12 @@ class Etp(Base):
 
         except RpcException as e:
             Logger.get().error("failed to register mit to: {}, symbol: {},tx_hash: {}, error: {}"
-            .format(to_did, symbol, tx_hash, str(e)))
+                               .format(to_did, symbol, tx_hash, str(e)))
             raise
 
         return tx_hash
 
-    def send_mit(self, account, passphrase, to_did, symbol, msg =None):
+    def send_mit(self, account, passphrase, to_did, symbol, msg=None):
         tx_hash = None
         try:
             params = [account, passphrase, to_did, symbol]
@@ -289,11 +291,10 @@ class Etp(Base):
 
         except RpcException as e:
             Logger.get().error("failed to transfer mit to: {}, symbol: {},tx_hash: {}, error: {}"
-            .format(to_did, symbol, tx_hash, str(e)))
+                               .format(to_did, symbol, tx_hash, str(e)))
             raise
 
         return tx_hash, 0
-
 
     def is_invalid_to_address(self, address):
         return address is None or len(address) < 42 or not self.is_hex(address[2:])
@@ -423,14 +424,14 @@ class Etp(Base):
         token_id = int(amount)
         symbol = self.get_mit_symbol(token, token_id)
         content = {
-            'type' : 'erc721',
+            'type': 'erc721',
             'token': token,
             'token_id': token_id
         }
-        
+
         connect.update(content)
 
-        connect['mit_name'] =  symbol
+        connect['mit_name'] = symbol
         return Error.Success, self.register_mit(account, passphrase, to_did, symbol, json.dumps(content))
 
     def before_swap(self, token, amount, issue_coin, connect, settings):
@@ -483,30 +484,26 @@ class Etp(Base):
 
         return self.send_mit(account, passphrase, to, symbol)
 
+    def transfer_asset(self, result, msg, connect, settings):
+        to = result.to_address
+        token = result.token
+        amount = result.amount
+        from_fee = result.from_fee
 
-
-    def transfer_asset(self, to, token, amount, from_fee, msg, connect, settings):
         if token not in self.tokens:
             raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST,
                                 'coin: {}, token: {} not configed.'.format(self.name, token))
 
-        token_type = self.get_connect_type(token)
+        if result.token_type == TokenType.Eth:
+            return self.transfer_etp(to, token, amount, from_fee, msg, connect, settings)
 
-        if token_type == 'eth':
-            return self.transfer_etp(to, token, amount, from_fee, msg,connect, settings)
+        elif result.token_type == TokenType.Erc20:
+            return self.transfer_mst(to, token, amount, from_fee, msg, connect, settings)
 
-        elif token_type == 'erc20':
-            return self.transfer_mst(to, token, amount, from_fee, msg,connect, settings)
-
-        elif token_type == 'erc721':
-            return self.transfer_mit(to, token, amount, from_fee, msg,connect, settings)
+        elif result.token_type == TokenType.Erc721:
+            return self.transfer_mit(to, token, amount, from_fee, msg, connect, settings)
 
         else:
             raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST,
                                 'coin: {}, token: {}, type: {} not supported.'.format(
                                     self.name, token, token_type))
-
-
-    def get_connect_type(self, token):
-        token_setting = self.tokens[token]
-        return token_setting['token_type'].lower()

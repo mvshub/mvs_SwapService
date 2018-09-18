@@ -24,6 +24,10 @@ def calc_multiple(fee):
     option = 0.8
     return 1 + option * ((1 - pow(attenuation, diff)) / (1 - attenuation))
 
+class TokenType(IntEnum):
+    Erc20 = 0
+    Erc721 = 1
+    Eth = 2
 
 class Status(IntEnum):
     Swap_New = 1

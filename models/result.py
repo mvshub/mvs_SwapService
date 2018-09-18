@@ -13,6 +13,7 @@ class Result(db.Model):
 
     coin = db.Column(db.String(64), nullable=False)
     token = db.Column(db.String(64), nullable=False)
+    token_type = db.Column(db.SmallInteger, default=0)
 
     tx_from = db.Column(db.String(256))
     tx_hash = db.Column(db.String(256))
@@ -40,6 +41,7 @@ class Result(db.Model):
         dep.amount = dep_.amount
         dep.token = dep_.token
         dep.coin = dep_.coin
+        dep.token_type = dep_.token_type
         dep.tx_hash = dep_.tx_hash
         dep.tx_from = dep_.tx_from
         dep.confirm_status = dep_.confirm_status

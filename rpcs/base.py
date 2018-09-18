@@ -22,7 +22,7 @@ class Base:
     def best_block_number(self):
         pass
 
-    def transfer_asset(self, to, token, amount, from_fee, msg, connect, settings):
+    def transfer_asset(self, result, msg, connect, settings):
         pass
 
     def start(self):
@@ -54,9 +54,6 @@ class Base:
 
     def is_to_address_valid(self, address):
         return True
-
-    def get_connect_type(self, token):
-        pass
 
     @classmethod
     def get_msg_memo(cls, msg):
