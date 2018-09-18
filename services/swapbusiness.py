@@ -311,7 +311,7 @@ class SwapBusiness(IBusiness):
                     #             (result.coin, result.token))
                     raise SwapException(Error.EXCEPTION_COIN_ISSUING)
 
-            connect = {}
+            connect = {'hash': result.tx_from}
             err, tx = swap_rpc.before_swap(
                 result.token, result.amount, issue_coin, connect, swap_settings)
             if err == Error.Success and tx is not None:

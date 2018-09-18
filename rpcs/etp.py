@@ -426,12 +426,13 @@ class Etp(Base):
         content = {
             'type': 'erc721',
             'token': token,
-            'token_id': token_id
+            'token_id': token_id,
+            'hash':connect.get('hash')
         }
 
         connect.update(content)
-
         connect['mit_name'] = symbol
+
         return Error.Success, self.register_mit(account, passphrase, to_did, symbol, json.dumps(content))
 
     def before_swap(self, token, amount, issue_coin, connect, settings):
