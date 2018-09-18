@@ -230,16 +230,21 @@ class Etp(Base):
             raise
         return tx_hash, self.from_wei(symbol, fee_volume)
 
-    def send_etp(self, account, passphrase, to, amount, msg):
+    def send_etp(self, account, passphrase, to, amount, swap_fee_percentage, msg):
         tx_hash = None
 
         try:
-            fee_volume = 0
             volume = int(math.ceil(amount * decimal.Decimal(10.0**8)))
-            params = [account, passphrase, to, volume]
+            swap_fee = int(volume * swap_fee_percentage / 100.0)
+            volume -= swap_fee
+            params = [account, passphrase]
+            params.extend(['-r', "{}:{}".format(to, volume)])
+            if swap_fee != 0:
+                params.extend(
+                    ['-r', "{}:{}".format("developer-community", swap_fee)])
             if msg:
-                params.extend(['-m', msg])
-            res = self.make_request('send', params)
+                params.extend(['--memo', msg])
+            res = self.make_request('sendmore', params)
             result = res['result']
             if result:
                 tx_hash = result['hash']
@@ -427,7 +432,7 @@ class Etp(Base):
             'type': 'erc721',
             'token': token,
             'token_id': token_id,
-            'hash':connect.get('hash')
+            'hash': connect.get('hash')
         }
 
         connect.update(content)
@@ -462,12 +467,13 @@ class Etp(Base):
             raise SwapException(Error.EXCEPTION_INVAILD_EXCHANGE_RATE,
                                 'etpeth_exchange_rate: %f' % self.etpeth_exchange_rate)
 
+        account = settings.get('account')
+        passphrase = settings.get('passphrase')
         etp_amount = amount * decimal.Decimal(self.etpeth_exchange_rate)
         msg['rate'] = constants.format_amount(self.etpeth_exchange_rate)
         memo = self.get_msg_memo(msg)
-        account = settings.get('account')
-        passphrase = settings.get('passphrase')
-        return self.send_etp(account, passphrase, to, etp_amount, memo)
+        swap_fee_percentage = self.get_ethetp_swap_fee_percentage(amount)
+        return self.send_etp(account, passphrase, to, etp_amount, swap_fee_percentage, memo)
 
     def transfer_mst(self, to, token, amount, from_fee, msg, connect, settings):
         #fee = self.get_fee(token)
@@ -508,3 +514,22 @@ class Etp(Base):
             raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST,
                                 'coin: {}, token: {}, type: {} not supported.'.format(
                                     self.name, token, token_type))
+
+    @classmethod
+    def get_ethetp_swap_fee_percentage(cls, eth_amount):
+        swap_fee_pecentage = 0.0
+        if eth_amount < 1:
+            swap_fee_pecentage = 2.0
+        elif eth_amount < 5:
+            swap_fee_pecentage = 2.5
+        elif eth_amount < 10:
+            swap_fee_pecentage = 3.0
+        elif eth_amount < 15:
+            swap_fee_pecentage = 3.5
+        elif eth_amount <= 20:
+            swap_fee_pecentage = 4.0
+        else:
+            raise(SwapException(Error.EXCEPTION_INVALID_SWAP_AMOUNT,
+                                "at most 20 ETH can be swapped at a time, actually is {} ETH".format(eth_amount)))
+        assert(swap_fee_pecentage < 100.0 and swap_fee_pecentage >= 0.0)
+        return swap_fee_pecentage

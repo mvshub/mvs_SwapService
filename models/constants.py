@@ -101,6 +101,7 @@ class Error(IntEnum):
     EXCEPTION_GET_EXCHANGE_RATE_FAIL = 9
     EXCEPTION_INVAILD_EXCHANGE_RATE = 10
     EXCEPTION_INVAILD_CONNECT_ID = 11
+    EXCEPTION_INVALID_SWAP_AMOUNT = 12
 
 
 class SwapException(Exception):
@@ -121,7 +122,8 @@ class SwapException(Exception):
         Error.EXCEPTION_CONFIG_ERROR_DECIMAL: "Config error of decimal number, must be specified",
         Error.EXCEPTION_GET_EXCHANGE_RATE_FAIL: "Failed to get exchange rate",
         Error.EXCEPTION_INVAILD_EXCHANGE_RATE: "Invaild exchange rate",
-        Error.EXCEPTION_INVAILD_CONNECT_ID: "Invaild MIT CONNECT ID"
+        Error.EXCEPTION_INVAILD_CONNECT_ID: "Invaild MIT CONNECT ID",
+        Error.EXCEPTION_INVALID_SWAP_AMOUNT: "Invalid swap amount"
     }
 
     def get_error_str(self):
