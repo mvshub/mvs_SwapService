@@ -123,7 +123,7 @@ class Eth(Base):
 
         return res, fee_amount
 
-    def transfer_asset(self, to, token, amount, from_fee, msg, settings):
+    def transfer_asset(self, to, token, amount, from_fee, msg, connect, settings):
         address = settings["scan_address"]
 
         if not self.unlock_account(address, settings['passphrase']):

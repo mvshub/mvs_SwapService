@@ -12,7 +12,7 @@ import decimal
 from models.constants import Status, Error, SwapException
 from models import constants
 from models.coin import Coin
-import math
+import math, time
 
 
 class Etp(Base):
@@ -251,6 +251,50 @@ class Etp(Base):
             raise
         return tx_hash, 0
 
+    def register_mit(self, account, passphrase, to_did, symbol, content):
+        tx_hash = None
+
+        try:
+            params = [account, passphrase, to_did, symbol]
+            if content:
+                params.extend(['-c', content])
+            res = self.make_request('registermit', params)
+            result = res['result']
+            if result:
+                tx_hash = result['hash']
+
+            Logger.get().info("register_mit: to: {}, symbol: {},tx_hash: {}".format(
+                to_did, symbol, tx_hash))
+
+        except RpcException as e:
+            Logger.get().error("failed to register mit to: {}, symbol: {},tx_hash: {}, error: {}"
+            .format(to_did, symbol, tx_hash, str(e)))
+            raise
+
+        return tx_hash, 0
+
+    def send_mit(self, account, passphrase, to_did, symbol, msg =None):
+        tx_hash = None
+        try:
+            params = [account, passphrase, to_did, symbol]
+            if msg:
+                params.extend(['-m', msg])
+            res = self.make_request('transfermit', params)
+            result = res['result']
+            if result:
+                tx_hash = result['hash']
+
+            Logger.get().info("transfer_mit: to: {}, symbol: {},tx_hash: {}".format(
+                to_did, symbol, tx_hash))
+
+        except RpcException as e:
+            Logger.get().error("failed to transfer mit to: {}, symbol: {},tx_hash: {}, error: {}"
+            .format(to_did, symbol, tx_hash, str(e)))
+            raise
+
+        return tx_hash, 0
+
+
     def is_invalid_to_address(self, address):
         return address is None or len(address) < 42 or not self.is_hex(address[2:])
 
@@ -327,6 +371,10 @@ class Etp(Base):
 
         return Error.Success, None
 
+    def get_mit_symbol(self, token, token_id):
+        millis = int(round(time.time() * 1000))
+        return "{}_{}_{}".format(token, token_id, millis)
+
     def before_swap_erc20(self, token, amount, issue_coin, settings):
         account = settings.get('account')
         passphrase = settings.get('passphrase')
@@ -368,11 +416,24 @@ class Etp(Base):
 
         return Error.Success, None
 
-    def before_swap_erc721(self, token, amount, issue_coin, settings):
-        # TODO
-        pass
+    def before_swap_erc721(self, token, amount, issue_coin, connect, settings):
+        account = settings.get('account')
+        passphrase = settings.get('passphrase')
+        to_did = settings.get('did')
+        token_id = int(amount)
+        symbol = self.get_mit_symbol(token, token_id)
+        content = {
+            'type' : 'erc721',
+            'token': token,
+            'token_id': token_id
+        }
+        
+        connect.update(content)
 
-    def before_swap(self, token, amount, issue_coin, settings):
+        connect['mit_name'] =  symbol
+        return Error.Success, self.register_mit(account, passphrase, to_did, symbol, json.dumps(content))
+
+    def before_swap(self, token, amount, issue_coin, connect, settings):
         if token not in self.tokens:
             raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST,
                                 'coin: {}, token: {} not configed.'.format(self.name, token))
@@ -387,14 +448,14 @@ class Etp(Base):
             return self.before_swap_erc20(token, amount, issue_coin, settings)
 
         elif token_type == 'erc721':
-            return self.before_swap_erc721(token, amount, issue_coin, settings)
+            return self.before_swap_erc721(token, amount, issue_coin, connect, settings)
 
         else:
             raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST,
                                 'coin: {}, token: {}, type: {} not supported.'.format(
                                     self.name, token, token_type))
 
-    def transfer_etp(self, to, token, amount, from_fee, msg, settings):
+    def transfer_etp(self, to, token, amount, from_fee, msg, connect, settings):
         if self.etpeth_exchange_rate <= 0:
             raise SwapException(Error.EXCEPTION_INVAILD_EXCHANGE_RATE,
                                 'etpeth_exchange_rate: %f' % self.etpeth_exchange_rate)
@@ -406,7 +467,7 @@ class Etp(Base):
         passphrase = settings.get('passphrase')
         return self.send_etp(account, passphrase, to, etp_amount, memo)
 
-    def transfer_mst(self, to, token, amount, from_fee, msg, settings):
+    def transfer_mst(self, to, token, amount, from_fee, msg, connect, settings):
         #fee = self.get_fee(token)
         msg['rate'] = constants.format_amount(msg['rate'])
         memo = self.get_msg_memo(msg)
@@ -415,28 +476,37 @@ class Etp(Base):
         symbol = self.get_mvs_symbol(token)
         return self.send_asset(account, passphrase, to, symbol, amount, 0, memo)
 
-    def transfer_mit(self, to, token, amount, from_fee, msg, settings):
-        # TODO
-        pass
+    def transfer_mit(self, to, token, amount, from_fee, msg, connect, settings):
+        account = settings.get('account')
+        passphrase = settings.get('passphrase')
+        symbol = connect.mit_name
 
-    def transfer_asset(self, to, token, amount, from_fee, msg, settings):
+        return self.send_mit(account, passphrase, to, symbol)
+
+
+
+    def transfer_asset(self, to, token, amount, from_fee, msg, connect, settings):
         if token not in self.tokens:
             raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST,
                                 'coin: {}, token: {} not configed.'.format(self.name, token))
 
-        token_setting = self.tokens[token]
-        token_type = token_setting['token_type'].lower()
+        token_type = self.get_connect_type(token)
 
         if token_type == 'eth':
-            return self.transfer_etp(to, token, amount, from_fee, msg, settings)
+            return self.transfer_etp(to, token, amount, from_fee, msg,connect, settings)
 
         elif token_type == 'erc20':
-            return self.transfer_mst(to, token, amount, from_fee, msg, settings)
+            return self.transfer_mst(to, token, amount, from_fee, msg,connect, settings)
 
         elif token_type == 'erc721':
-            return self.transfer_mit(to, token, amount, from_fee, msg, settings)
+            return self.transfer_mit(to, token, amount, from_fee, msg,connect, settings)
 
         else:
             raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST,
                                 'coin: {}, token: {}, type: {} not supported.'.format(
                                     self.name, token, token_type))
+
+
+    def get_connect_type(self, token):
+        token_setting = self.tokens[token]
+        return token_setting['token_type'].lower()

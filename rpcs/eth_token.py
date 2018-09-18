@@ -127,7 +127,7 @@ class EthToken(Eth):
         return token
 
 
-    def transfer_asset(self, to, symbol, amount, from_fee, msg, settings):
+    def transfer_asset(self, to, symbol, amount, from_fee, msg, connect, settings):
         token = self.get_eth_token(symbol)
         address = settings["scan_address"]
 

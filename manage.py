@@ -10,6 +10,7 @@ from models.swap_ban import Swap_ban
 from models.swap_ban import Swap_ban
 from models.immature import Immature
 from models.scan import Scan
+from models.erc721_connect import ERC721_Connect
 
 import json
 from models import db

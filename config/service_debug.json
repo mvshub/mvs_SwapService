@@ -76,6 +76,13 @@
             "enable":true,
             "decimal": 18,
             "token_type":"eth"
+        },
+        {
+            "name":"Car",
+            "contract_address":"0x9fAa766fCBcD3BDBAb27681C7Cca6e1a6016B7c5",
+            "enable":true,
+            "decimal": 1,
+            "token_type":"erc721"
         }
     ]
 }

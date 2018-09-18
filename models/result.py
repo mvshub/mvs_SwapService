@@ -28,6 +28,8 @@ class Result(db.Model):
     fee = db.Column(db.Numeric(64, 18))
     from_fee = db.Column(db.Numeric(64, 18))
 
+    connect_id = db.Column(db.Integer)
+
     @classmethod
     def copy(cls, dep_):
         dep = Result()
@@ -48,6 +50,7 @@ class Result(db.Model):
         dep.fee = dep_.fee
         dep.from_fee = dep_.from_fee
         dep.rate = dep_.rate
+        dep.connect_id = dep_.connect_id
 
         return dep
 

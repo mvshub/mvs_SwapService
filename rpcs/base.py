@@ -22,7 +22,7 @@ class Base:
     def best_block_number(self):
         pass
 
-    def transfer_asset(self, to, token, amount, from_fee, msg, settings):
+    def transfer_asset(self, to, token, amount, from_fee, msg, connect, settings):
         pass
 
     def start(self):
@@ -45,7 +45,7 @@ class Base:
         dec = self.get_decimal(token)
         return wei * (10.0 ** (-dec))
 
-    def before_swap(self, token, amount, issue_coin, settings):
+    def before_swap(self, token, amount, issue_coin, connect, settings):
         # 0: success, 1: need process
         return 0, None
 
@@ -54,6 +54,9 @@ class Base:
 
     def is_to_address_valid(self, address):
         return True
+
+    def get_connect_type(self, token):
+        pass
 
     @classmethod
     def get_msg_memo(cls, msg):
