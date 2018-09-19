@@ -6,13 +6,15 @@ from models.swap import Swap
 from models.binder import Binder
 from models.coin import Coin
 from models.result import Result
-from models.constants import Status, Error, SwapException
+from models.erc721_connect import ERC721_Connect
+from models.constants import Status, TokenType, Error, SwapException
 from utils.exception import RpcException, CriticalException, RpcErrorException
 from utils import response
 from utils import date_time
 from utils import mailer
 from utils.log.logger import Logger
 from utils.timeit import timeit
+import utils.date_time
 import threading
 import traceback
 from decimal import Decimal
@@ -196,9 +198,10 @@ class SwapBusiness(IBusiness):
                     if r.status == int(Status.Swap_Issue):
                         issue_coin = db.session.query(Coin).filter_by(
                             name=r.coin, token=r.token).first()
-                        issue_coin.status = int(Status.Token_Normal)
-                        db.session.add(issue_coin)
-                        db.session.commit()
+                        if issue_coin:
+                            issue_coin.status = int(Status.Token_Normal)
+                            db.session.add(issue_coin)
+                            db.session.commit()
 
                         r.message = "confirm issued tx success"
                         r.date = date_time.get_current_date()
@@ -243,9 +246,15 @@ class SwapBusiness(IBusiness):
                 msg['amount'] = constants.format_amount(result.amount)
                 msg['rate'] = 1
 
+                connect = None
+                if result.token_type == TokenType.Erc721:
+                    connect = db.session.query(ERC721_Connect).filter_by(
+                        iden=result.connect_id).first()
+                    if not connect:
+                        raise SwapException(Error.EXCEPTION_INVAILD_CONNECT_ID)
+
                 tx, fee = rpc.transfer_asset(
-                    result.to_address, result.token, result.amount, result.from_fee,
-                    msg, swap_settings)
+                    result, msg, connect, swap_settings)
                 if tx:
                     result.tx_hash = tx
                     result.tx_height = current_height
@@ -255,9 +264,12 @@ class SwapBusiness(IBusiness):
                     db.message = "send tx success, wait for confirm"
                     result.date = date_time.get_current_date()
                     result.time = date_time.get_current_time()
-                    result.rate = msg.get('rate',1.0)
-                    db.session.add(result)
-                    db.session.commit()
+                    result.rate = msg.get('rate', 1.0)
+
+                    if connect:
+                        connect.status = int(Status.Connect_MIT_Transfer)
+                        db.session.add(connect)
+                        db.session.commit()
 
                     Logger.get().info('success send asset: token: {}, amount: {}, to: {}, tx_hash: {}'.format(
                         result.token, result.amount, result.to_address, result.tx_hash))
@@ -283,33 +295,52 @@ class SwapBusiness(IBusiness):
 
             swap_coin = self.get_swap_coin(result)
             swap_settings = self.get_rpc_settings(swap_coin)
-            issue_coin = db.session.query(Coin).filter_by(
-                name=result.coin, token=result.token).order_by(Coin.iden.desc()).first()
 
-            if not issue_coin:
-                Logger.get().error("coin: %s, token: %s not exist in the db" %
-                                   (result.coin, result.token))
-                raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST)
+            issue_coin = None
+            if result.token_type != TokenType.Erc721:
+                issue_coin = db.session.query(Coin).filter_by(
+                    name=result.coin, token=result.token).order_by(Coin.iden.desc()).first()
 
-            if issue_coin.status == int(Status.Token_Issue):
-                # Logger.get().info("coin:%s, token %s is issuing" %
-                #             (result.coin, result.token))
-                raise SwapException(Error.EXCEPTION_COIN_ISSUING)
+                if not issue_coin:
+                    Logger.get().error("coin: %s, token: %s not exist in the db" %
+                                       (result.coin, result.token))
+                    raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST)
 
+                if issue_coin.status == int(Status.Token_Issue):
+                    # Logger.get().info("coin:%s, token %s is issuing" %
+                    #             (result.coin, result.token))
+                    raise SwapException(Error.EXCEPTION_COIN_ISSUING)
+
+            connect = {'hash': result.tx_from}
             err, tx = swap_rpc.before_swap(
-                result.token, result.amount, issue_coin, swap_settings)
+                result, issue_coin, connect, swap_settings)
             if err == Error.Success and tx is not None:
+                connect_id = None
+                if result.token_type == TokenType.Erc721:
+                    conn = ERC721_Connect()
+                    conn.token = connect['token']
+                    conn.token_id = connect['token_id']
+                    conn.mit_name = connect['mit_name']
+                    conn.status = int(Status.Connect_Mit_Register)
+                    db.session.add(conn)
+                    db.session.commit()
+                    connect_id = conn.iden
+                    Logger.get().info("new connect: type=%s, id=%d" % ('erc721', connect_id))
+
                 result.tx_hash = tx
                 result.tx_height = current_height
                 result.status = int(Status.Swap_Issue)
                 result.confirm_status = int(Status.Tx_Unconfirm)
                 result.date = date_time.get_current_date()
                 result.time = date_time.get_current_time()
+                result.connect_id = connect_id
 
-                issue_coin.status = int(Status.Token_Issue)
-                db.message = "send issue tx success, wait for confirm"
-                db.session.add(issue_coin)
-                db.session.commit()
+                if issue_coin:
+                    issue_coin.status = int(Status.Token_Issue)
+                    db.message = "send issue tx success, wait for confirm"
+                    db.session.add(issue_coin)
+                    db.session.commit()
+
                 Logger.get().info('success issue asset: %s, tx_hash: %s ' %
                                   (result.token, result.tx_hash))
 
@@ -394,6 +425,7 @@ class SwapBusiness(IBusiness):
             result.from_fee = Decimal(swap.fee)
             result.coin = swap.coin
             result.token = swap.token
+            result.token_type = swap.token_type
             result.tx_from = swap.tx_hash
             result.tx_height = 0
             result.confirm_height = 0

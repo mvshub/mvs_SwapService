@@ -5,7 +5,7 @@ from utils.log.logger import Logger
 from utils.exception import TransactionNotfoundException, RpcErrorException
 import binascii
 from models.coin import Coin
-from models.constants import SwapException, Error
+from models.constants import TokenType, SwapException, Error
 from models import constants
 
 
@@ -15,7 +15,8 @@ class EthToken(Eth):
         Eth.__init__(self, settings, tokens)
         self.name = settings['name']
 
-        self.erc20_tokens = json.loads(open('config/erc20_tokens.json').read())
+        self.token_mapping = json.loads(
+            open('config/token_mapping.json').read())
 
         self.token_names = []
         self.contract_addresses = []
@@ -100,12 +101,12 @@ class EthToken(Eth):
 
         fee_amount = 0  # int(fee * amount)
         gasPrice = self.gas_price()
-        gasUsed =  int(gasPrice * constants.calc_multiple(from_fee))
+        gasUsed = int(gasPrice * constants.calc_multiple(from_fee))
 
         data = '0xa9059cbb' + '0' * \
             (64 - len(arg_to)) + arg_to + ('%064x' % (amount - fee_amount))
         res = self.make_request('eth_sendTransaction', [
-                                {'from': from_address, 'to': contract, 'data': data, 'gasPrice':hex(gasUsed)}])
+                                {'from': from_address, 'to': contract, 'data': data, 'gasPrice': hex(gasUsed)}])
 
         Logger.get().info("tx:%s,gasprice:%d, gasUsed:%d", res, gasPrice, gasUsed)
         return res, fee_amount
@@ -115,7 +116,7 @@ class EthToken(Eth):
         if symbol.startswith(constants.SWAP_TOKEN_PREFIX):
             token = symbol[len(constants.SWAP_TOKEN_PREFIX):]
         else:
-            for (k, v) in self.erc20_tokens.items():
+            for (k, v) in self.token_mapping.items():
                 if v == symbol:
                     token = k
                     break
@@ -126,20 +127,31 @@ class EthToken(Eth):
                 '{} not start with {} or not configed.'.format(symbol, constants.SWAP_TOKEN_PREFIX))
         return token
 
+    def transfer_asset(self, result, msg, connect, settings):
+        to = result.to_address
+        symbol = result.token
+        amount = result.amount
+        from_fee = result.from_fee
+        token_type = result.token_type
 
-    def transfer_asset(self, to, symbol, amount, from_fee, msg, settings):
-        token = self.get_eth_token(symbol)
-        address = settings["scan_address"]
+        if token_type == TokenType.Erc20:
+            token = self.get_eth_token(symbol)
+            address = settings["scan_address"]
 
-        if not self.unlock_account(address, settings['passphrase']):
-            Logger.get().info('Failed to unlock_account, address:%s, passphrase:%s'
-                              % (address, settings['passphrase']))
-            return None, 0
+            if not self.unlock_account(address, settings['passphrase']):
+                Logger.get().info('Failed to unlock_account, address:%s, passphrase:%s'
+                                  % (address, settings['passphrase']))
+                return None, 0
 
-        memo = self.get_msg_memo(msg)
-        tx_hash, fee = self.transfer2(
-            token, None, address, to, self.to_wei(token, amount), from_fee, memo)
-        return tx_hash, self.from_wei(token, fee)
+            memo = self.get_msg_memo(msg)
+            tx_hash, fee = self.transfer2(
+                token, None, address, to, self.to_wei(token, amount), from_fee, memo)
+            return tx_hash, self.from_wei(token, fee)
+
+        else:
+            # TODO
+            Logger.get().info("TODO token_type: {}".format(token_type))
+            pass
 
     def get_decimal(self, name):
         for i in self.tokens:

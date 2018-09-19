@@ -18,6 +18,7 @@ class Swap(db.Model):
     tx_time = db.Column(db.Numeric(32))
     token = db.Column(db.String(64))
     coin = db.Column(db.String(64))
+    token_type = db.Column(db.SmallInteger, default=0)
 
     # new confirmed transferred committed
     status = db.Column(db.Integer, nullable=False)
@@ -39,6 +40,7 @@ class Swap(db.Model):
         dep.tx_time = dep_.tx_time
         dep.coin = dep_.coin
         dep.token = dep_.token
+        dep.token_type = dep_.token_type
         dep.status = dep_.status
         dep.create_time = dep_.create_time
         return dep

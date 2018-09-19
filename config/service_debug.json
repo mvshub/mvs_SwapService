@@ -17,15 +17,15 @@
             "id":2,
             "name":"ETHToken",
             "type":"rpcs.eth_token.EthToken",
-            "contract_mapaddress":"0xa52b0a032139e6303b86cfeb0bb9ae780a610354",
-            "uri": "http://13.57.140.140:8545"
+            "contract_mapaddress":"0xB5076F81F458e55d0D0952a60091311e95289B52",
+            "uri": "http://10.10.10.175:8545"
         },
         {
             "id":3,
             "name":"ETH",
             "type":"rpcs.eth.Eth",
-            "contract_mapaddress":"0xa52b0a032139e6303b86cfeb0bb9ae780a610354",
-            "uri": "http://13.57.140.140:8545"
+            "contract_mapaddress":"0xB5076F81F458e55d0D0952a60091311e95289B52",
+            "uri": "http://10.10.10.175:8545"
         }
 
     ],
@@ -47,7 +47,7 @@
                 "coin":"ETHToken",
                 "minconf":13,
                 "minrenew":20,
-                "scan_address":"0x7863669296c272ddc4b0bba3badb071087b8ca6c",
+                "scan_address":"0x2d23fdffe79c9b5769b399ccd0d8c2e46e1aea26",
                 "passphrase":"xiao123456",
                 "enable":true
             },
@@ -56,7 +56,7 @@
                 "coin":"ETH",
                 "minconf":15,
                 "minrenew":20,
-                "scan_address":"0x7863669296c272ddc4b0bba3badb071087b8ca6c",
+                "scan_address":"0x2d23fdffe79c9b5769b399ccd0d8c2e46e1aea26",
                 "passphrase":"xiao123456",
                 "enable":true
             }
@@ -65,15 +65,24 @@
     "tokens": [
         {
             "name":"EDU",
-            "contract_address":"0xf263292e14d9d8ecd55b58dad1f1df825a874b7c",
+            "contract_address":"0xB5076F81F458e55d0D0952a60091311e95289B52",
             "enable":true,
-            "decimal": 18
+            "decimal": 18,
+            "token_type":"erc20"
         },
         {
             "name":"ETH",
             "contract_address":"",
             "enable":true,
-            "decimal": 18
+            "decimal": 18,
+            "token_type":"eth"
+        },
+        {
+            "name":"Car",
+            "contract_address":"0x9fAa766fCBcD3BDBAb27681C7Cca6e1a6016B7c5",
+            "enable":true,
+            "decimal": 1,
+            "token_type":"erc721"
         }
     ]
 }

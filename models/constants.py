@@ -24,6 +24,10 @@ def calc_multiple(fee):
     option = 0.8
     return 1 + option * ((1 - pow(attenuation, diff)) / (1 - attenuation))
 
+class TokenType(IntEnum):
+    Erc20 = 0
+    Erc721 = 1
+    Eth = 2
 
 class Status(IntEnum):
     Swap_New = 1
@@ -38,10 +42,13 @@ class Status(IntEnum):
     Token_Normal = 0
     Token_Issue = 1
 
-    Record_All = 0,
-    Record_Finish = 1,
-    Record_Pending = 2,
+    Record_All = 0
+    Record_Finish = 1
+    Record_Pending = 2
 
+    Connect_Mit_Register = 0
+    Connect_MIT_Transfer = 1
+    Connect_MIT_Burn = 2
 
 StatusStr = {
     Status.Swap_New: 'New',
@@ -93,6 +100,8 @@ class Error(IntEnum):
     EXCEPTION_CONFIG_ERROR_DECIMAL = 8
     EXCEPTION_GET_EXCHANGE_RATE_FAIL = 9
     EXCEPTION_INVAILD_EXCHANGE_RATE = 10
+    EXCEPTION_INVAILD_CONNECT_ID = 11
+    EXCEPTION_INVALID_SWAP_AMOUNT = 12
 
 
 class SwapException(Exception):
@@ -112,7 +121,9 @@ class SwapException(Exception):
         Error.EXCEPTION_COIN_AMOUNT_NO_ENOUGH: "Coin amount no enough",
         Error.EXCEPTION_CONFIG_ERROR_DECIMAL: "Config error of decimal number, must be specified",
         Error.EXCEPTION_GET_EXCHANGE_RATE_FAIL: "Failed to get exchange rate",
-        Error.EXCEPTION_INVAILD_EXCHANGE_RATE: "Invaild exchange rate"
+        Error.EXCEPTION_INVAILD_EXCHANGE_RATE: "Invaild exchange rate",
+        Error.EXCEPTION_INVAILD_CONNECT_ID: "Invaild MIT CONNECT ID",
+        Error.EXCEPTION_INVALID_SWAP_AMOUNT: "Invalid swap amount"
     }
 
     def get_error_str(self):
