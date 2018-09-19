@@ -440,7 +440,7 @@ class Etp(Base):
 
         return Error.Success, self.register_mit(account, passphrase, to_did, symbol, json.dumps(content))
 
-    def before_swap(self, token, amount, issue_coin, connect, settings):
+    def before_swap(self, result, issue_coin, connect, settings):
         token = result.token
         amount = result.amount
         token_type = result.token_type
