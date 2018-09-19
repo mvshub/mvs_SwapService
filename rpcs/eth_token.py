@@ -129,7 +129,7 @@ class EthToken(Eth):
 
     def transfer_asset(self, result, msg, connect, settings):
         to = result.to_address
-        token = result.token
+        symbol = result.token
         amount = result.amount
         from_fee = result.from_fee
         token_type = result.token_type
