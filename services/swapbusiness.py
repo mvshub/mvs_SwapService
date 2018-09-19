@@ -14,7 +14,7 @@ from utils import date_time
 from utils import mailer
 from utils.log.logger import Logger
 from utils.timeit import timeit
-import utils.date_time 
+import utils.date_time
 import threading
 import traceback
 from decimal import Decimal
@@ -313,7 +313,7 @@ class SwapBusiness(IBusiness):
 
             connect = {'hash': result.tx_from}
             err, tx = swap_rpc.before_swap(
-                result.token, result.amount, issue_coin, connect, swap_settings)
+                result, issue_coin, connect, swap_settings)
             if err == Error.Success and tx is not None:
                 connect_id = None
                 if result.token_type == TokenType.Erc721:

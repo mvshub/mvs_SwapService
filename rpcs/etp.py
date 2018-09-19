@@ -441,20 +441,21 @@ class Etp(Base):
         return Error.Success, self.register_mit(account, passphrase, to_did, symbol, json.dumps(content))
 
     def before_swap(self, token, amount, issue_coin, connect, settings):
+        token = result.token
+        amount = result.amount
+        token_type = result.token_type
+
         if token not in self.tokens:
             raise SwapException(Error.EXCEPTION_COIN_NOT_EXIST,
                                 'coin: {}, token: {} not configed.'.format(self.name, token))
 
-        token_setting = self.tokens[token]
-        token_type = token_setting['token_type'].lower()
-
-        if token_type == 'eth':
+        if token_type == TokenType.Eth:
             return self.before_swap_eth(token, amount, issue_coin, settings)
 
-        elif token_type == 'erc20':
+        elif token_type == TokenType.Erc20:
             return self.before_swap_erc20(token, amount, issue_coin, settings)
 
-        elif token_type == 'erc721':
+        elif token_type == TokenType.Erc721:
             return self.before_swap_erc721(token, amount, issue_coin, connect, settings)
 
         else:
