@@ -118,7 +118,7 @@ class SwapBusiness(IBusiness):
                         subject = "MVS Swap reserves not enough Warning ({}: {})".format(
                             r.coin, r.token)
                         body = "process swap ({}: {}) transaction {} failed at {}, {}".format(
-                            r.coin, r.token, r.tx_from, data_time.get_local_time(), r.message)
+                            r.coin, r.token, r.tx_from, date_time.get_local_time(), r.message)
                         Logger.get().error("{}\n{}".format(subject, body))
                         symbol = "Swapping {}:{}".format(r.coin, r.token)
                         mailer.send_mail(symbol, subject, body)
@@ -128,7 +128,7 @@ class SwapBusiness(IBusiness):
                         subject = "MVS Swap get etpeth exchange rate failed ({}: {})".format(
                             r.coin, r.token)
                         body = "process swap ({}: {}) transaction {} failed at {}, {}".format(
-                            r.coin, r.token, r.tx_from, data_time.get_local_time(), r.message)
+                            r.coin, r.token, r.tx_from, date_time.get_local_time(), r.message)
                         Logger.get().error("{}\n{}".format(subject, body))
                         symbol = "Swapping {}:{}".format(r.coin, r.token)
                         mailer.send_mail(symbol, subject, body)
