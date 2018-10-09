@@ -5,12 +5,26 @@
     <head>
       <meta charset="UTF-8">
       <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+      <title>{{ 'Ban {}, page {}'.format(date, page_index) }}</title>
     </head>
 
     <div id="dateid" d="{{date}}" style="display:none"></div>
+    <div id="page_index" pi="{{page_index}}" style="display:none"></div>
 
     <body>
-
+        <table width="50%" align="center">
+            <td align="center" width="30%">
+                <a href= "{{ url_for('swap_ban', date=date, page_index=(page_index - 1 if page_index - 1 > 0 else 1)) }}">
+                    {{ '<< Previous' }}
+                </a>
+            </td>
+            <td align="center" width="40%"> {{ 'Page {}'.format(page_index) }} </td>
+            <td align="center" width="30%">
+                <a href= "{{ url_for('swap_ban', date=date, page_index=page_index + 1) }}">
+                    {{ 'Next >>' }}
+                </a>
+            </td>
+        </table>
         <table>
             <thead>
                 <td align="center" width="5%"> Swap ID </td>

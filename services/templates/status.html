@@ -4,23 +4,24 @@
     <head>
       <meta charset="UTF-8">
       <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-      <title>{{ '{}, page {}'.format(date, page_index) }}</title>
+      <title>{{ '{}, status:{}, page {}'.format(date, status, page_index) }}</title>
     </head>
 
     <body>
         <table width="50%" align="center">
             <td align="center" width="30%">
-                <a href= "{{ url_for('swap_date', date=date, page_index=(page_index - 1 if page_index - 1 > 0 else 1)) }}">
+                <a href= "{{ url_for('swap_status', status=status, coin=coin, token=token, date=date, page_index=(page_index - 1 if page_index - 1 > 0 else 1)) }}">
                     {{ '<< Previous' }}
                 </a>
             </td>
             <td align="center" width="40%"> {{ 'Page {}'.format(page_index) }} </td>
             <td align="center" width="30%">
-                <a href= "{{ url_for('swap_date', date=date, page_index=page_index + 1) }}">
+                <a href= "{{ url_for('swap_status', status=status, coin=coin, token=token, date=date, page_index=page_index + 1) }}">
                     {{ 'Next >>' }}
                 </a>
             </td>
         </table>
+
         <table>
             <td align="center" width="5%"> Swap ID </td>
             <td align="center" width="5%"> Coin </td>
