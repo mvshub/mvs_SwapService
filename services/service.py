@@ -32,6 +32,11 @@ class MainService(IService):
     def __init__(self, settings):
         self.app = None
         self.settings = settings
+
+        self.num_per_page = int(settings.get('num_per_page',50))
+        if self.num_per_page < 1:
+            self.num_per_page = 1
+
         self.rpcmanager = RpcManager(settings['rpcs'], settings['tokens'])
 
     def setup_db(self):
@@ -48,6 +53,37 @@ class MainService(IService):
         with self.app.app_context():
             db.create_all()
 
+    def calculate_page_index(self, total_count, page_index):
+        total_page = 1
+        if total_count > self.num_per_page:
+            total_page, mod = divmod(total_count, self.num_per_page)
+            total_page = total_page + (1 if mod != 0 else 0)
+
+        if page_index < 1:
+            page_index = 1
+        elif page_index > total_page:
+            page_index = total_page
+        return page_index
+
+    def paginate(self, query, page_index):
+        total_count = query.count()
+        page_index = self.calculate_page_index(total_count, page_index)
+        results = query.paginate(
+            page_index, self.num_per_page, False).items
+        return page_index, results
+
+    def parse_date(self, date_str):
+        dates = date_str.split('--')
+        start_date = ''
+        end_date = ''
+        if len(dates) == 2:
+            start_date = dates[0].strip()
+            end_date = dates[1].strip()
+        elif len(dates) == 1:
+            start_date = dates[0].strip()
+            end_date = start_date
+        return start_date, end_date
+
     def start(self):
         self.app = Flask(__name__)
 
@@ -57,7 +93,7 @@ class MainService(IService):
 
         @self.app.route('/')
         def root():
-            return render_template('index.html')
+            return render_template('index.html', page_index=1)
 
         @self.app.route('/query', methods=['GET', 'POST'])
         def query():
@@ -97,12 +133,22 @@ class MainService(IService):
 
             return response.make_response(response.ERR_BAD_PARAMETER)
 
-        @self.app.route('/getResult')
-        def getResult():
-            results = db.session.query(Result).order_by(
-                Result.swap_id.desc()).limit(1000).all()
-            records = []
+        @self.app.route('/index/<int:page_index>')
+        @self.app.route('/index')
+        def view_index(page_index=1):
+            total_count = Result.query.count()
+            page_index = self.calculate_page_index(total_count, page_index)
+            return render_template('index.html', page_index=page_index)
 
+
+        @self.app.route('/getResult/<int:page_index>')
+        def getResult(page_index=1):
+            # paginate
+            results = Result.query.order_by(Result.swap_id.desc()).paginate(
+                page_index, self.num_per_page, False).items
+
+            # result
+            records = []
             def getMinconf(coin, token):
                 if coin == 'ETH' or coin == 'ETHToken':
                     coin = 'ETP'
@@ -143,22 +189,31 @@ class MainService(IService):
         def not_found(error):
             return response.make_response(response.ERR_SERVER_ERROR, '404: SwapService page not found')
 
+        @self.app.route('/status/<coin>/<token>/<date>/<int:status>/<int:page_index>')
         @self.app.route('/status/<coin>/<token>/<date>/<int:status>')
-        def swap_status(coin, token, date, status=0):
-
+        def swap_status(coin, token, date, status=0,page_index=1):
+            start_date, end_date = self.parse_date(date)
             if status == 0:
-                results = db.session.query(Result).filter_by(
-                    date=date, coin=coin, token=token).order_by(
-                    Result.swap_id.desc()).all()
+                query = Result.query.filter(and_(
+                    Result.date >= start_date, Result.date <= end_date,
+                    Result.coin == coin, Result.token == token)).order_by(
+                    Result.swap_id.desc())
             elif status == 1:
-                results = db.session.query(Result).filter_by(
-                    date=date, coin=coin, token=token, status=int(Status.Swap_Finish)).order_by(
-                    Result.swap_id.desc()).all()
-            else:
-                results = db.session.query(Result).filter(and_(
-                    Result.date == date, Result.coin == coin, Result.token == token,
+                query = Result.query.filter(and_(
+                    Result.date >= start_date, Result.date <= end_date,
+                    Result.coin == coin, Result.token == token,
+                    Result.status == int(Status.Swap_Finish))).order_by(
+                    Result.swap_id.desc())
+            elif status == 2:
+                query = Result.query.filter(and_(
+                    Result.date >= start_date, Result.date <= end_date,
+                    Result.coin == coin, Result.token == token,
                     Result.status != int(Status.Swap_Finish))).order_by(
-                    Result.swap_id.desc()).all()
+                    Result.swap_id.desc())
+            else:
+                return response.make_response(response.ERR_BAD_PARAMETER)
+
+            page_index, results = self.paginate(query, page_index)
 
             records = []
             for r in results:
@@ -179,12 +234,18 @@ class MainService(IService):
                     Status.Swap_Finish) else 1
                 records.append(record)
 
-            return render_template('date.html', date=date, results=records)
+            return render_template('status.html',
+                                   coin=coin, token=token,
+                                   date=date, status=status, page_index=page_index,
+                                   results=records)
 
+        @self.app.route('/date/<date>/<int:page_index>')
         @self.app.route('/date/<date>')
-        def swap_date(date):
-            results = db.session.query(Result).filter_by(
-                date=date).order_by(Result.swap_id.desc()).all()
+        def swap_date(date,page_index=1):
+            query = Result.query.filter_by(date=date).order_by(
+                Result.swap_id.desc())
+            page_index, results = self.paginate(query, page_index)
+            
             records = []
             for r in results:
                 record = {}
@@ -204,19 +265,21 @@ class MainService(IService):
                     Status.Swap_Finish) else 1
                 records.append(record)
 
-            return render_template('date.html', date=date, results=records)
+            return render_template('date.html', date=date, results=records, page_index=page_index)
 
+        @self.app.route('/token/<token>/<int:page_index>')
         @self.app.route('/token/<token>')
-        def swap_token(token):
-            results = db.session.query(Result).filter_by(
-                token=token).order_by(Result.swap_id.desc()).all()
+        def swap_token(token, page_index=1):
+            query = Result.query.filter_by(token=token).order_by(
+                    Result.swap_id.desc())
+            page_index, results = self.paginate(query, page_index)
 
             for result in results:
                 result.time = self.format_time(result.time)
                 result.amount = self.format_amount(result.amount)
                 result.fee = self.format_amount(result.from_fee)
 
-            return render_template('token.html', token=token, results=results)
+            return render_template('token.html', token=token, results=results, page_index=page_index)
 
         @self.app.route('/report/<date>')
         @self.app.route('/report')
@@ -317,11 +380,14 @@ class MainService(IService):
             else:
                 return response.make_response(response.ERR_INVALID_TRANSACTION)
 
+        @self.app.route('/address/<address>/<int:page_index>')
         @self.app.route('/address/<address>')
-        def swap_address(address):
-            results = db.session.query(Result).filter(
-                or_(Result.from_address == address, Result.to_address == address)).order_by(
-                Result.swap_id.desc()).all()
+        def swap_address(address, page_index=1):
+            query = Result.query.filter(or_(
+                Result.from_address == address, Result.to_address == address)).order_by(
+                    Result.swap_id.desc())
+            page_index, results = self.paginate(query, page_index)
+
             records = []
             binders = []
             for r in results:
@@ -352,7 +418,7 @@ class MainService(IService):
                 bind['height'] = r.block_height
                 binders.append(bind)
 
-            return render_template('address.html', address=address, results=records, binders=binders)
+            return render_template('address.html', address=address, results=records, page_index=page_index, binders=binders)
 
         @self.app.route('/swapcode/<address>')
         def swap_code(address):
@@ -381,18 +447,38 @@ class MainService(IService):
                 nonfix_distance + len_encoded + address_encoded
             return json.dumps(result, indent=4)
 
+        @self.app.route('/ban/<date>/<int:page_index>')
         @self.app.route('/ban/<date>')
         @self.app.route('/ban')
-        def swap_ban(date=None):
+        def swap_ban(date='all', page_index=1):
             if not date:
-                date = date_time.get_current_date();
-            return render_template('ban.html', date=date)
+                date = 'all'
 
-        @self.app.route('/getBan/<date>')
-        def getBan(date):
-            results = db.session.query(Result).filter(and_(
-                Result.date == int(date),
-                Result.status == int(Status.Swap_Ban))).order_by(Result.swap_id.desc()).all()
+            # paginate
+            if date == 'all':
+                total_count = Result.query.filter_by(
+                    status=int(Status.Swap_Ban)).count()
+            else:
+                total_count = Result.query.filter(
+                    Result.date == int(date), Result.status == int(Status.Swap_Ban)).count()
+            
+            page_index = self.calculate_page_index(total_count, page_index)
+
+            return render_template('ban.html',  date=date, page_index=page_index)
+
+        @self.app.route('/getBan/<date>/<int:page_index>')
+        def getBan(date='all', page_index=1):
+            # paginate
+            if not date or date == 'all':
+                results = Result.query.filter_by(
+                    status=int(Status.Swap_Ban)).order_by(Result.swap_id.desc()).paginate(
+                    page_index, self.num_per_page, False).items
+            else:
+                results = Result.query.filter(
+                    Result.date == int(date),
+                    Result.status == int(Status.Swap_Ban)).order_by(
+                    Result.swap_id.desc()).paginate(
+                    page_index, self.num_per_page, False).items
 
             records = []
             for r in results:

@@ -7,8 +7,9 @@ function msgstyle(finish){
 
 
 function loadData() {
+    var pageIndex = $('#page_index').attr('pi');
     $.ajax({
-        url: '/getResult', 
+        url: '/getResult/'+pageIndex, 
         type: 'GET', 
         data: '',
         error:function (data) {
@@ -66,9 +67,10 @@ function loadData() {
 }
 
 function loadBan(){
+    var pageIndex = $('#page_index').attr('pi');
     var date = $('#dateid').attr('d');
     $.ajax({
-        url: '/getBan/'+date, 
+        url: '/getBan/'+date+'/'+pageIndex, 
         type: 'GET', 
         data: '',
         error:function (data) {

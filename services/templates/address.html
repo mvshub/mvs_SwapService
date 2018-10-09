@@ -4,10 +4,23 @@
     <head>
       <meta charset="UTF-8">
       <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-      <title>{{ address }}</title>
+      <title>{{ '{} {}, page {}'.format(direction, address, page_index) }}</title>
     </head>
 
     <body>
+        <table width="50%" align="center">
+                <td align="center" width="30%">
+                    <a href= "{{ url_for('swap_address', address=address, page_index=(page_index - 1 if page_index - 1 > 0 else 1)) }}">
+                        {{ '<< Previous' }}
+                    </a>
+                </td>
+                <td align="center" width="40%"> {{ 'Page {}'.format(page_index) }} </td>
+                <td align="center" width="30%">
+                    <a href= "{{ url_for('swap_address', address=address, page_index=page_index + 1) }}">
+                        {{ 'Next >>' }}
+                    </a>
+                </td>
+            </table>
         <table >
             <tr>
                 <td valign="top"><table >
