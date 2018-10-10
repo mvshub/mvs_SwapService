@@ -33,7 +33,7 @@ class MainService(IService):
         self.app = None
         self.settings = settings
 
-        self.num_per_page = int(settings.get('num_per_page',50))
+        self.num_per_page = int(settings.get('num_per_page', 50))
         if self.num_per_page < 1:
             self.num_per_page = 1
 
@@ -84,12 +84,63 @@ class MainService(IService):
             end_date = start_date
         return start_date, end_date
 
-    def start(self):
-        self.app = Flask(__name__)
+    def query_statistics(self, start_date, end_date):
+        finish_status = int(Status.Swap_Finish)
+        ban_status = int(Status.Swap_Ban)
 
-        import os
-        self.app.config['CSRF_ENABLED'] = True
-        self.app.config['SECRET_KEY'] = os.urandom(24)
+        # finished
+        finished_condition = and_(Result.status == finish_status,
+                                  Result.date <= end_date,
+                                  Result.date >= start_date)
+        num_finished = case([(finished_condition, 1)], else_=0)
+        total_finished = case([(finished_condition, Result.amount)], else_=0)
+
+        # pending
+        pending_condition = and_(Result.status != finish_status,
+                                 Result.status != ban_status,
+                                 Result.date <= end_date,
+                                 Result.date >= start_date)
+        num_pending = case([(pending_condition, 1)], else_=0)
+        total_pending = case([(pending_condition, Result.amount)], else_=0)
+
+        # banned
+        banned_condition = and_(Result.status == ban_status,
+                                Result.date <= end_date,
+                                Result.date >= start_date)
+        num_ban = case([(banned_condition, 1)], else_=0)
+        total_ban = case([(banned_condition, Result.amount)], else_=0)
+
+        # total
+        date_condition = and_(Result.date <= end_date,
+                              Result.date >= start_date)
+        num_total = case([(date_condition, 1)], else_=0)
+        total_amount = case([(date_condition, Result.amount)], else_=0)
+        total_fee = case([(date_condition, Result.from_fee)], else_=0)
+
+        # query
+        query = db.session.query(
+            Result.coin,
+            Result.token,
+            func.sum(num_finished),
+            func.sum(total_finished),
+            func.sum(num_pending),
+            func.sum(total_pending),
+            func.sum(num_ban),
+            func.sum(total_ban),
+            func.sum(num_total),
+            func.sum(total_amount),
+            func.sum(total_fee))
+        items = query.group_by(Result.coin, Result.token).all()
+
+        results = [(x[0], x[1],
+                    x[2], self.format_rough_amount(x[3]),
+                    x[4], self.format_rough_amount(x[5]),
+                    x[6], self.format_rough_amount(x[7]),
+                    x[8], self.format_rough_amount(x[9]),
+                    self.format_rough_amount(x[10])) for x in items]
+        return results
+
+    def setup_websites(self):
 
         @self.app.route('/')
         def root():
@@ -101,35 +152,35 @@ class MainService(IService):
                 submit = SubmitField("Submit")
                 condition = StringField("condition", [Required()])
             form = FormCondition()
-            condition = form['condition'].data
+            user_data = form['condition'].data
             #print (condition)
 
-            if condition.isdigit():
-                result = db.session.query(Result).filter_by(
-                    swap_id=condition).limit(1).first()
+            if user_data.isdigit():
+                result = Result.query.filter_by(
+                    swap_id=user_data).limit(1).first()
                 if result:
                     return redirect(url_for('swap_raw', tx_from=result.tx_from))
 
-                result = db.session.query(Result).filter_by(
-                    date=condition).limit(1).first()
+                result = Result.query.filter_by(
+                    date=user_data).limit(1).first()
                 if result:
-                    return redirect(url_for('swap_date', date=condition))
+                    return redirect(url_for('swap_date', date=user_data))
 
-            result = db.session.query(Result).filter(
-                or_(Result.from_address == str(condition),
-                    Result.to_address == str(condition))).limit(1).first()
+            condition = or_(Result.from_address == str(user_data),
+                            Result.to_address == str(user_data))
+            result = Result.query.filter(condition).limit(1).first()
             if result:
-                return redirect(url_for('swap_address', address=condition))
+                return redirect(url_for('swap_address', address=user_data))
 
-            result = db.session.query(Result).filter_by(
-                tx_from=str(condition)).limit(1).first()
+            result = Result.query.filter_by(
+                tx_from=str(user_data)).limit(1).first()
             if result:
-                return redirect(url_for('swap_raw', tx_from=condition))
+                return redirect(url_for('swap_raw', tx_from=user_data))
 
-            result = db.session.query(Result).filter_by(
-                token=str(condition)).limit(1).first()
+            result = Result.query.filter_by(
+                token=str(user_data)).limit(1).first()
             if result:
-                return redirect(url_for('swap_token', token=condition))
+                return redirect(url_for('swap_token', token=user_data))
 
             return response.make_response(response.ERR_BAD_PARAMETER)
 
@@ -140,7 +191,6 @@ class MainService(IService):
             page_index = self.calculate_page_index(total_count, page_index)
             return render_template('index.html', page_index=page_index)
 
-
         @self.app.route('/getResult/<int:page_index>')
         def getResult(page_index=1):
             # paginate
@@ -149,6 +199,7 @@ class MainService(IService):
 
             # result
             records = []
+
             def getMinconf(coin, token):
                 if coin == 'ETH' or coin == 'ETHToken':
                     coin = 'ETP'
@@ -191,28 +242,38 @@ class MainService(IService):
 
         @self.app.route('/status/<coin>/<token>/<date>/<int:status>/<int:page_index>')
         @self.app.route('/status/<coin>/<token>/<date>/<int:status>')
-        def swap_status(coin, token, date, status=0,page_index=1):
+        def swap_status(coin, token, date, status=0, page_index=1):
             start_date, end_date = self.parse_date(date)
+
             if status == 0:
-                query = Result.query.filter(and_(
+                condition = and_(
                     Result.date >= start_date, Result.date <= end_date,
-                    Result.coin == coin, Result.token == token)).order_by(
-                    Result.swap_id.desc())
+                    Result.coin == coin, Result.token == token)
+
             elif status == 1:
-                query = Result.query.filter(and_(
+                condition = and_(
                     Result.date >= start_date, Result.date <= end_date,
                     Result.coin == coin, Result.token == token,
-                    Result.status == int(Status.Swap_Finish))).order_by(
-                    Result.swap_id.desc())
+                    Result.status == int(Status.Swap_Finish))
+
             elif status == 2:
-                query = Result.query.filter(and_(
+                condition = and_(
                     Result.date >= start_date, Result.date <= end_date,
                     Result.coin == coin, Result.token == token,
-                    Result.status != int(Status.Swap_Finish))).order_by(
-                    Result.swap_id.desc())
+                    Result.status != int(Status.Swap_Finish),
+                    Result.status != int(Status.Swap_Ban))
+
+            elif status == 3:
+                condition = and_(
+                    Result.date >= start_date, Result.date <= end_date,
+                    Result.coin == coin, Result.token == token,
+                    Result.status == int(Status.Swap_Ban))
+
             else:
                 return response.make_response(response.ERR_BAD_PARAMETER)
 
+            query = Result.query.filter(condition).order_by(
+                Result.swap_id.desc())
             page_index, results = self.paginate(query, page_index)
 
             records = []
@@ -241,11 +302,11 @@ class MainService(IService):
 
         @self.app.route('/date/<date>/<int:page_index>')
         @self.app.route('/date/<date>')
-        def swap_date(date,page_index=1):
+        def swap_date(date, page_index=1):
             query = Result.query.filter_by(date=date).order_by(
                 Result.swap_id.desc())
             page_index, results = self.paginate(query, page_index)
-            
+
             records = []
             for r in results:
                 record = {}
@@ -271,7 +332,7 @@ class MainService(IService):
         @self.app.route('/token/<token>')
         def swap_token(token, page_index=1):
             query = Result.query.filter_by(token=token).order_by(
-                    Result.swap_id.desc())
+                Result.swap_id.desc())
             page_index, results = self.paginate(query, page_index)
 
             for result in results:
@@ -281,73 +342,23 @@ class MainService(IService):
 
             return render_template('token.html', token=token, results=results, page_index=page_index)
 
-        @self.app.route('/report/<date>')
+        @self.app.route('/report/<start_date>/<end_date>')
+        @self.app.route('/report/<start_date>')
         @self.app.route('/report')
-        def report_per_day(date=None):
-            if not date:
-                date = date_time.get_current_date();
+        def view_report(start_date=None, end_date=None):
+            if not start_date:
+                start_date = date_time.get_current_date()
 
-            num_finished = case(
-                [(Result.status == int(Status.Swap_Finish), 1)], else_=0)
-            total_finished = case(
-                [(Result.status == int(Status.Swap_Finish), Result.amount)], else_=0)
-            num_pending = case(
-                [(Result.status != int(Status.Swap_Finish), 1)], else_=0)
-            total_pending = case(
-                [(Result.status != int(Status.Swap_Finish), Result.amount)], else_=0)
-            num_total = case([(Result.date == date, 1)], else_=0)
-            total = case([(Result.date == date, Result.amount)], else_=0)
-            total_fee = case([(Result.date == date, Result.from_fee)], else_=0)
+            if not end_date:
+                end_date = start_date
 
-            results = db.session.query(
-                Result.coin,
-                Result.token,
-                func.sum(num_finished),
-                func.sum(total_finished),
-                func.sum(num_pending),
-                func.sum(total_pending),
-                func.sum(num_total),
-                func.sum(total),
-                func.sum(total_fee)).\
-                group_by(Result.coin, Result.token, Result.date).\
-                having(Result.date == date).all()
+            results = self.query_statistics(start_date, end_date)
 
-            results = [(x[0], x[1],
-                        x[2], self.format_rough_amount(x[3]),
-                        x[4], self.format_rough_amount(x[5]),
-                        x[6], self.format_rough_amount(x[7]),
-                        self.format_rough_amount(x[8])) for x in results]
-            return render_template('reportperday.html', date=date, reports=results)
-
-        @self.app.route('/report/<date1>/<date2>')
-        def report_between(date1, date2):
-            finished = case(
-                [(Result.status == int(Status.Swap_Finish), 1)], else_=0)
-            total_amount = case(
-                [(Result.status == int(Status.Swap_Finish), Result.amount)], else_=0)
-            total_fee = case(
-                [(Result.status == int(Status.Swap_Finish), Result.from_fee)], else_=0)
-            pending = case(
-                [(Result.status != int(Status.Swap_Finish), 1)], else_=0)
-            total_pending = case(
-                [(Result.status != int(Status.Swap_Finish), Result.amount)], else_=0)
-
-            results = db.session.query(
-                Result.coin,
-                Result.token,
-                func.sum(total_amount),
-                func.sum(total_fee),
-                func.sum(finished),
-                func.sum(total_pending),
-                func.sum(pending)). \
-                filter(and_(Result.date <= date2, Result.date >= date1)). \
-                group_by(Result.coin, Result.token).all()
-
-            results = [(x[0], x[1],
-                        self.format_rough_amount(x[2]),
-                        self.format_rough_amount(x[3]),
-                        x[4], self.format_rough_amount(x[5]), x[6]) for x in results]
-            return render_template('report.html', date="%s -- %s" % (date1, date2), reports=results)
+            if start_date == end_date:
+                return render_template('reportperday.html', date=start_date, reports=results)
+            else:
+                date = "{} -- {}".format(start_date, end_date)
+                return render_template('report.html', date=date, reports=results)
 
         @self.app.route('/report_query', methods=['GET', 'POST'])
         def report_query():
@@ -358,14 +369,14 @@ class MainService(IService):
             form = FormQuery()
             date_from = form['date_from'].data
             date_to = form['date_to'].data
-            if date_to:
-                return redirect(url_for('report_between', date1=date_from, date2=date_to))
+            if date_to and date_from != date_to:
+                return redirect(url_for('view_report', start_date=date_from, end_date=date_to))
             else:
-                return redirect(url_for('report_per_day', date=date_from))
+                return redirect(url_for('view_report', start_date=date_from))
 
         @self.app.route('/tx/<tx_from>')
         def swap_raw(tx_from):
-            result = db.session.query(Result).filter_by(
+            result = Result.query.filter_by(
                 tx_from=tx_from).first()
 
             if result != None:
@@ -409,7 +420,7 @@ class MainService(IService):
                     Status.Swap_Finish) else 1
                 records.append(record)
 
-            results = db.session.query(Binder).filter_by(
+            results = Binder.query.filter_by(
                 binder=address).order_by(Binder.iden.desc()).all()
             for r in results:
                 bind = {}
@@ -461,7 +472,7 @@ class MainService(IService):
             else:
                 total_count = Result.query.filter(
                     Result.date == int(date), Result.status == int(Status.Swap_Ban)).count()
-            
+
             page_index = self.calculate_page_index(total_count, page_index)
 
             return render_template('ban.html',  date=date, page_index=page_index)
@@ -512,8 +523,7 @@ class MainService(IService):
         @self.app.route('/retry', methods=['POST'])
         def swap_retry():
             swap_id = request.form.get('swap_id')
-            result = db.session.query(Result).filter_by(
-                swap_id=swap_id).first()
+            result = Result.query.filter_by(swap_id=swap_id).first()
             if result:
                 result.status = int(Status.Swap_New)
                 result.message = "Retry swap"
@@ -532,6 +542,17 @@ class MainService(IService):
                         result.to_address, result.amount))
 
             return response.make_response(response.ERR_INVALID_SWAPID)
+
+    def start(self):
+
+        # initialize Flask app
+        self.app = Flask(__name__)
+
+        import os
+        self.app.config['CSRF_ENABLED'] = True
+        self.app.config['SECRET_KEY'] = os.urandom(24)
+
+        self.setup_websites()
 
         # start swap service
         self.setup_db()
