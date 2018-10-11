@@ -287,6 +287,7 @@ class MainService(IService):
                 record['to'] = r.to_address
                 record['amount'] = self.format_amount(r.amount)
                 record['fee'] = self.format_amount(r.from_fee)
+                record['date'] = r.date
                 record['time'] = self.format_time(r.time)
                 record['tx_height'] = r.tx_height
                 record['message'] = constants.ProcessStr(
@@ -318,6 +319,7 @@ class MainService(IService):
                 record['to'] = r.to_address
                 record['amount'] = self.format_amount(r.amount)
                 record['fee'] = self.format_amount(r.from_fee)
+                record['date'] = r.date
                 record['time'] = self.format_time(r.time)
                 record['tx_height'] = r.tx_height
                 record['message'] = constants.ProcessStr(
@@ -502,6 +504,7 @@ class MainService(IService):
                 record['to'] = r.to_address
                 record['amount'] = self.format_amount(r.amount)
                 record['fee'] = self.format_amount(r.from_fee)
+                record['date'] = r.date
                 record['time'] = self.format_time(r.time)
                 record['message'] = r.message
 
