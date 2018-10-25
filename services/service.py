@@ -364,8 +364,8 @@ class MainService(IService):
                         balances[s['coin']] = rpc.get_balance(s['scan_address'])
                     elif s['coin']  == 'ETP':
                         rpc = self.rpcmanager.get_available_feed(s['rpc'])
-                        balances[s['coin']] = rpc.get_account_balance(s['account'],s['passphrase'])
-
+                        balances[s['coin']] = rpc.get_account_balance(s['account'],s['passphrase']) 
+                        balances[s['coin']] = balances[s['coin']] * ( 10 ** -8) 
                 except Exception as e:
                     Logger.get().info("get s['coin'] value failed,{}".format(str(e)))
                     
