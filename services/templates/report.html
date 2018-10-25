@@ -8,55 +8,90 @@
     </head>
 
    <body>
-      <div class="date">
-          <form action="/report_query" method="post">
-              <input type="text" name="date_from" placeholder="date_from, eg: 20180801" />
-              --
-              <input type="text" name="date_to" placeholder="date_to, can be omit" />
-              <button type="submit" value="Submit" >Search</button>
-          </form>
-      </div>
-      <table>
-        <td align="center" width="10%"> Coin </td>
-        <td align="center" width="10%"> Token </td>
-        <td align="center" width="20%"> Processed Amount</td>
-        <!-- <td align="center" width="10%"> Processed Fee</td> -->
-        <td align="center" width="15%"> Processed Num </td>
-        <td align="center" width="20%"> Pending Amount</td>
-        <td align="center" width="15%"> Pending Num</td>
-          {% for values in reports %}
-              <tr>
-                <td align="right"> {{ values[0] }} </td>
-                <td align="right">
-                    <a href= "{{ url_for( 'swap_token', token=values[1]) }}">
-                        {{ values[1] }}
-                    </a>
-                </td>
-                <td align="right"> {{ values[2] }} </td>
-                <!-- <td align="right"> {{ values[3] }} </td> -->
-                <td align="center">
-                  {% if values[4] != 0 %}
-                    <a href= "{{ url_for( 'swap_status', coin=values[0],token=values[1],date=date,status=1) }}">
-                            {{ values[4] }}
-                    </a>
-                  {% else %}
-                    {{ values[4] }}
-                  {% endif %}
-                </td>
-                <td align="right"> {{ values[5] }} </td>
-                <td align="center">
-                  {% if values[6] != 0 %}
-                    <a href= "{{ url_for( 'swap_status', coin=values[0],token=values[1],date=date,status=2) }}">
-                            {{ values[6] }}
-                    </a>
-                  {% else %}
-                    {{ values[6] }}
-                  {% endif %}
-                </td>
-              </tr>
+        <div class="date">
+            <form action="/report_query" method="post">
+                <input type="text" name="date_from" placeholder="date_from, eg: 20180801" />
+                --
+                <input type="text" name="date_to" placeholder="date_to, can be omit" />
+                <button type="submit" value="Submit" >Search</button>
+            </form>
+        </div>
+        <table>
+          <td align="center" width="20%"> Type </td>
+          <td align="center" width="80%"> Balance </td>
+          <tr>
+              <td align="right"> ETP </td>
+              <td align="right"> {{ etp_balance }} </td> 
+          <tr>
+          <tr>
+              <td align="right"> ETH </td>
+              <td align="right"> {{ eth_balance }} </td> 
+          <tr>
+        <table>  
+        <table>
+            <td align="center" width="10%"> From Coin </td>
+            <td align="center" width="10%"> From Token </td>
+            <td align="center" width="10%"> Finished Num </td>
+            <td align="center" width="10%"> Finished Amount </td>
+            <td align="center" width="10%"> Pending Num </td>
+            <td align="center" width="10%"> Pending Amount </td>
+            <td align="center" width="10%"> Ban Num </td>
+            <td align="center" width="10%"> Ban Amount </td>
+            <td align="center" width="10%"> Total Num </td>
+            <td align="center" width="10%"> Total Amount </td>
+            <!-- <td align="center" width="10%"> Total Fee </td> -->
 
-          {% endfor %}
-      </table>
+            {% for value in reports %}
+            <tr>
+                <td align="center"> {{ value[0] }} </td>
+                <td align="center">
+                    <a href= "{{ url_for( 'swap_token', token=value[1]) }}">
+                        {{ value[1] }}
+                    </a>
+                </td>
+
+                <td align="center">
+                  {% if value[2] != 0 %}
+                    <a href= "{{ url_for( 'swap_status', coin=value[0],token=value[1],date=date,status=1) }}">
+                            {{ value[2] }}
+                    </a>
+                  {% else %}
+                    {{ value[2] }}
+                  {% endif %}
+                </td>
+                <td align="right"> {{ value[3] }} </td>
+
+                <td align="center">
+                  {% if value[4] != 0 %}
+                    <a href= "{{ url_for( 'swap_status', coin=value[0],token=value[1],date=date,status=2) }}">
+                            {{ value[4] }}
+                    </a>
+                  {% else %}
+                    {{ value[4] }}
+                  {% endif %}
+                </td>
+                <td align="right"> {{ value[5] }} </td>
+
+                <td align="center">
+                  {% if value[6] != 0 %}
+                    <a href= "{{ url_for( 'swap_status', coin=value[0], token=value[1], date=date, status=3) }}">
+                            {{ value[6] }}
+                    </a>
+                  {% else %}
+                    {{ value[6] }}
+                  {% endif %}
+                </td>
+                <td align="right"> {{ value[7] }} </td>
+
+                <td align="center"> {{ value[8] }} </td>
+                <td align="right"> {{ value[9] }} </td>
+
+
+                <!-- <td align="right"> {{ value[10] }} </td> -->
+
+            </tr>
+            {% endfor %}
+        </table>
 
    </body>
 </html>
