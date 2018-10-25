@@ -355,12 +355,28 @@ class MainService(IService):
                 end_date = start_date
 
             results = self.query_statistics(start_date, end_date)
+            
+            balances = {}
+            for s in self.settings['scans']['services']:
+                try:
+                    if s['coin']  == 'ETH':
+                        rpc = self.rpcmanager.get_available_feed(s['rpc'])
+                        balances[s['coin']] = rpc.get_balance(s['scan_address'])
+                    elif s['coin']  == 'ETP':
+                        rpc = self.rpcmanager.get_available_feed(s['rpc'])
+                        balances[s['coin']] = rpc.get_account_balance(s['account'],s['passphrase'])
+
+                except Exception as e:
+                    Logger.get().info("get s['coin'] value failed,{}".format(str(e)))
+                    
 
             if start_date == end_date:
-                return render_template('reportperday.html', date=start_date, reports=results)
+                return render_template('reportperday.html', date=start_date, reports=results,
+                etp_balance=balances.get('ETP', 0), eth_balance=balances.get('ETH', 0))
             else:
                 date = "{} -- {}".format(start_date, end_date)
-                return render_template('report.html', date=date, reports=results)
+                return render_template('report.html', date=date, reports=results,
+                etp_balance=balances.get('ETP', 0), eth_balance=balances.get('ETH', 0))
 
         @self.app.route('/report_query', methods=['GET', 'POST'])
         def report_query():
