@@ -569,7 +569,8 @@ class MainService(IService):
         def query_database(table='swap', limit=100):
             sql_cmd = "select * from `{}` order by `iden` desc limit {}".format(table, limit)
             results = db.session.execute(sql_cmd)
-            return json.dumps([(dict(row.items())) for row in results], indent=4, cls=DecimalEncoder)
+            return render_template('db.html',  table=table
+            , results=json.dumps([(dict(row.items())) for row in results], indent=4, cls=DecimalEncoder))
 
     def start(self):
 
