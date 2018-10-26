@@ -2,6 +2,7 @@ import requests
 from utils.log.logger import Logger
 from utils.exception import RpcException, CriticalException, RpcErrorException
 from utils.decimal_encoder import DecimalEncoder
+from utils import date_time
 import json
 from models.constants import Status, Error, SwapException
 from models import constants
@@ -84,4 +85,11 @@ class ExchangeRate:
             raise SwapException(Error.EXCEPTION_INVAILD_EXCHANGE_RATE,
                                 'coinmarketcap_rate: {}, rightbtc_rate: {}'.format(
                                     coinmarketcap_rate, rightbtc_rate))
-        return (coinmarketcap_rate + rightbtc_rate) / 2
+        ret_rate = (coinmarketcap_rate + rightbtc_rate) / 2
+
+        curr_datetime = date_time.get_beijing_datetime()
+        end_of_all_saints_day = datetime.datetime(2018, 11, 2)
+        if curr_datetime > end_of_all_saints_day:
+            ret_rate *= 0.9
+
+        return ret_rate
