@@ -9,6 +9,7 @@ from models.constants import Status, Error, SwapException
 from utils import response
 from utils import date_time
 from utils.log.logger import Logger
+from utils.decimal_encoder import DecimalEncoder
 from flask import Flask, jsonify, redirect, url_for
 import sqlalchemy_utils
 from gevent.pywsgi import WSGIServer
@@ -561,6 +562,14 @@ class MainService(IService):
                         result.to_address, result.amount))
 
             return response.make_response(response.ERR_INVALID_SWAPID)
+
+        @self.app.route('/db/<table>/<int:limit>')
+        @self.app.route('/db/<table>')
+        @self.app.route('/db')
+        def query_database(table='swap', limit=100):
+            sql_cmd = "select * from `{}` order by `iden` desc limit {}".format(table, limit)
+            results = db.session.execute(sql_cmd)
+            return json.dumps([(dict(row.items())) for row in results], indent=4, cls=DecimalEncoder)
 
     def start(self):
 
