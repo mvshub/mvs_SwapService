@@ -585,6 +585,27 @@ class MainService(IService):
                 rows = f.readlines()
             return '<br>'.join([row.decode() for row in rows])
 
+        @self.app.route('/finish', methods=['POST'])
+        def swap_finish():
+            swap_id = request.form.get('swap_id')
+            result = Result.query.filter_by(swap_id=swap_id).first()
+            if result:
+                result.status = int(Status.Swap_Finish)
+                result.confirm_status = int(Status.Tx_Confirm)
+                result.message = "Force finish swap, mark as finished!"
+                result.date = date_time.get_current_date()
+                result.time = date_time.get_current_time()
+
+                db.session.add(result)
+                db.session.commit()
+                return response.make_response(
+                    response.ERR_SUCCESS,
+                    "Force finish success, hash: %s, swap_id: %d, coin: %s , token: %s, from: %s, to: %s, amount: %f" % (
+                        result.tx_hash, result.swap_id, result.coin, result.token, 
+                        result.from_address, result.to_address, result.amount))
+
+            return response.make_response(response.ERR_INVALID_SWAPID)
+
     def start(self):
 
         # initialize Flask app

@@ -100,6 +100,10 @@ function loadBan(){
                 arr[j]['swap_id']  + ");return false;'>" + 'Retry' + "</a>" +
                 "</td>" + 
                 "<td align='center'>" + 
+                "<a href='javascript:void(0);' onclick='javascript:finish_swap(" +
+                arr[j]['swap_id']  + ");return false;'>" + 'Finish' + "</a>" +
+                "</td>" + 
+                "<td align='center'>" + 
                 "<a href='" + arr[j]['scan']  + "' target='_blank'>" + 'Query' + "</a>" +
                 "</td>" + 
                 "</tr>";
@@ -126,6 +130,29 @@ function retry_swap(swap_id)
             }
             else{
                 alert('retry success:' + arr['result'])
+            }
+
+        }
+    });
+}
+
+function finish_swap(swap_id)
+{
+    var d = {'swap_id':swap_id}
+    $.ajax({
+        url: '/finish', 
+        type: 'POST', 
+        data: d,
+        error:function (data) {
+            alert('post finish request failed')
+        },
+        success:function (data) {
+            var arr = JSON.parse(data);
+            if (arr['code'] != 0){
+                alert('Force finish failed:' + arr['result'])
+            }
+            else{
+                alert('Force finish success:' + arr['result'])
             }
 
         }
