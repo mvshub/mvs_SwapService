@@ -3,6 +3,9 @@ import datetime
 def get_beijing_datetime():
     return datetime.datetime.utcnow() + datetime.timedelta(hours=8)
 
+def get_datetime_of_timezone(delta_hours):
+    return datetime.datetime.utcnow() + datetime.timedelta(hours=delta_hours)
+
 def get_current_date():
     return int(datetime.datetime.strftime(get_beijing_datetime(), '%4Y%2m%2d'))
 
