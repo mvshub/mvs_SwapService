@@ -67,7 +67,7 @@ python3 main.py
 ```
 or, use watcher script (it will watch and restart the service if it's stopped)
 ```
-nohup ./scripts/start_swap_service.py >/dev/null 2>&1 &
+nohup python3 -u ./scripts/start_swap_service.py 2>&1 &
 ```
 
 #### Config file
