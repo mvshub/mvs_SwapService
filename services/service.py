@@ -569,8 +569,21 @@ class MainService(IService):
         def query_database(table='swap', limit=100):
             sql_cmd = "select * from `{}` order by `iden` desc limit {}".format(table, limit)
             results = db.session.execute(sql_cmd)
-            return render_template('db.html',  table=table
-            , results=json.dumps([(dict(row.items())) for row in results], indent=4, cls=DecimalEncoder))
+            return render_template('db.html',  table=table, results=[(dict(row.items())) for row in results])
+
+        @self.app.route('/log/<int:lines>')
+        @self.app.route('/log')
+        def query_log(lines=100):
+            log_file = 'log/swap_log'
+            rows = []
+            with open(log_file, 'rb') as f:
+                f.seek(0, 2)
+                file_size = f.tell()
+                chars_per_line = 100
+                pos = min(lines*chars_per_line, file_size)
+                f.seek(-pos, 2)
+                rows = f.readlines()
+            return '<br>'.join([row.decode() for row in rows])
 
     def start(self):
 

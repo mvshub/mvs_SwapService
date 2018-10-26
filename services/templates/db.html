@@ -4,7 +4,7 @@
     <head>
       <meta charset="UTF-8">
       <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-      <title>{{ 'db {}, page {}'.format(table) }}</title>
+      <title>{{ 'db {}'.format(table) }}</title>
     </head>
 
     <div id="dateid" d="{{date}}" style="display:none"></div>
@@ -12,17 +12,17 @@
 
     <body>
         <table>
-            {% for idx, item in enumerate(results) %}
-            {% if idx == 0 %}
+            {% if results | length %}
             <tr>
-                {% for key in item.keys() %}
-                <td align="center">key</td>
+                {% for key in results[0].keys() %}
+                <td align="center">{{ key }}</td>
                 {% endfor %}
             </tr>
             {% endif %}
+            {% for item in results %}
             <tr>
                 {% for value in item.values() %}
-                <td align="right">value</td>
+                <td align="right">{{ value }}</td>
                 {% endfor %}
             </tr>
             {% endfor %}
