@@ -167,7 +167,8 @@ class ExchangeRate:
         # ret_rate = (bitfinex_rate + rightbtc_rate) / 2
         ret_rate = min(bitfinex_rate, rightbtc_rate)
 
-        curr_datetime = date_time.get_beijing_datetime()
+        # base on center standard time, 12 hours after beijing time
+        curr_datetime = date_time.get_datetime_of_timezone(-4)
         end_of_all_saints_day = datetime.datetime(2018, 11, 2)
         if curr_datetime > end_of_all_saints_day:
             ret_rate *= 0.9
