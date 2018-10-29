@@ -141,7 +141,33 @@ class ExchangeRate:
         return ethusd_rate/etpusd_rate
 
     @classmethod
-    def get_etpeth_exchange_rate(cls):
+    def get_explorer_rate(cls):
+        url = 'https://explorer.mvs.org/api/bridge/rate/ETHETP'
+
+        try:
+            js = ExchangeRate.request_url(url)
+            if not isinstance(js, dict) or js.get('status') is None:
+                raise RpcErrorException('no status item.')
+
+            status_dict = js.get('status')
+            if not isinstance(status_dict, dict) or status_dict.get('success') is None:
+                raise RpcErrorException('no success item.')
+
+            if status_dict.get('success') != 1:
+                return None
+
+            if js.get('result') is None:
+                raise RpcErrorException('no result item.')
+
+            return js['result']
+
+        except Exception as e:
+            return None
+
+        return None
+
+    @classmethod
+    def get_exchanger_rate(cls):
         bitfinex_rate = ExchangeRate.get_bitfinex_rate()
         rightbtc_rate = ExchangeRate.get_rightbtc_rate()
 
@@ -174,3 +200,23 @@ class ExchangeRate:
             ret_rate *= 0.9
 
         return ret_rate
+
+    @classmethod
+    def get_etpeth_exchange_rate(cls):
+        explorer_rate = ExchangeRate.get_explorer_rate()
+        exchanger_rate = ExchangeRate.get_exchanger_rate()
+
+        if not explorer_rate:
+            explorer_rate = exchanger_rate
+
+        diff = abs(exchanger_rate - explorer_rate)
+        max_fluctuation = 0.1
+        if (diff / exchanger_rate > max_fluctuation
+                or diff / explorer_rate > max_fluctuation):
+            raise SwapException(Error.EXCEPTION_INVAILD_EXCHANGE_RATE,
+                                'explorer_rate: {}, exchanger_rate: {}'.format(
+                                    explorer_rate, exchanger_rate))
+
+        # Logger.get().info("explorer rate: {}, exchanger rate: {}".format(
+        #     explorer_rate, exchanger_rate))
+        return explorer_rate
