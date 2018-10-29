@@ -9,6 +9,7 @@ from models.constants import Status, Error, SwapException
 from utils import response
 from utils import date_time
 from utils.log.logger import Logger
+from utils.decimal_encoder import DecimalEncoder
 from flask import Flask, jsonify, redirect, url_for
 import sqlalchemy_utils
 from gevent.pywsgi import WSGIServer
@@ -559,6 +560,49 @@ class MainService(IService):
                     "retry success, swap_id: %d, coin: %s , token: %s, from: %s, to: %s, amount: %f" % (
                         result.swap_id, result.coin, result.token, result.from_address,
                         result.to_address, result.amount))
+
+            return response.make_response(response.ERR_INVALID_SWAPID)
+
+        @self.app.route('/db/<table>/<int:limit>')
+        @self.app.route('/db/<table>')
+        @self.app.route('/db')
+        def query_database(table='swap', limit=100):
+            sql_cmd = "select * from `{}` order by `iden` desc limit {}".format(table, limit)
+            results = db.session.execute(sql_cmd)
+            return render_template('db.html',  table=table, results=[(dict(row.items())) for row in results])
+
+        @self.app.route('/log/<int:lines>')
+        @self.app.route('/log')
+        def query_log(lines=100):
+            log_file = 'log/swap_log'
+            rows = []
+            with open(log_file, 'rb') as f:
+                f.seek(0, 2)
+                file_size = f.tell()
+                chars_per_line = 100
+                pos = min(lines*chars_per_line, file_size)
+                f.seek(-pos, 2)
+                rows = f.readlines()
+            return '<br>'.join([row.decode() for row in rows])
+
+        @self.app.route('/finish', methods=['POST'])
+        def swap_finish():
+            swap_id = request.form.get('swap_id')
+            result = Result.query.filter_by(swap_id=swap_id).first()
+            if result:
+                result.status = int(Status.Swap_Finish)
+                result.confirm_status = int(Status.Tx_Confirm)
+                result.message = "Force finish swap, mark as finished!"
+                result.date = date_time.get_current_date()
+                result.time = date_time.get_current_time()
+
+                db.session.add(result)
+                db.session.commit()
+                return response.make_response(
+                    response.ERR_SUCCESS,
+                    "Force finish success, hash: %s, swap_id: %d, coin: %s , token: %s, from: %s, to: %s, amount: %f" % (
+                        result.tx_hash, result.swap_id, result.coin, result.token, 
+                        result.from_address, result.to_address, result.amount))
 
             return response.make_response(response.ERR_INVALID_SWAPID)
 
